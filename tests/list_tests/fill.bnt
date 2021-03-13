@@ -1,0 +1,6 @@
+val x : int = 5;
+val a : List[int] = fill(x, 10);
+if (front(a) == 5 && back(a) == 5 && size(a) == 10)
+	2
+else
+	1

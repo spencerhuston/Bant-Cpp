@@ -1,0 +1,9 @@
+func f() -> int = 1;
+
+val x : int = f();
+
+func g() -> int = 2;
+
+val y : int = g();
+
+x + y

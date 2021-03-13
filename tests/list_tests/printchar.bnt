@@ -1,0 +1,3 @@
+val c : char = 'c';
+printChar(c);
+0

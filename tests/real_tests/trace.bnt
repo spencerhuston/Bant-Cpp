@@ -1,0 +1,11 @@
+func trace(size: int, index: int, mat: List[List[int]], sum: int) -> int = {
+	if (size == index)
+		sum
+	else
+		trace(size, index + 1, mat, sum + mat[index][index])
+};
+
+val matrix : List[List[int]] = new List { new List { 1, 2, 3 }, 
+					  new List { 4, 5, 6 }, 
+					  new List { 7, 8, 9 }};
+trace(size(matrix), 0, matrix, 0)

@@ -1,0 +1,7 @@
+val arr : List[int] = new List { 1, 2, 3 };
+val arr2 : List[int] = replaceInPlace(arr, 4, 2);
+
+if (equals(arr, arr2))
+	2
+else
+	1

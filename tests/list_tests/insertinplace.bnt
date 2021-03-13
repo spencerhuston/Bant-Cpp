@@ -1,0 +1,8 @@
+val a : List[int] = new List { 1, 2, 4, 5 };
+val x : int = 3;
+val b : List[int] = insertInPlace(a, x, 2);
+
+if (equals(a, b) && a[2] == 3 && b[2] == 3)
+	2
+else
+	1

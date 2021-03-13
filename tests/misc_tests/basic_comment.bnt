@@ -1,0 +1,3 @@
+func f() -> int = 5;
+# comment here
+f()

@@ -1,0 +1,5 @@
+val a : List[int] = head(new List { 1, 2, 3, 4 });
+if (size(a) == 3 && a[size(a) - 1] == 3)
+	2
+else
+	1

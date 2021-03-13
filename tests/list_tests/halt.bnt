@@ -1,0 +1,10 @@
+func f(x: int, c: int -> null) -> null = {
+	c(x * 5 + 5)
+};
+
+func g(x: int) -> null = {
+	printInt(x);
+	halt()
+};
+
+f(4, g)

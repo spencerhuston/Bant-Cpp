@@ -1,0 +1,20 @@
+func f[T](size: int) -> (T, int, List[T]) -> List[T] = {
+	func g[T](element: T, curr: int, l: List[T]) -> List[T] = {
+		if (curr == size)
+			l
+		else
+			g(element, curr + 1, pushBack(l, element))
+	};
+	g
+};
+
+val a : (int, int, List[int]) -> List[int] = f(10);
+val arr : List[int] = a(5, 0, new List { });
+
+val b : (bool, int, List[bool]) -> List[bool] = f(4);
+val arr2 : List[bool] = b(false, 0, new List { });
+
+if (arr[9] == 5 && !arr2[3])
+	5
+else 
+	4

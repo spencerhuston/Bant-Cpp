@@ -1,0 +1,7 @@
+val arr : List[int] = new List { 1, 2, 3 };
+val arr2 : List[int] = pushBackInPlace(arr, 4);
+
+if (equals(arr, arr2) && arr2[size(arr2) - 1] == 4)
+	2
+else
+	1

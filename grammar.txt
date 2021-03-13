@@ -1,0 +1,22 @@
+<type> ::= <ident>
+	| <type> '->' <type>
+	| '('[<type>[','<type>]*]')' '->' <type>
+	| 'List' '[' <type> ']'
+<op> ::= [ '*' | '/' | '+' | '-' | '<' | '>' | '!' | '==' | '!=' | '<=' | '>=' | '&&' | '||' ]
+<char> ::= ''' [ character ] '''
+<bool> ::= 'true' | 'false'
+<atom> ::= <number> | <bool> | 'null' | <char>
+	| '('<simp>')'
+	| <ident>
+<tight> ::= <atom>[ ['('[<simp>[','<simp>]*]')']* ] | ['['<simp>']']+
+	| '{'<exp>'}'
+<utight> ::= [<op>]<tight>
+<arg> ::= <ident>':'<type>
+<prog> ::= ['func' <ident>'['<type> [',' <type> ]* ']' '('[<arg>[','<arg>]*]')'['->' <type>] '=' <simp>';' ]* 
+<simp> ::= <utight>[<op><utight>]*
+	| 'if' '('<simp>')' <simp> ['else' <simp>]
+	| 'new' 'List' '{'[<simp>[','<simp>]*]'}'
+        | 'match' '('<ident>')' '{' ['case' <atom> '=' { <simp> }; ]* ['case' 'any' '=' { <simp> }; ] '}'
+	| <prog> <exp>
+<exp> ::= <simp>[;<exp>]
+	| 'val' <ident> ':' <type> '=' <simp>';' <exp>

@@ -1,0 +1,5 @@
+printChar('#');
+printChar('a');
+printChar('n');
+printChar('y');
+printChar('\n')

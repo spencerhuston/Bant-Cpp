@@ -1,0 +1,13 @@
+func f(x: int) -> int = {
+	if (x >= 0)
+		g(x - 1)
+	else 
+		x
+};
+
+func g(x: int) -> int = {
+	f(x - 1)
+};
+
+val x : int = f(5);
+x

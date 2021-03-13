@@ -1,0 +1,13 @@
+func double(size: int, arr: List[int], curr: int, newlist: List[int]) -> List[int] = {
+	if (curr == size)
+		newlist
+	else
+		double(size, arr, curr + 1, pushBack(newlist, (2 * arr[curr])))
+};
+
+val original : List[int] = new List { 1, 2, 3, 4, 5 };
+val new_list : List[int] = double(size(original), original, 0, new List { });
+if (new_list[4] == 10)
+	10
+else 
+	5
