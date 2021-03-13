@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "../includes/parser.hpp"
 #include "../includes/lexer.hpp"
 
 const std::string
