@@ -3,24 +3,23 @@
 Parser::Parser(const std::vector<Token> & tokenStream)
 : tokenStream(tokenStream) { }
 
-Expression
+ExpPtr
 Parser::makeTree() {
-    Expression tree = parseProgram();
+    ExpPtr tree = parseProgram();
     // err if anything leftover
     return tree;
 }
 
-Expression
+ExpPtr
 Parser::parseProgram() {
-    std::vector<Expression> functions;
+    std::vector<std::shared_ptr<Function>> functions;
     while (match(Token::TokenType::KEYWORD, "func"))
         functions.push_back(parseFunc());
 
-    Expression body = parseExpression();
-    return Program{currentToken(), functions, body};
+    return std::make_shared<Program>(currentToken(), functions, parseExpression());
 }
 
-Expression
+ExpPtr
 Parser::parseExpression() {
     if (!inBounds())
         return Expression::End();
@@ -31,24 +30,24 @@ Parser::parseExpression() {
         advance();
 
         skip(":");
-        Types::Type valueType = parseType({});
+        Types::TypePtr valueType = parseType({});
         skip("=");
-        Expression valueExpression = parseSimpleExpression();
+        ExpPtr valueExpression = parseSimpleExpression();
         skip(";");
-        Expression afterExpression = parseExpression();
-        return Let{token, ident, valueType, valueExpression, afterExpression};
+        ExpPtr afterExpression = parseExpression();
+        return std::make_shared<Let>(token, ident, valueType, valueExpression, afterExpression);
     } else {
         Token token = currentToken();
-        Expression simpleExpression = parseSimpleExpression();
+        ExpPtr simpleExpression = parseSimpleExpression();
         if (match(Token::TokenType::DELIM, ";")) {
-            Expression expression = parseExpression();
-            return Let{token, dummy(), Types::NullType(), simpleExpression, expression};
+            ExpPtr expression = parseExpression();
+            return std::make_shared<Let>(token, dummy(), Types::NullTypePtr(), simpleExpression, expression);
         }
         return simpleExpression;
     }
 }
 
-Expression
+ExpPtr
 Parser::parseSimpleExpression() {
     if (match(Token::TokenType::KEYWORD, "if")) {
         return parseBranch();
@@ -62,27 +61,29 @@ Parser::parseSimpleExpression() {
     return parseUtight(0);
 }
 
-Expression
+std::shared_ptr<Branch>
 Parser::parseBranch() {
     const Token token = currentToken();
     skip("(");
-    Expression condition = parseSimpleExpression();
+    ExpPtr condition = parseSimpleExpression();
     skip(")");
 
-    Expression trueBranch = parseSimpleExpression();
+    ExpPtr trueBranch = parseSimpleExpression();
     if (match(Token::TokenType::KEYWORD, "else")) {
-        return Branch{token, condition, trueBranch, parseSimpleExpression()};
+        return std::make_shared<Branch>(token, condition, 
+                                        trueBranch, parseSimpleExpression());
     }
-    return Branch{token, condition, trueBranch, Literal{token}};
+    return std::make_shared<Branch>(token, condition, 
+                                    trueBranch, std::make_shared<Literal>(token));
 }
 
-Expression
+std::shared_ptr<ListDefinition>
 Parser::parseList() {
     const Token token = currentToken();
     skip("List");
 	skip("{");
 
-    std::vector<Expression> listValues;
+    std::vector<ExpPtr> listValues;
     if (inBounds() && currentToken().text != "}") {
         listValues.push_back(parseSimpleExpression());
         while (match(Token::TokenType::DELIM, ",")) {
@@ -91,10 +92,10 @@ Parser::parseList() {
     }
 
     skip("}");
-    return ListDefinition{token, listValues};
+    return std::make_shared<ListDefinition>(token, listValues);
 }
 
-Expression
+std::shared_ptr<Match>
 Parser::parseMatch() {
     const Token token = currentToken();
     skip("(");
@@ -103,34 +104,36 @@ Parser::parseMatch() {
     skip(")");
 	skip("{");
 
-    std::vector<Case> cases;
+    std::vector<std::shared_ptr<Case>> cases;
     while (match(Token::TokenType::KEYWORD, "case")) {
         cases.push_back(parseCase());
     }
     skip("}");
-    return Match{token, ident, cases};
+    return std::make_shared<Match>(token, ident, cases);
 }
 
-Case
+// DONE
+std::shared_ptr<Case>
 Parser::parseCase() {
     const Token token = currentToken();
-    std::unique_ptr<Expression> ident; // making this a pointer avoids calling private constructor to init
+    ExpPtr ident; // making this a pointer avoids calling private constructor to init
     if (match(Token::TokenType::KEYWORD, "any")) {
-        ident = std::make_unique<Reference>(token, Types::NullType(), std::string("$any"));
+        ident = std::make_shared<Reference>(token, Types::NullTypePtr(), std::string("$any"));
     } else {
-        ident = std::make_unique<Expression>(parseAtom());
+        ident = parseAtom();
     }
     skip("=");
     skip("{");
-    Expression block = parseSimpleExpression();
+    ExpPtr block = parseSimpleExpression();
     skip("}");
     skip(";");
-    return Case{token, *ident, block};
+    return std::make_shared<Case>(token, ident, block);
 }
 
-Expression
+// DONE
+ExpPtr
 Parser::parseUtight(int min) {
-    Expression leftSide = parseUtight();
+    ExpPtr leftSide = parseUtight();
 
     while (inBounds() && Operator::isBinaryOperator(currentToken().text, min)) {
         Token token = currentToken();
@@ -138,13 +141,13 @@ Parser::parseUtight(int min) {
         advance();
 
         int tempMin = Operator::getPrecedence(op) + 1;
-        Expression rightSide = parseUtight(tempMin);
-        leftSide = Primitive{token, leftSide.returnType, op, leftSide, rightSide};
+        ExpPtr rightSide = parseUtight(tempMin);
+        leftSide = std::make_shared<Primitive>(token, leftSide->returnType, op, leftSide, rightSide);
     }
     return leftSide;
 }
 
-Expression
+ExpPtr
 Parser::parseUtight() {
     Operator::OperatorTypes op;
     op = Operator::OperatorTypes::NONE;
@@ -156,54 +159,54 @@ Parser::parseUtight() {
 		op = Operator::OperatorTypes::NOT;
 	}
 
-    Expression rightSide = parseTight();
+    ExpPtr rightSide = parseTight();
     Token token = currentToken();
     if (op == Operator::OperatorTypes::PLUS || op == Operator::OperatorTypes::MINUS) {
-		return Primitive{token, Types::IntType(), op, Literal<int>{token, Types::IntType(), 0}, rightSide};
+		return std::make_shared<Primitive>(token, Types::IntTypePtr(), op, std::make_shared<Literal>(token, Types::IntTypePtr(), 0), rightSide);
 	} else if (op == Operator::OperatorTypes::NOT) {
-		return Primitive{token, Types::BoolType(), op, Literal<bool>{token, Types::BoolType(), false}, rightSide};
+		return std::make_shared<Primitive>(token, Types::BoolTypePtr(), op, std::make_shared<Literal>(token, Types::BoolTypePtr(), false), rightSide);
 	}
 	return rightSide;
 }
 
-Expression
+ExpPtr
 Parser::parseTight() {
     if (match(Token::TokenType::DELIM, "{")) {
-        Expression exp = parseExpression();
+        ExpPtr exp = parseExpression();
         skip("}");
         return exp;
     } else if (peek().type == Token::TokenType::DELIM && peek().text == "[") {
-        return parseBlockGet;
+        return parseBlockGet();
     }
     return parseApplication();
 }
 
-BlockGet
+std::shared_ptr<BlockGet>
 Parser::parseBlockGet() {
     Token token = currentToken();
 
-    Expression reference = parseAtom();
+    ExpPtr reference = parseAtom();
     skip("[");
-	Expression index = parseSimpleExpression();
+	ExpPtr index = parseSimpleExpression();
 	skip("]");
-    BlockGet blockGet{token, reference, index};
+    std::shared_ptr<BlockGet> blockGet = std::make_shared<BlockGet>(token, reference, index);
     while (match(Token::TokenType::DELIM, "[")) {
-        BlockGet blockGetInner{currentToken(), blockGet.reference, blockGet.index};
-        blockGet.reference = blockGetInner;
-        blockGet.index = parseSimpleExpression();
+        std::shared_ptr<BlockGet> blockGetInner = std::make_shared<BlockGet>(currentToken(), blockGet->reference, blockGet->index);
+        blockGet->reference = blockGetInner;
+        blockGet->index = parseSimpleExpression();
         skip("]");
     }
 
 	return blockGet;
 }
 
-Application
+std::shared_ptr<Application>
 Parser::parseApplication() {
     Token token = currentToken();
 
-    Expression ident = parseAtom();
+    ExpPtr ident = parseAtom();
     if (match(Token::TokenType::DELIM, "(")) {
-        std::vector<Expression> arguments;
+        std::vector<ExpPtr> arguments;
         skip("(");
         if (inBounds() && currentToken().text != ")") {
             arguments.push_back(parseSimpleExpression());
@@ -213,12 +216,12 @@ Parser::parseApplication() {
         }
         skip(")");
 
-        Application app{token, ident, arguments};
+        std::shared_ptr<Application> app = std::make_shared<Application>(token, ident, arguments);
 
         while (match(Token::TokenType::DELIM, "(")) {
                 token = currentToken();
 
-				std::vector<Expression> argumentsInner;
+				std::vector<ExpPtr> argumentsInner;
                 skip("(");
                 if (inBounds() && currentToken().text != ")") {
                     argumentsInner.push_back(parseSimpleExpression());
@@ -227,34 +230,33 @@ Parser::parseApplication() {
                     argumentsInner.push_back(parseSimpleExpression());	
                 }
 				skip(")");
-                Application appInner{token, ident, arguments};
-                app.functionIdent = appInner;
-                app.arguments = argumentsInner;
+                std::shared_ptr<Application> appInner = std::make_shared<Application>(token, ident, arguments);
+                app->functionIdent = appInner;
+                app->arguments = argumentsInner;
 			}
 			return app;
     }
-    return ident;
+    return std::static_pointer_cast<Application>(ident);
 }
 
-Expression
+std::shared_ptr<Function>
 Parser::parseFunc() {
-    return Expression::End();
+    return std::static_pointer_cast<Function>(Expression::End());
 }
 
-Expression
-Parser::parseArg(const std::vector<Types::GenType> & genericParameterList) {
+std::shared_ptr<Argument>
+Parser::parseArg(const std::vector<Types::GenTypePtr> & genericParameterList) {
     const std::string argumentName = currentToken().text;
     Token token = currentToken();
     advance();
     skip(":");
-    Types::Type argumentType = parseType(genericParameterList);
-    return Argument{token, argumentType, argumentName};
+    return std::make_shared<Argument>(token, parseType(genericParameterList), argumentName);
 }
 
-Expression
+ExpPtr
 Parser::parseAtom() {
     if (match(Token::TokenType::DELIM, "(")) {
-        Expression exp = parseSimpleExpression();
+        ExpPtr exp = parseSimpleExpression();
         skip(")");
         return exp;
     } else if (inBounds()) {
@@ -264,17 +266,17 @@ Parser::parseAtom() {
             Token token = currentToken();
             if (matchNoAdvance(Token::TokenType::KEYWORD, "true") ||
                 matchNoAdvance(Token::TokenType::KEYWORD, "false")) {
-                Literal lit<bool>{currentToken(), Types::BoolType(), (currentToken().text == "true")};
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::BoolTypePtr(), (currentToken().text == "true"));
                 advance();
                 return lit;
             } else if (match(Token::TokenType::KEYWORD, "null")) {
-                return Literal{token};
+                return std::make_shared<Literal>(token);
             } else if (isValue(currentToken().text)) {
-                Literal lit<int>{currentToken(), Types::BoolType(), std::stoi(currentToken().text)};
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::BoolTypePtr(), std::stoi(currentToken().text));
                 advance();
                 return lit;
             } else if (match(Token::TokenType::DELIM, "'") && currentToken().text.length() <= 2) {
-                Literal lit<char>{currentToken(), Types::CharType(), getEscapedCharacter(currentToken().text)};
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::CharTypePtr(), getEscapedCharacter(currentToken().text));
                 advance();
                 skip("'");
                 return lit;
@@ -288,48 +290,49 @@ Parser::parseAtom() {
 	return Expression::End();
 }
 
-Types::Type
-Parser::parseType(const std::vector<Types::GenType> & genericParameterList) {
+Types::TypePtr
+Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
     if (inBounds() && currentToken().type == Token::TokenType::KEYWORD && currentToken().text != "List") {
 		const std::string typeString = currentToken().text;
         
-		std::unique_ptr<Types::Type> type;
-		if (typeString == "int") type = std::make_unique<Types::IntType>();
-		else if (typeString == "bool") type = std::make_unique<Types::BoolType>();
-		else if (typeString == "char") type = std::make_unique<Types::CharType>();
-		else if (typeString == "null") type = std::make_unique<Types::NullType>();
+		Types::TypePtr type;
+		if (typeString == "int") type = Types::IntTypePtr();
+		else if (typeString == "bool") type = Types::BoolTypePtr();
+		else if (typeString == "char") type = Types::CharTypePtr();
+		else if (typeString == "null") type = Types::NullTypePtr();
 		else {
 			Format::printError(std::string("Unexpected type: ") + typeString);
-			return Types::NullType();
+			return Types::NullTypePtr();
 		}
 		advance();
 		
 		if (match(Token::TokenType::DELIM, "->")) {
-            return Types::FuncType{genericParameterList, std::vector({*type}), parseType(genericParameterList)};
+            std::vector<Types::TypePtr> functionTypeArgumentTypes{type};
+            return std::make_shared<Types::FuncType>(genericParameterList, functionTypeArgumentTypes, parseType(genericParameterList));
 		}
 
-		return *type;
+		return type;
 	} else if (match(Token::TokenType::KEYWORD, "List")) {
         skip("[");
-        Types::Type listDataType = parseType(genericParameterList);
+        Types::TypePtr listDataType = parseType(genericParameterList);
         skip("]");
-        return Types::ListType{listDataType};
+        return std::make_shared<Types::ListType>(listDataType);
     } else if (match(Token::TokenType::DELIM, "(")) {
-        std::vector<Types::Type> functionArgumentTypes{parseType(genericParameterList)};
+        std::vector<Types::TypePtr> functionArgumentTypes{parseType(genericParameterList)};
         while (match(Token::TokenType::DELIM, ",")) {
 			functionArgumentTypes.push_back(parseType(genericParameterList));	
 		}
 		skip(")");
 		skip("->");
-		return Types::FuncType{genericParameterList, functionArgumentTypes, parseType(genericParameterList)};
+		return std::make_shared<Types::FuncType>(genericParameterList, functionArgumentTypes, parseType(genericParameterList));
     } else {
         const std::string parameterName = currentToken().text;
 		bool genericNameMatches = false;
 
-		std::unique_ptr<Types::Type> type;
-		for (const auto genericParameterName : genericParameterList) {
-			if (genericParameterName.identifier == parameterName) {
-				type = std::make_unique<Types::GenType>(parameterName);
+		Types::TypePtr type;
+		for (const auto genericParameterType : genericParameterList) {
+			if (genericParameterType->identifier == parameterName) {
+				type = std::make_shared<Types::GenType>(parameterName);
 				genericNameMatches = true;
 				advance();
 				break;
@@ -338,9 +341,10 @@ Parser::parseType(const std::vector<Types::GenType> & genericParameterList) {
 
 		if (!genericNameMatches) {
             Format::printError(std::string("Undefined generic type: ") + parameterName);
-			return Types::NullType();
+			return Types::NullTypePtr();
 		}
-		return *type;
+
+		return type;
     }
 }
 

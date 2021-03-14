@@ -18,22 +18,22 @@ class Parser {
         bool error = false;
         
         // Token parsing/Tree making
-        Expression parseProgram();
-        Expression parseExpression();
-        Expression parseSimpleExpression();
-        Expression parseBranch();
-        Expression parseList();
-        Expression parseMatch();
-        Case parseCase();
-        Expression parseUtight(int min);
-        Expression parseUtight();
-        Expression parseTight();
-        BlockGet parseBlockGet();
-        Application parseApplication();
-        Expression parseFunc();
-        Expression parseArg(const std::vector<Types::GenType> & gens);
-        Expression parseAtom();
-        Types::Type parseType(const std::vector<Types::GenType> & gens);
+        ExpPtr parseProgram();
+        ExpPtr parseExpression();
+        ExpPtr parseSimpleExpression();
+        std::shared_ptr<Branch> parseBranch();
+        std::shared_ptr<ListDefinition> parseList();
+        std::shared_ptr<Match> parseMatch();
+        std::shared_ptr<Case> parseCase();
+        ExpPtr parseUtight(int min);
+        ExpPtr parseUtight();
+        ExpPtr parseTight();
+        std::shared_ptr<BlockGet> parseBlockGet();
+        std::shared_ptr<Application> parseApplication();
+        std::shared_ptr<Function> parseFunc();
+        std::shared_ptr<Argument> parseArg(const std::vector<Types::GenTypePtr> & gens);
+        ExpPtr parseAtom();
+        Types::TypePtr parseType(const std::vector<Types::GenTypePtr> & gens);
 
         // Helpers
 
@@ -55,6 +55,6 @@ class Parser {
     public:
         Parser(const std::vector<Token> & tokenStream);
 
-        Expression makeTree();
+        ExpPtr makeTree();
         bool errorOccurred() const { return error; }
 };

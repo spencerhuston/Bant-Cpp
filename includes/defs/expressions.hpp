@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <variant>
+#include <memory>
 
 namespace Expressions {
     enum class ExpressionTypes {
@@ -16,59 +17,46 @@ namespace Expressions {
     };
 
     class Expression {
-        private:
+        public:
+            Token token;
+            ExpressionTypes expType;
+            Types::TypePtr returnType;
+
+            Expression(const Token & token, 
+                       const ExpressionTypes expType, 
+                       const Types::TypePtr & returnType)
+            : token(token), 
+              expType(expType), 
+              returnType(returnType) { }
+            
             Expression()
             : token(Token(Token::TokenType::DELIM,
                           FilePosition(-1, -1, "END"),
                           std::string({}))),
               expType(ExpressionTypes::END),
-              returnType(Types::NullType()) { }
-
-        public:
-            Token token;
-            ExpressionTypes expType;
-            Types::Type returnType;
-
-            Expression(const Token & token, 
-                       const ExpressionTypes expType, 
-                       const Types::Type & returnType)
-            : token(token), 
-              expType(expType), 
-              returnType(returnType) { }
+              returnType(Types::NullTypePtr()) { }
             
-            static Expression End() {
-                return Expression{};
+            static std::shared_ptr<Expression> End() {
+                return std::make_shared<Expression>();
             }
     };
 
-    class Program : public Expression {
-        public:
-            std::vector<Expression> functions;
-            Expression body;
-
-            Program(const Token & token,
-                    const std::vector<Expression> & functions,
-                    Expression body)
-            : Expression(token, ExpressionTypes::PROG, body.returnType),
-              functions(functions), 
-              body(body) { }
-
-    };
+    using ExpPtr = std::shared_ptr<Expression>;
 
     class Function : public Expression {
         public:
             std::string name{};
-            std::vector<Types::GenType> genericParameters{};
-            std::vector<Types::Type> parameters{};
+            std::vector<Types::GenTypePtr> genericParameters{};
+            std::vector<Types::TypePtr> parameters{};
 
-            Expression functionBody;
+            ExpPtr functionBody;
 
             Function(const Token & token, 
-                     const Types::Type & returnType,
+                     const Types::TypePtr & returnType,
                      const std::string name, 
-                     const std::vector<Types::GenType> & genericParameters,
-                     const std::vector<Types::Type> & parameters,
-                     const Expression & functionBody)
+                     const std::vector<Types::GenTypePtr> & genericParameters,
+                     const std::vector<Types::TypePtr> & parameters,
+                     const ExpPtr & functionBody)
             : Expression(token, ExpressionTypes::FUN_DEF, returnType),
               name(name),
               genericParameters(genericParameters),
@@ -76,19 +64,44 @@ namespace Expressions {
               functionBody(functionBody) { }
     };
 
+    class Program : public Expression {
+        public:
+            std::vector<std::shared_ptr<Function>> functions;
+            ExpPtr body;
+
+            Program(const Token & token,
+                    const std::vector<std::shared_ptr<Function>> & functions,
+                    const ExpPtr & body)
+            : Expression(token, ExpressionTypes::PROG, body->returnType),
+              functions(functions), 
+              body(body) { }
+
+    };
+
     class Literal : public Expression {
         public:
             std::variant<int, bool, char> data;
 
-            template<typename T>
             Literal(const Token & token,
-                    const Types::Type & returnType,
-                    const T data)
+                    const Types::TypePtr & returnType,
+                    const int data)
+            : Expression(token, ExpressionTypes::LIT, returnType),
+              data(std::variant<int, bool, char>(data)) { }
+
+            Literal(const Token & token,
+                    const Types::TypePtr & returnType,
+                    const bool data)
+            : Expression(token, ExpressionTypes::LIT, returnType),
+              data(std::variant<int, bool, char>(data)) { }
+
+            Literal(const Token & token,
+                    const Types::TypePtr & returnType,
+                    const char data)
             : Expression(token, ExpressionTypes::LIT, returnType),
               data(std::variant<int, bool, char>(data)) { }
             
             Literal(const Token & token)
-            : Expression(token, ExpressionTypes::LIT, Types::NullType()) { }
+            : Expression(token, ExpressionTypes::LIT, Types::NullTypePtr()) { }
 
             template<typename T>
             T getData() {
@@ -99,13 +112,13 @@ namespace Expressions {
     class Primitive : public Expression {
         public:
             Operator::OperatorTypes op;
-            Expression leftSide, rightSide;
+            ExpPtr leftSide, rightSide;
 
             Primitive(const Token & token,
-                      const Types::Type & returnType,
+                      const Types::TypePtr & returnType,
                       const Operator::OperatorTypes op,
-                      const Expression & leftSide,
-                      const Expression & rightSide)
+                      const ExpPtr & leftSide,
+                      const ExpPtr & rightSide)
             : Expression(token, ExpressionTypes::PRIM, returnType),
               op(op),
               leftSide(leftSide),
@@ -115,15 +128,15 @@ namespace Expressions {
     class Let : public Expression {
         public:
             std::string ident;
-            Types::Type valueType; // return type would be for the afterLet
-            Expression value, afterLet;
+            Types::TypePtr valueType; // return type would be for the afterLet
+            ExpPtr value, afterLet;
 
             Let(const Token & token,
                 const std::string & ident,
-                const Types::Type & valueType,
-                const Expression & value,
-                const Expression & afterLet)
-            : Expression(token, ExpressionTypes::LET, afterLet.returnType),
+                const Types::TypePtr & valueType,
+                const ExpPtr & value,
+                const ExpPtr & afterLet)
+            : Expression(token, ExpressionTypes::LET, afterLet->returnType),
               ident(ident),
               valueType(valueType),
               value(value),
@@ -135,7 +148,7 @@ namespace Expressions {
             std::string ident;
 
             Reference(const Token & token,
-                      const Types::Type & returnType,
+                      const Types::TypePtr & returnType,
                       const std::string & ident)
             : Expression(token, ExpressionTypes::REF, returnType),
               ident(ident) { }
@@ -143,13 +156,13 @@ namespace Expressions {
 
     class Branch : public Expression {
         public:
-            Expression condition, ifBranch, elseBranch;
+            ExpPtr condition, ifBranch, elseBranch;
 
             Branch(const Token & token,
-                   const Expression & condition,
-                   const Expression & ifBranch,
-                   const Expression & elseBranch)
-            : Expression(token, ExpressionTypes::BRANCH, ifBranch.returnType),
+                   const ExpPtr & condition,
+                   const ExpPtr & ifBranch,
+                   const ExpPtr & elseBranch)
+            : Expression(token, ExpressionTypes::BRANCH, ifBranch->returnType),
               condition(condition),
               ifBranch(ifBranch),
               elseBranch(elseBranch) { }
@@ -160,7 +173,7 @@ namespace Expressions {
             std::string name;
 
             Argument(const Token & token,
-                     const Types::Type & returnType,
+                     const Types::TypePtr & returnType,
                      const std::string & name)
             : Expression(token, ExpressionTypes::ARG, returnType),
               name(name) { }
@@ -168,47 +181,47 @@ namespace Expressions {
 
     class Application : public Expression {
         public:
-            Expression functionIdent;
-            std::vector<Expression> arguments;
+            ExpPtr functionIdent;
+            std::vector<ExpPtr> arguments;
 
             Application(const Token & token,
-                        const Expression & functionIdent,
-                        const std::vector<Expression> arguments)
-            : Expression(token, ExpressionTypes::APP, Types::NullType()),
+                        const ExpPtr & functionIdent,
+                        const std::vector<ExpPtr> arguments)
+            : Expression(token, ExpressionTypes::APP, std::make_shared<Types::NullType>()),
               functionIdent(functionIdent),
               arguments(arguments) { }
     };
 
     class ListDefinition : public Expression {
         public:
-            std::vector<Expression> values;
+            std::vector<ExpPtr> values;
 
             ListDefinition(const Token & token,
-                           const std::vector<Expression> values)
-            : Expression(token, ExpressionTypes::LIST_DEF, Types::NullType()),
+                           const std::vector<ExpPtr> values)
+            : Expression(token, ExpressionTypes::LIST_DEF, std::make_shared<Types::NullType>()),
               values(values) { }
     };
 
     class BlockGet : public Expression {
         public:
-            Expression reference, index;
+            ExpPtr reference, index;
 
             BlockGet(const Token & token,
-                     const Expression & reference,
-                     const Expression & index)
-            : Expression(token, ExpressionTypes::BLOCK_GET, Types::NullType()),
+                     const ExpPtr & reference,
+                     const ExpPtr & index)
+            : Expression(token, ExpressionTypes::BLOCK_GET, std::make_shared<Types::NullType>()),
               reference(reference),
               index(index) { }
     };
 
     class Case : public Expression {
         public:
-            Expression ident, body;
+            ExpPtr ident, body;
 
             Case(const Token & token,
-                 const Expression & ident,
-                 const Expression & body)
-            : Expression(token, ExpressionTypes::CASE, body.returnType),
+                 const ExpPtr & ident,
+                 const ExpPtr & body)
+            : Expression(token, ExpressionTypes::CASE, body->returnType),
               ident(ident),
               body(body) { }
     };
@@ -216,12 +229,12 @@ namespace Expressions {
     class Match : public Expression {
         public:
             std::string ident;
-            std::vector<Case> cases;
+            std::vector<std::shared_ptr<Case>> cases;
 
             Match(const Token & token,
                   const std::string & ident,
-                  const std::vector<Case> cases)
-            : Expression(token, ExpressionTypes::MATCH, cases.at(0).returnType),
+                  const std::vector<std::shared_ptr<Case>> cases)
+            : Expression(token, ExpressionTypes::MATCH, cases.at(0)->returnType),
               ident(ident),
               cases(cases) { }
     };

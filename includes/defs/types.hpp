@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 namespace Types {
     enum class DataTypes {
@@ -53,56 +54,72 @@ namespace Types {
             }
     };
 
+    using TypePtr = std::shared_ptr<Type>;
+
     class IntType : public Type {
         public:
             IntType() : Type(DataTypes::INT) { }
     };
+
+    using IntTypePtr = std::shared_ptr<IntType>;
 
     class CharType : public Type {
         public:
             CharType() : Type(DataTypes::CHAR) { }
     };
 
+    using CharTypePtr = std::shared_ptr<CharType>;
+
     class BoolType : public Type {
         public:
             BoolType() : Type(DataTypes::BOOL) { }
     };
+
+    using BoolTypePtr = std::shared_ptr<BoolType>;
 
     class NullType : public Type {
         public:
             NullType() : Type(DataTypes::NULLVAL) { }
     };
 
+    using NullTypePtr = std::shared_ptr<NullType>;
+
     class ListType : public Type {
         public:
-            DataTypes listType;
+            TypePtr listType;
 
-            ListType(const DataTypes listType)
+            ListType(const TypePtr & listType)
             : Type(DataTypes::LIST),
               listType(listType) { }
     };
 
+    using ListTypePtr = std::shared_ptr<ListType>;
+
     class GenType : public Type {
         public:
-            std::string identifier;
+            const std::string identifier;
             
-            GenType(const std::string identifier)
+            GenType(const std::string & identifier)
             : Type(DataTypes::GEN),
               identifier(identifier) { }
     };
+
+    using GenTypePtr = std::shared_ptr<GenType>;
     
     class FuncType : public Type {
         public:
-            std::vector<GenType> genericTypes;
-            std::vector<Type> argumentTypes;
-            DataTypes returnType;
+            std::vector<GenTypePtr> genericTypes;
+            std::vector<TypePtr> argumentTypes;
+            TypePtr returnType;
 
-            FuncType(const std::vector<GenType> genericTypes,
-                     const std::vector<Type> argumentTypes,
-                     const DataTypes returnType)
+            FuncType(const std::vector<GenTypePtr> & genericTypes,
+                     const std::vector<TypePtr> & argumentTypes,
+                     const TypePtr & returnType)
             : Type(DataTypes::FUNC),
               genericTypes(genericTypes),
               argumentTypes(argumentTypes),
               returnType(returnType) { }
     };
+
+    using FuncTypePtr = std::shared_ptr<FuncType>;
 }
