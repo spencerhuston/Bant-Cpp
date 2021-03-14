@@ -85,11 +85,10 @@ namespace Expressions {
                     const Types::Type & returnType,
                     const T data)
             : Expression(token, ExpressionTypes::LIT, returnType),
-              data(data) { }
+              data(std::variant<int, bool, char>(data)) { }
             
-            Literal(const Token & token,
-                    const Types::Type & returnType)
-            : Expression(token, ExpressionTypes::LIT, returnType) { }
+            Literal(const Token & token)
+            : Expression(token, ExpressionTypes::LIT, Types::NullType()) { }
 
             template<typename T>
             T getData() {
@@ -104,9 +103,11 @@ namespace Expressions {
 
             Primitive(const Token & token,
                       const Types::Type & returnType,
+                      const Operator::OperatorTypes op,
                       const Expression & leftSide,
                       const Expression & rightSide)
             : Expression(token, ExpressionTypes::PRIM, returnType),
+              op(op),
               leftSide(leftSide),
               rightSide(rightSide) { }
     };
@@ -157,12 +158,25 @@ namespace Expressions {
     class Argument : public Expression {
         public:
             std::string name;
+
+            Argument(const Token & token,
+                     const Types::Type & returnType,
+                     const std::string & name)
+            : Expression(token, ExpressionTypes::ARG, returnType),
+              name(name) { }
     };
 
     class Application : public Expression {
         public:
-            Expression function;
+            Expression functionIdent;
             std::vector<Expression> arguments;
+
+            Application(const Token & token,
+                        const Expression & functionIdent,
+                        const std::vector<Expression> arguments)
+            : Expression(token, ExpressionTypes::APP, Types::NullType()),
+              functionIdent(functionIdent),
+              arguments(arguments) { }
     };
 
     class ListDefinition : public Expression {
@@ -178,6 +192,13 @@ namespace Expressions {
     class BlockGet : public Expression {
         public:
             Expression reference, index;
+
+            BlockGet(const Token & token,
+                     const Expression & reference,
+                     const Expression & index)
+            : Expression(token, ExpressionTypes::BLOCK_GET, Types::NullType()),
+              reference(reference),
+              index(index) { }
     };
 
     class Case : public Expression {

@@ -78,22 +78,8 @@ namespace Types {
             DataTypes listType;
 
             ListType(const DataTypes listType)
-            : Type(DataTypes::LIST), listType(listType) { }
-    };
-
-    class FuncType : public Type {
-        public:
-            std::vector<DataTypes> genericTypes;
-            std::vector<DataTypes> argumentTypes;
-            DataTypes returnType;
-
-            FuncType(const std::vector<DataTypes> genericTypes,
-                    const std::vector<DataTypes> argumentTypes,
-                    const DataTypes returnType)
-            : Type(DataTypes::FUNC),
-                genericTypes(genericTypes),
-                argumentTypes(argumentTypes),
-                returnType(returnType) { }
+            : Type(DataTypes::LIST),
+              listType(listType) { }
     };
 
     class GenType : public Type {
@@ -101,6 +87,22 @@ namespace Types {
             std::string identifier;
             
             GenType(const std::string identifier)
-            : Type(DataTypes::GEN), identifier(identifier) { }
+            : Type(DataTypes::GEN),
+              identifier(identifier) { }
+    };
+    
+    class FuncType : public Type {
+        public:
+            std::vector<GenType> genericTypes;
+            std::vector<Type> argumentTypes;
+            DataTypes returnType;
+
+            FuncType(const std::vector<GenType> genericTypes,
+                     const std::vector<Type> argumentTypes,
+                     const DataTypes returnType)
+            : Type(DataTypes::FUNC),
+              genericTypes(genericTypes),
+              argumentTypes(argumentTypes),
+              returnType(returnType) { }
     };
 }

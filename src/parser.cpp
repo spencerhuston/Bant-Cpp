@@ -73,7 +73,7 @@ Parser::parseBranch() {
     if (match(Token::TokenType::KEYWORD, "else")) {
         return Branch{token, condition, trueBranch, parseSimpleExpression()};
     }
-    return Branch{token, condition, trueBranch, Literal{token, Types::NullType()}};
+    return Branch{token, condition, trueBranch, Literal{token}};
 }
 
 Expression
@@ -130,43 +130,232 @@ Parser::parseCase() {
 
 Expression
 Parser::parseUtight(int min) {
-    
+    Expression leftSide = parseUtight();
+
+    while (inBounds() && Operator::isBinaryOperator(currentToken().text, min)) {
+        Token token = currentToken();
+        Operator::OperatorTypes op = Operator::getOperator(currentToken().text);
+        advance();
+
+        int tempMin = Operator::getPrecedence(op) + 1;
+        Expression rightSide = parseUtight(tempMin);
+        leftSide = Primitive{token, leftSide.returnType, op, leftSide, rightSide};
+    }
+    return leftSide;
 }
 
 Expression
 Parser::parseUtight() {
-    
+    Operator::OperatorTypes op;
+    op = Operator::OperatorTypes::NONE;
+    if (match(Token::TokenType::DELIM, "+")) {
+		op = Operator::OperatorTypes::PLUS;
+	} else if (match(Token::TokenType::DELIM, "-")) {
+		op = Operator::OperatorTypes::MINUS;
+	} else if (match(Token::TokenType::DELIM, "!")) {
+		op = Operator::OperatorTypes::NOT;
+	}
+
+    Expression rightSide = parseTight();
+    Token token = currentToken();
+    if (op == Operator::OperatorTypes::PLUS || op == Operator::OperatorTypes::MINUS) {
+		return Primitive{token, Types::IntType(), op, Literal<int>{token, Types::IntType(), 0}, rightSide};
+	} else if (op == Operator::OperatorTypes::NOT) {
+		return Primitive{token, Types::BoolType(), op, Literal<bool>{token, Types::BoolType(), false}, rightSide};
+	}
+	return rightSide;
 }
 
 Expression
 Parser::parseTight() {
-    
+    if (match(Token::TokenType::DELIM, "{")) {
+        Expression exp = parseExpression();
+        skip("}");
+        return exp;
+    } else if (peek().type == Token::TokenType::DELIM && peek().text == "[") {
+        return parseBlockGet;
+    }
+    return parseApplication();
+}
+
+BlockGet
+Parser::parseBlockGet() {
+    Token token = currentToken();
+
+    Expression reference = parseAtom();
+    skip("[");
+	Expression index = parseSimpleExpression();
+	skip("]");
+    BlockGet blockGet{token, reference, index};
+    while (match(Token::TokenType::DELIM, "[")) {
+        BlockGet blockGetInner{currentToken(), blockGet.reference, blockGet.index};
+        blockGet.reference = blockGetInner;
+        blockGet.index = parseSimpleExpression();
+        skip("]");
+    }
+
+	return blockGet;
+}
+
+Application
+Parser::parseApplication() {
+    Token token = currentToken();
+
+    Expression ident = parseAtom();
+    if (match(Token::TokenType::DELIM, "(")) {
+        std::vector<Expression> arguments;
+        skip("(");
+        if (inBounds() && currentToken().text != ")") {
+            arguments.push_back(parseSimpleExpression());
+        }
+        while (match(Token::TokenType::DELIM, ",")) {
+            arguments.push_back(parseSimpleExpression());	
+        }
+        skip(")");
+
+        Application app{token, ident, arguments};
+
+        while (match(Token::TokenType::DELIM, "(")) {
+                token = currentToken();
+
+				std::vector<Expression> argumentsInner;
+                skip("(");
+                if (inBounds() && currentToken().text != ")") {
+                    argumentsInner.push_back(parseSimpleExpression());
+                }
+                while (match(Token::TokenType::DELIM, ",")) {
+                    argumentsInner.push_back(parseSimpleExpression());	
+                }
+				skip(")");
+                Application appInner{token, ident, arguments};
+                app.functionIdent = appInner;
+                app.arguments = argumentsInner;
+			}
+			return app;
+    }
+    return ident;
 }
 
 Expression
 Parser::parseFunc() {
-    
+    return Expression::End();
 }
 
 Expression
-Parser::parseArg(const std::vector<Types::GenType> & gens) {
-    
+Parser::parseArg(const std::vector<Types::GenType> & genericParameterList) {
+    const std::string argumentName = currentToken().text;
+    Token token = currentToken();
+    advance();
+    skip(":");
+    Types::Type argumentType = parseType(genericParameterList);
+    return Argument{token, argumentType, argumentName};
 }
 
 Expression
 Parser::parseAtom() {
+    if (match(Token::TokenType::DELIM, "(")) {
+        Expression exp = parseSimpleExpression();
+        skip(")");
+        return exp;
+    } else if (inBounds()) {
+        if (currentToken().type == Token::TokenType::IDENT) {
+
+        } else {
+            Token token = currentToken();
+            if (matchNoAdvance(Token::TokenType::KEYWORD, "true") ||
+                matchNoAdvance(Token::TokenType::KEYWORD, "false")) {
+                Literal lit<bool>{currentToken(), Types::BoolType(), (currentToken().text == "true")};
+                advance();
+                return lit;
+            } else if (match(Token::TokenType::KEYWORD, "null")) {
+                return Literal{token};
+            } else if (isValue(currentToken().text)) {
+                Literal lit<int>{currentToken(), Types::BoolType(), std::stoi(currentToken().text)};
+                advance();
+                return lit;
+            } else if (match(Token::TokenType::DELIM, "'") && currentToken().text.length() <= 2) {
+                Literal lit<char>{currentToken(), Types::CharType(), getEscapedCharacter(currentToken().text)};
+                advance();
+                skip("'");
+                return lit;
+            } else {
+                printError(currentToken().text);
+            }
+        }
+    }
     
+    Format::printError(std::string("Parsing error: ") + currentToken().toString());
+	return Expression::End();
 }
 
 Types::Type
-Parser::parseType(const std::vector<Types::GenType> & gens) {
-    
+Parser::parseType(const std::vector<Types::GenType> & genericParameterList) {
+    if (inBounds() && currentToken().type == Token::TokenType::KEYWORD && currentToken().text != "List") {
+		const std::string typeString = currentToken().text;
+        
+		std::unique_ptr<Types::Type> type;
+		if (typeString == "int") type = std::make_unique<Types::IntType>();
+		else if (typeString == "bool") type = std::make_unique<Types::BoolType>();
+		else if (typeString == "char") type = std::make_unique<Types::CharType>();
+		else if (typeString == "null") type = std::make_unique<Types::NullType>();
+		else {
+			Format::printError(std::string("Unexpected type: ") + typeString);
+			return Types::NullType();
+		}
+		advance();
+		
+		if (match(Token::TokenType::DELIM, "->")) {
+            return Types::FuncType{genericParameterList, std::vector({*type}), parseType(genericParameterList)};
+		}
+
+		return *type;
+	} else if (match(Token::TokenType::KEYWORD, "List")) {
+        skip("[");
+        Types::Type listDataType = parseType(genericParameterList);
+        skip("]");
+        return Types::ListType{listDataType};
+    } else if (match(Token::TokenType::DELIM, "(")) {
+        std::vector<Types::Type> functionArgumentTypes{parseType(genericParameterList)};
+        while (match(Token::TokenType::DELIM, ",")) {
+			functionArgumentTypes.push_back(parseType(genericParameterList));	
+		}
+		skip(")");
+		skip("->");
+		return Types::FuncType{genericParameterList, functionArgumentTypes, parseType(genericParameterList)};
+    } else {
+        const std::string parameterName = currentToken().text;
+		bool genericNameMatches = false;
+
+		std::unique_ptr<Types::Type> type;
+		for (const auto genericParameterName : genericParameterList) {
+			if (genericParameterName.identifier == parameterName) {
+				type = std::make_unique<Types::GenType>(parameterName);
+				genericNameMatches = true;
+				advance();
+				break;
+			}
+		}
+
+		if (!genericNameMatches) {
+            Format::printError(std::string("Undefined generic type: ") + parameterName);
+			return Types::NullType();
+		}
+		return *type;
+    }
 }
 
 bool
 Parser::match(const Token::TokenType tokenType, const std::string text) {
     if (inBounds() && currentToken().type == tokenType && currentToken().text == text) {
         advance();
+        return true;
+    }
+    return false;
+}
+
+bool
+Parser::matchNoAdvance(const Token::TokenType tokenType, const std::string text) {
+    if (inBounds() && currentToken().type == tokenType && currentToken().text == text) {
         return true;
     }
     return false;
@@ -195,6 +384,49 @@ std::string
 Parser::dummy() {
     static int dummy_count = 0;
 	return ("dummy$" + std::to_string(dummy_count++));
+}
+
+bool
+Parser::isValue(const std::string & valueString) {
+    for (char const & character : valueString) {
+        if (std::isdigit(character) == 0) 
+            return false;
+    }
+    return true;
+}
+
+char
+Parser::getEscapedCharacter(const std::string & escapeSequence) {
+	if (escapeSequence.at(0) == '\\') {
+		switch (escapeSequence.at(1)) {
+			case '?':
+				return '?';
+				break;
+			case '\\':
+				return '\\';
+				break;
+			case 'b':
+				return '\b';
+				break;
+			case 'n':
+				return '\n';
+				break;
+			case 'r':
+				return '\r';
+				break;
+			case 't':
+				return '\t';
+				break;
+			case 's':
+				return ' ';
+				break;
+		}
+
+        Format::printError(std::string("Bad escape sequence: ") + escapeSequence);
+		return 0;
+	}
+
+	return escapeSequence.at(0);	
 }
 
 void

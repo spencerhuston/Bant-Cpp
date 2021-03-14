@@ -31,13 +31,18 @@ int main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(2);
     
-    auto lexer = Lexer(std::move(sourceStream));
-    auto tokenStream = lexer.makeTokenStream();
+    try {
+        auto lexer = Lexer(std::move(sourceStream));
+        auto tokenStream = lexer.makeTokenStream();
 
-    if (lexer.errorOccurred()) {
-        Format::printError("One or more errors occurred during lexing, exiting");
-        exit(3);
+        if (lexer.errorOccurred()) {
+            Format::printError("One or more errors occurred during lexing, exiting");
+            exit(3);
+        }
+
+        auto parser = Parser(tokenStream);
+    } catch (...) {
+        Format::printError("Unexpected error occurred");
+        exit(7);
     }
-
-    auto parser = Parser(tokenStream);
 }
