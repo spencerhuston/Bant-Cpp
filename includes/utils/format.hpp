@@ -12,4 +12,9 @@ namespace Format {
                      title  << std::endl << 
                      header << std::endl; 
     }
+
+    inline void
+    printError(const std::string errorString) {
+        std::cout << "\033[1;31m" << errorString << "\033[0m" << std::endl;
+    }
 }

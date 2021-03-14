@@ -12,27 +12,33 @@ namespace Expressions {
         PROG, LIT, PRIM, LET, 
         REF, BRANCH, ARG, FUN_DEF, 
         APP, LIST_DEF, BLOCK_GET,
-        CASE, MATCH
-    };
-
-    enum class OperatorTypes {
-        PLUS, MINUS, TIMES, DIV, MOD, // arithmetic
-        GRT, LST, NOT, EQ, NOTEQ, GRTEQ, LSTEQ, AND, OR, // comparison
-        NONE 
+        CASE, MATCH, END
     };
 
     class Expression {
+        private:
+            Expression()
+            : token(Token(Token::TokenType::DELIM,
+                          FilePosition(-1, -1, "END"),
+                          std::string({}))),
+              expType(ExpressionTypes::END),
+              returnType(Types::NullType()) { }
+
         public:
             Token token;
             ExpressionTypes expType;
             Types::Type returnType;
 
             Expression(const Token & token, 
-                const ExpressionTypes expType, 
-                const Types::Type & returnType)
+                       const ExpressionTypes expType, 
+                       const Types::Type & returnType)
             : token(token), 
               expType(expType), 
               returnType(returnType) { }
+            
+            static Expression End() {
+                return Expression{};
+            }
     };
 
     class Program : public Expression {
@@ -40,11 +46,10 @@ namespace Expressions {
             std::vector<Expression> functions;
             Expression body;
 
-            Program(const Token & token, 
-                    const Types::Type & returnType,
+            Program(const Token & token,
                     const std::vector<Expression> & functions,
                     Expression body)
-            : Expression(token, ExpressionTypes::PROG, returnType),
+            : Expression(token, ExpressionTypes::PROG, body.returnType),
               functions(functions), 
               body(body) { }
 
@@ -82,6 +87,10 @@ namespace Expressions {
             : Expression(token, ExpressionTypes::LIT, returnType),
               data(data) { }
             
+            Literal(const Token & token,
+                    const Types::Type & returnType)
+            : Expression(token, ExpressionTypes::LIT, returnType) { }
+
             template<typename T>
             T getData() {
                 return std::get<T>(data);
@@ -90,7 +99,7 @@ namespace Expressions {
 
     class Primitive : public Expression {
         public:
-            OperatorTypes op;
+            Operator::OperatorTypes op;
             Expression leftSide, rightSide;
 
             Primitive(const Token & token,
@@ -109,12 +118,11 @@ namespace Expressions {
             Expression value, afterLet;
 
             Let(const Token & token,
-                const Types::Type & returnType,
                 const std::string & ident,
                 const Types::Type & valueType,
                 const Expression & value,
                 const Expression & afterLet)
-            : Expression(token, ExpressionTypes::LET, returnType),
+            : Expression(token, ExpressionTypes::LET, afterLet.returnType),
               ident(ident),
               valueType(valueType),
               value(value),
@@ -137,11 +145,10 @@ namespace Expressions {
             Expression condition, ifBranch, elseBranch;
 
             Branch(const Token & token,
-                   const Types::Type & returnType,
                    const Expression & condition,
                    const Expression & ifBranch,
                    const Expression & elseBranch)
-            : Expression(token, ExpressionTypes::BRANCH, returnType),
+            : Expression(token, ExpressionTypes::BRANCH, ifBranch.returnType),
               condition(condition),
               ifBranch(ifBranch),
               elseBranch(elseBranch) { }
@@ -161,6 +168,11 @@ namespace Expressions {
     class ListDefinition : public Expression {
         public:
             std::vector<Expression> values;
+
+            ListDefinition(const Token & token,
+                           const std::vector<Expression> values)
+            : Expression(token, ExpressionTypes::LIST_DEF, Types::NullType()),
+              values(values) { }
     };
 
     class BlockGet : public Expression {
@@ -171,11 +183,25 @@ namespace Expressions {
     class Case : public Expression {
         public:
             Expression ident, body;
+
+            Case(const Token & token,
+                 const Expression & ident,
+                 const Expression & body)
+            : Expression(token, ExpressionTypes::CASE, body.returnType),
+              ident(ident),
+              body(body) { }
     };
 
     class Match : public Expression {
         public:
-           std::string ident;
-           std::vector<Expression> cases; 
+            std::string ident;
+            std::vector<Case> cases;
+
+            Match(const Token & token,
+                  const std::string & ident,
+                  const std::vector<Case> cases)
+            : Expression(token, ExpressionTypes::MATCH, cases.at(0).returnType),
+              ident(ident),
+              cases(cases) { }
     };
 }

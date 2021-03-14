@@ -35,7 +35,9 @@ int main(int argc, char ** argv) {
     auto tokenStream = lexer.makeTokenStream();
 
     if (lexer.errorOccurred()) {
-        Format::printHeader("\033[1;31mOne or more errors occurred during lexing, exiting\033[0m");
+        Format::printError("One or more errors occurred during lexing, exiting");
         exit(3);
     }
+
+    auto parser = Parser(tokenStream);
 }

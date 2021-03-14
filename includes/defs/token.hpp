@@ -1,6 +1,6 @@
 #pragma once
 
-#include "filePosition.hpp"
+#include "../utils/filePosition.hpp"
 
 #include <iostream>
 #include <sstream>

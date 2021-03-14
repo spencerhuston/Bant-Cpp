@@ -217,10 +217,11 @@ Lexer::isIdentity(const std::string & tokenString) {
 void
 Lexer::printError(const std::string culprit) {
     error = true;
-    std::cout << "\033[1;31mLine: " << currentPosition.fileLine
-              << ", Column: " << currentPosition.fileColumn - 1 << std::endl
-              << "Unexpected character: " << culprit << std::endl << std::endl
-              << currentPosition.currentLineText << std::endl
-              << std::string(currentPosition.fileColumn - culprit.length() - 1, ' ') << "^"
-              << "\033[0m" << std::endl;
+    std::stringstream errorStream;
+    errorStream << "Line: " << currentPosition.fileLine
+                << ", Column: " << currentPosition.fileColumn - 1 << std::endl
+                << "Unexpected character: " << culprit << std::endl << std::endl
+                << currentPosition.currentLineText << std::endl
+                << std::string(currentPosition.fileColumn - culprit.length() - 1, ' ') << "^";
+    Format::printError(errorStream.str());
 }

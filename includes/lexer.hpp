@@ -1,10 +1,11 @@
 #pragma once
 
-#include "format.hpp"
-#include "filePosition.hpp"
-#include "token.hpp"
+#include "utils/format.hpp"
+#include "utils/filePosition.hpp"
+#include "defs/token.hpp"
 
 #include <vector>
+#include <sstream>
 #include <set>
 #include <regex>
 #include <string>
