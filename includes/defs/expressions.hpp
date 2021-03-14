@@ -43,11 +43,22 @@ namespace Expressions {
 
     using ExpPtr = std::shared_ptr<Expression>;
 
+    class Argument : public Expression {
+        public:
+            std::string name;
+
+            Argument(const Token & token,
+                     const Types::TypePtr & returnType,
+                     const std::string & name)
+            : Expression(token, ExpressionTypes::ARG, returnType),
+              name(name) { }
+    };
+    
     class Function : public Expression {
         public:
             std::string name{};
             std::vector<Types::GenTypePtr> genericParameters{};
-            std::vector<Types::TypePtr> parameters{};
+            std::vector<std::shared_ptr<Argument>> parameters{};
 
             ExpPtr functionBody;
 
@@ -55,7 +66,7 @@ namespace Expressions {
                      const Types::TypePtr & returnType,
                      const std::string name, 
                      const std::vector<Types::GenTypePtr> & genericParameters,
-                     const std::vector<Types::TypePtr> & parameters,
+                     const std::vector<std::shared_ptr<Argument>> & parameters,
                      const ExpPtr & functionBody)
             : Expression(token, ExpressionTypes::FUN_DEF, returnType),
               name(name),
@@ -166,17 +177,6 @@ namespace Expressions {
               condition(condition),
               ifBranch(ifBranch),
               elseBranch(elseBranch) { }
-    };
-
-    class Argument : public Expression {
-        public:
-            std::string name;
-
-            Argument(const Token & token,
-                     const Types::TypePtr & returnType,
-                     const std::string & name)
-            : Expression(token, ExpressionTypes::ARG, returnType),
-              name(name) { }
     };
 
     class Application : public Expression {
