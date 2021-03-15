@@ -2,18 +2,18 @@
 Bant is an interpreted, statically typed, toy functional programming language made purely for my own entertainment
 
 ### Features:
-- int, char, bool, and null types
-- standard arithmetic and boolean operations
-- collections (as _Lists_)
-- builtin list operations
-- basic char I/O
-- control-flow statements
-- case switching (by value)
 - first-class functions
 - closures
 - generic function parameters
+- algebraic data types
+- int, char, string, bool, and null primitive types
+- standard arithmetic and boolean operations
+- monomorphic collections (_List_)
+- polymorphic collections (_Tuple_)
+- builtin collection operations
+- char and string I/O
+- control-flow statements
+- case switching (by value)
 - static type-checking
 - comments
-
-### TODO:
-- listed in Issues under the "enhancements" tag
+- external file importing
