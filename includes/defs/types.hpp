@@ -8,11 +8,14 @@ namespace Types {
     enum class DataTypes {
         INT,
         CHAR,
+        STRING,
         BOOL,
         NULLVAL,
         LIST,
+        TUPLE,
         FUNC,
-        GEN
+        GEN,
+        TYPECLASS
     };
 
     class Type {
@@ -31,6 +34,9 @@ namespace Types {
                     case DataTypes::CHAR:
                         return "CHAR";
                         break;
+                    case DataTypes::STRING:
+                        return "STRING";
+                        break;
                     case DataTypes::BOOL:
                         return "BOOL";
                         break;
@@ -39,6 +45,9 @@ namespace Types {
                         break;
                     case DataTypes::LIST:
                         return "LIST";
+                        break;
+                    case DataTypes::TUPLE:
+                        return "TUPLE";
                         break;
                     case DataTypes::FUNC:
                         return "FUNC";
@@ -70,6 +79,13 @@ namespace Types {
 
     using CharTypePtr = std::shared_ptr<CharType>;
 
+    class StringType : public Type {
+        public:
+            StringType() : Type(DataTypes::STRING) { }
+    };
+
+    using StringTypePtr = std::shared_ptr<StringType>;
+
     class BoolType : public Type {
         public:
             BoolType() : Type(DataTypes::BOOL) { }
@@ -94,6 +110,17 @@ namespace Types {
     };
 
     using ListTypePtr = std::shared_ptr<ListType>;
+
+    class TupleType : public Type {
+        public:
+            std::vector<TypePtr> tupleTypes;
+
+            TupleType(const std::vector<TypePtr> & tupleTypes)
+            : Type(DataTypes::TUPLE),
+              tupleTypes(tupleTypes) { }
+    };
+
+    using TupleTypePtr = std::shared_ptr<TupleType>;
 
     class GenType : public Type {
         public:
@@ -122,4 +149,23 @@ namespace Types {
     };
 
     using FuncTypePtr = std::shared_ptr<FuncType>;
+
+    class TypeclassType : public Type {
+        public:
+            const std::string ident;
+            std::vector<TypePtr> fieldTypes;
+
+            TypeclassType(const std::string & ident,
+                          const std::vector<TypePtr> & fieldTypes)
+            : Type(DataTypes::TYPECLASS),
+              ident(ident),
+              fieldTypes(fieldTypes) { }
+
+            TypeclassType(const std::string & ident)
+            : Type(DataTypes::TYPECLASS),
+              ident(ident),
+              fieldTypes({}) { }
+    };
+
+    using TypeclassTypePtr = std::shared_ptr<TypeclassType>;
 }

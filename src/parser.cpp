@@ -98,14 +98,43 @@ ExpPtr
 Parser::parseSimpleExpression() {
     if (match(Token::TokenType::KEYWORD, "if")) {
         return parseBranch();
-    } else if (match(Token::TokenType::KEYWORD, "new")) {
+    } else if (match(Token::TokenType::KEYWORD, "List")) {
         return parseList();
+    } else if (match(Token::TokenType::KEYWORD, "Tuple")) {
+        return parseTuple();
     } else if (match(Token::TokenType::KEYWORD, "match")) {
         return parseMatch();
+    } else if (match(Token::TokenType::KEYWORD, "typeclass")) {
+        return parseTypeclass();
     } else if (matchNoAdvance(Token::TokenType::KEYWORD, "func")) {
         return parseProgram();
     }
     return parseUtight(0);
+}
+
+std::shared_ptr<Typeclass>
+Parser::parseTypeclass() {
+    Token token = currentToken();
+    const std::string ident = currentToken().text;
+    advance();
+    skip("{");
+
+    std::vector<std::shared_ptr<Argument>> fields;
+    if (inBounds() && currentToken().type != Token::TokenType::DELIM && currentToken().text != "}") {
+        fields.push_back(parseArg({}));
+        while (match(Token::TokenType::DELIM, ",")) {
+            fields.push_back(parseArg({}));
+        }
+    }
+    skip("}");
+
+    std::vector<Types::TypePtr> fieldTypes;
+    for (const auto & field : fields) {
+        fieldTypes.push_back(field->returnType);
+    }
+
+    Types::TypeclassTypePtr type = std::make_shared<Types::TypeclassType>(ident, fieldTypes);
+    return std::make_shared<Typeclass>(token, ident, fields, type);
 }
 
 std::shared_ptr<Branch>
@@ -127,7 +156,6 @@ Parser::parseBranch() {
 std::shared_ptr<ListDefinition>
 Parser::parseList() {
     const Token token = currentToken();
-    skip("List");
 	skip("{");
 
     std::vector<ExpPtr> listValues;
@@ -140,6 +168,23 @@ Parser::parseList() {
 
     skip("}");
     return std::make_shared<ListDefinition>(token, listValues);
+}
+
+std::shared_ptr<TupleDefinition>
+Parser::parseTuple() {
+    const Token token = currentToken();
+	skip("{");
+
+    std::vector<ExpPtr> tupleValues;
+    if (inBounds() && currentToken().text != "}") {
+        tupleValues.push_back(parseSimpleExpression());
+        while (match(Token::TokenType::DELIM, ",")) {
+            tupleValues.push_back(parseSimpleExpression());
+        }
+    }
+
+    skip("}");
+    return std::make_shared<TupleDefinition>(token, tupleValues);
 }
 
 std::shared_ptr<Match>
@@ -333,7 +378,16 @@ Parser::parseArg(const std::vector<Types::GenTypePtr> & genericParameterList) {
     Token token = currentToken();
     advance();
     skip(":");
-    return std::make_shared<Argument>(token, parseType(genericParameterList), argumentName);
+    Types::TypePtr argumentType = parseType(genericParameterList);
+
+    ExpPtr defaultValue;
+    if (match(Token::TokenType::DELIM, "=")) {
+        defaultValue = parseAtom();
+    } else {
+        defaultValue = nullptr;
+    }
+
+    return std::make_shared<Argument>(token, argumentType, argumentName, defaultValue);
 }
 
 ExpPtr
@@ -344,10 +398,17 @@ Parser::parseAtom() {
         return exp;
     } else if (inBounds()) {
         if (currentToken().type == Token::TokenType::IDENT) {
+            Token token = currentToken();
             const std::string ident = currentToken().text;
-            std::shared_ptr<Reference> reference = std::make_shared<Reference>(currentToken(), Types::NullTypePtr(), ident);
 		    advance();
-		    return reference;
+
+            if (match(Token::TokenType::DELIM, ".")) {
+                const std::string fieldIdent = currentToken().text;
+                advance();
+                return std::make_shared<Reference>(token, Types::NullTypePtr(), ident, fieldIdent);
+            }
+            
+            return std::make_shared<Reference>(token, Types::NullTypePtr(), ident);
         } else {
             Token token = currentToken();
             if (matchNoAdvance(Token::TokenType::KEYWORD, "true") ||
@@ -366,6 +427,11 @@ Parser::parseAtom() {
                 advance();
                 skip("'");
                 return lit;
+            } else if (match(Token::TokenType::DELIM, "\"")) {
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::StringTypePtr(), currentToken().text);
+                advance();
+                skip("\"");
+                return lit;
             } else {
                 printError(currentToken().text);
             }
@@ -378,15 +444,20 @@ Parser::parseAtom() {
 
 Types::TypePtr
 Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
-    if (inBounds() && currentToken().type == Token::TokenType::KEYWORD && currentToken().text != "List") {
-		const std::string typeString = currentToken().text;
+    if (inBounds() && currentToken().type == Token::TokenType::KEYWORD && currentToken().text != "List" && currentToken().text != "Tuple") {
+		std::string typeString = currentToken().text;
         
 		Types::TypePtr type;
 		if (typeString == "int") type = Types::IntTypePtr();
 		else if (typeString == "bool") type = Types::BoolTypePtr();
 		else if (typeString == "char") type = Types::CharTypePtr();
+        else if (typeString == "string") type = Types::StringTypePtr();
 		else if (typeString == "null") type = Types::NullTypePtr();
-		else {
+        else if (typeString == "type") {
+            advance();
+            typeString = currentToken().text;
+            type = std::make_shared<Types::TypeclassType>(typeString);
+        } else {
 			Format::printError(std::string("Unexpected type: ") + typeString);
 			return Types::NullTypePtr();
 		}
@@ -403,6 +474,14 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
         Types::TypePtr listDataType = parseType(genericParameterList);
         skip("]");
         return std::make_shared<Types::ListType>(listDataType);
+    } else if (match(Token::TokenType::KEYWORD, "Tuple")) {
+        skip("[");
+        std::vector<Types::TypePtr> tupleTypes{parseType(genericParameterList)};
+        while (match(Token::TokenType::DELIM, ",")) {
+			tupleTypes.push_back(parseType(genericParameterList));	
+		}
+		skip("]");
+        return std::make_shared<Types::TupleType>(tupleTypes);
     } else if (match(Token::TokenType::DELIM, "(")) {
         std::vector<Types::TypePtr> functionArgumentTypes{parseType(genericParameterList)};
         while (match(Token::TokenType::DELIM, ",")) {

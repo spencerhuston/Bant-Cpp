@@ -1,0 +1,7 @@
+typeclass Point {
+	x : int = 0,
+	y : int = 0
+};
+
+val p : type Point = Point(0, 0);
+p.x

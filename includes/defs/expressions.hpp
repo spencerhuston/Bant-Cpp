@@ -11,8 +11,8 @@
 namespace Expressions {
     enum class ExpressionTypes {
         PROG, LIT, PRIM, LET, 
-        REF, BRANCH, ARG, FUN_DEF, 
-        APP, LIST_DEF, BLOCK_GET,
+        REF, BRANCH, ARG, FUN_DEF, TYPECLASS,
+        APP, LIST_DEF, TUPLE_DEF, BLOCK_GET,
         CASE, MATCH, END
     };
 
@@ -46,12 +46,15 @@ namespace Expressions {
     class Argument : public Expression {
         public:
             std::string name;
+            ExpPtr defaultValue;
 
             Argument(const Token & token,
                      const Types::TypePtr & returnType,
-                     const std::string & name)
+                     const std::string & name,
+                     const ExpPtr & defaultValue)
             : Expression(token, ExpressionTypes::ARG, returnType),
-              name(name) { }
+              name(name),
+              defaultValue(defaultValue) { }
     };
     
     class Function : public Expression {
@@ -89,27 +92,52 @@ namespace Expressions {
 
     };
 
+    class Typeclass : public Expression {
+        public:
+            const std::string ident;
+            std::vector<std::shared_ptr<Argument>> fields{};
+            std::vector<ExpPtr> fieldValues{};
+
+            Typeclass(const Token & token,
+                      const std::string ident,
+                      std::vector<std::shared_ptr<Argument>> fields,
+                      const Types::TypePtr & typeclassType)
+            : Expression(token, ExpressionTypes::TYPECLASS, typeclassType),
+              ident(ident),
+              fields(fields) {
+                  for (auto & field : fields) {
+                      fieldValues.push_back(field->defaultValue);
+                  }
+              }
+    };
+
     class Literal : public Expression {
         public:
-            std::variant<int, bool, char> data;
+            std::variant<int, bool, char, std::string> data;
 
             Literal(const Token & token,
                     const Types::TypePtr & returnType,
                     const int data)
             : Expression(token, ExpressionTypes::LIT, returnType),
-              data(std::variant<int, bool, char>(data)) { }
+              data(std::variant<int, bool, char, std::string>(data)) { }
 
             Literal(const Token & token,
                     const Types::TypePtr & returnType,
                     const bool data)
             : Expression(token, ExpressionTypes::LIT, returnType),
-              data(std::variant<int, bool, char>(data)) { }
+              data(std::variant<int, bool, char, std::string>(data)) { }
 
             Literal(const Token & token,
                     const Types::TypePtr & returnType,
                     const char data)
             : Expression(token, ExpressionTypes::LIT, returnType),
-              data(std::variant<int, bool, char>(data)) { }
+              data(std::variant<int, bool, char, std::string>(data)) { }
+
+              Literal(const Token & token,
+                      const Types::TypePtr & returnType,
+                      const std::string data)
+            : Expression(token, ExpressionTypes::LIT, returnType),
+              data(std::variant<int, bool, char, std::string>(data)) { }
             
             Literal(const Token & token)
             : Expression(token, ExpressionTypes::LIT, Types::NullTypePtr()) { }
@@ -157,12 +185,22 @@ namespace Expressions {
     class Reference : public Expression {
         public:
             std::string ident;
+            std::string fieldIdent;
 
             Reference(const Token & token,
                       const Types::TypePtr & returnType,
                       const std::string & ident)
             : Expression(token, ExpressionTypes::REF, returnType),
-              ident(ident) { }
+              ident(ident),
+              fieldIdent("") { }
+            
+            Reference(const Token & token,
+                      const Types::TypePtr & returnType,
+                      const std::string & ident,
+                      const std::string & fieldIdent)
+            : Expression(token, ExpressionTypes::REF, returnType),
+              ident(ident),
+              fieldIdent(fieldIdent) { }
     };
 
     class Branch : public Expression {
@@ -199,6 +237,16 @@ namespace Expressions {
             ListDefinition(const Token & token,
                            const std::vector<ExpPtr> values)
             : Expression(token, ExpressionTypes::LIST_DEF, std::make_shared<Types::NullType>()),
+              values(values) { }
+    };
+
+    class TupleDefinition : public Expression {
+        public:
+            std::vector<ExpPtr> values;
+
+            TupleDefinition(const Token & token,
+                            const std::vector<ExpPtr> values)
+            : Expression(token, ExpressionTypes::TUPLE_DEF, std::make_shared<Types::NullType>()),
               values(values) { }
     };
 

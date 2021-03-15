@@ -1,14 +1,16 @@
 #include "../includes/lexer.hpp"
 
 const std::string
-Lexer::CHAR_DELIMS{"[](){}=->:;,*/+<!'&|%"};
+Lexer::CHAR_DELIMS{"[](){}=->:;,*/+<!'\".&|%"};
 
 const std::set<std::string>
 Lexer::KEYWORDS{
 	"if", "else",
 	"func",
-	"val", "new",
-	"List", "true", "false", "int", "bool", "char", "null",
+    "typeclass", "type",
+	"val", "List", "Tuple",
+	"true", "false", 
+    "int", "bool", "char", "null", "string",
 	"case", "match", "any",
     "import", ".."
 };
@@ -16,7 +18,7 @@ Lexer::KEYWORDS{
 const std::set<std::string> 
 Lexer::DELIMITERS{
 	"[", "]", "(", ")", "{", "}",
-	"=", "->", ":", ";", ",", "'",
+	"=", "->", ":", ";", ",", "'", "\"", ".",
 	"+", "-", "/", "*", "%",
 	"<", ">", "!", "&&", "||",
 	"==", "!=", "<=", ">="
@@ -207,7 +209,7 @@ Lexer::makeToken(const std::string & tokenString) {
 
 bool
 Lexer::isValidCharacter(const char character) {
-    return (isalnum(character) || isCharDelimiter(character) || character == '_' || character == '\\' || character == '.');
+    return (isalnum(character) || isCharDelimiter(character) || character == '_' || character == '\\');
 }
 
 bool
@@ -217,7 +219,7 @@ Lexer::isCharDelimiter(const char character) {
 
 bool
 Lexer::isDelimiter(const std::string & tokenString) {
-    if (tokenString == "'")
+    if (tokenString == "'" || tokenString == "\"")
 		inQuotes = !inQuotes;
     return (DELIMITERS.find(tokenString) != DELIMITERS.end());
 }

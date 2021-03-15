@@ -26,8 +26,10 @@ class Parser {
         std::vector<Token> parseImport(int tokenIndex);
         ExpPtr parseExpression();
         ExpPtr parseSimpleExpression();
+        std::shared_ptr<Typeclass> parseTypeclass();
         std::shared_ptr<Branch> parseBranch();
         std::shared_ptr<ListDefinition> parseList();
+        std::shared_ptr<TupleDefinition> parseTuple();
         std::shared_ptr<Match> parseMatch();
         std::shared_ptr<Case> parseCase();
         ExpPtr parseUtight(int min);
