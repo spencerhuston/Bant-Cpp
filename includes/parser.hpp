@@ -22,7 +22,8 @@ class Parser {
         
         // Token parsing/Tree making
         ExpPtr parseProgram();
-        void parseImport();
+        void preprocessImports();
+        std::vector<Token> parseImport(int tokenIndex);
         ExpPtr parseExpression();
         ExpPtr parseSimpleExpression();
         std::shared_ptr<Branch> parseBranch();

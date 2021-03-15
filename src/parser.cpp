@@ -7,6 +7,7 @@ Parser::Parser(const std::vector<Token> & tokenStream)
 
 ExpPtr
 Parser::makeTree() {
+    preprocessImports();
     ExpPtr tree = parseProgram();
     // err if anything leftover
     Format::printDebugHeader("Parsing Done");
@@ -17,10 +18,6 @@ ExpPtr
 Parser::parseProgram() {
     Token token = currentToken();
 
-    while (match(Token::TokenType::KEYWORD, "import")) {
-        parseImport();
-    } 
-
     std::vector<std::shared_ptr<Function>> functions;
     while (match(Token::TokenType::KEYWORD, "func"))
         functions.push_back(parseFunc());
@@ -29,30 +26,44 @@ Parser::parseProgram() {
 }
 
 void
-Parser::parseImport() {
-    tokenStream.erase(tokenStream.begin() + currentTokenIndex - 1); // at file name, remove import
-    currentTokenIndex--; // at file name again
+Parser::preprocessImports() {
+    bool importing = false;
+    do {
+        importing = false;
+        for (unsigned int tokenIndex = 0; tokenIndex < tokenStream.size(); ++tokenIndex) {
+            if (tokenStream.at(tokenIndex).text == "import") {
+                importing = true;
+                auto newStream = parseImport(tokenIndex);
+                
+                if (!newStream.empty())
+                    tokenStream.insert(tokenStream.begin() + tokenIndex, newStream.begin(), newStream.end());
+            }
+        }
+    } while (importing);
+}
 
-    std::string sourceFileName = currentToken().text;
-    tokenStream.erase(tokenStream.begin() + currentTokenIndex); // remove file name, now on first token of next
+std::vector<Token>
+Parser::parseImport(int tokenIndex) {
+    tokenStream.erase(tokenStream.begin() + tokenIndex); // remove import token
 
-    while (currentToken().text == "/") {
-        sourceFileName += currentToken().text; // add "/"
-        tokenStream.erase(tokenStream.begin() + currentTokenIndex);
+    std::string sourceFileName = tokenStream.at(tokenIndex).text;
+    tokenStream.erase(tokenStream.begin() + tokenIndex); // remove file name token, now on first token of next
 
-        sourceFileName += currentToken().text; // add "/"
-        tokenStream.erase(tokenStream.begin() + currentTokenIndex);
+    while (tokenStream.at(tokenIndex).text == "/") {
+        sourceFileName += tokenStream.at(tokenIndex).text; // add "/"
+        tokenStream.erase(tokenStream.begin() + tokenIndex);
+
+        sourceFileName += tokenStream.at(tokenIndex).text; // nested file
+        tokenStream.erase(tokenStream.begin() + tokenIndex);
     }
 
     std::string stream = Lexer::readFile(sourceFileName + std::string(".bnt"));
 
     if (stream.empty())
-        return;
+        return std::vector<Token>{};
 
     auto lexer = Lexer(std::move(stream));
-    auto importedTokenStream = lexer.makeTokenStream();
-
-    tokenStream.insert(tokenStream.begin() + currentTokenIndex, importedTokenStream.begin(), importedTokenStream.end());
+    return lexer.makeTokenStream();
 }
 
 ExpPtr

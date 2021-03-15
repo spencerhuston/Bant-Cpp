@@ -31,9 +31,9 @@ int main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(2);
     
-    try {
+    //try {
         Format::printHeader("Building...");
-        
+
         auto lexer = Lexer(std::move(sourceStream));
         auto tokenStream = lexer.makeTokenStream();
 
@@ -54,8 +54,8 @@ int main(int argc, char ** argv) {
 
         Format::printHeader("Running...");
         // Interpreter phase
-    } catch (...) {
-        Format::printError("Unexpected error occurred");
-        exit(7);
-    }
+    //} catch (...) {
+    //    Format::printError("Unexpected error occurred");
+    //    exit(7);
+    //}
 }
