@@ -16,11 +16,32 @@ Parser::makeTree() {
 ExpPtr
 Parser::parseProgram() {
     Token token = currentToken();
+
+    while (match(Token::TokenType::KEYWORD, "import")) {
+        parseImport();
+    } 
+
     std::vector<std::shared_ptr<Function>> functions;
     while (match(Token::TokenType::KEYWORD, "func"))
         functions.push_back(parseFunc());
 
     return std::make_shared<Program>(token, functions, parseExpression());
+}
+
+void
+Parser::parseImport() {
+    tokenStream.erase(tokenStream.begin() + currentTokenIndex - 1); // at file name, remove import
+    currentTokenIndex--; // at file name again
+    std::string stream = Lexer::readFile(currentToken().text + std::string(".bnt"));
+    tokenStream.erase(tokenStream.begin() + currentTokenIndex); // remove file name
+
+    if (stream.empty())
+        return;
+
+    auto lexer = Lexer(std::move(stream));
+    auto importedTokenStream = lexer.makeTokenStream();
+
+    tokenStream.insert(tokenStream.begin() + currentTokenIndex, importedTokenStream.begin(), importedTokenStream.end());
 }
 
 ExpPtr

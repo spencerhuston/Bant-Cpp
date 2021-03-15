@@ -4,6 +4,8 @@
 #include "utils/operator.hpp"
 #include "defs/expressions.hpp"
 
+#include "lexer.hpp"
+
 #include <sstream>
 #include <string>
 #include <vector>
@@ -13,13 +15,14 @@ using namespace Expressions;
 
 class Parser {
     private:
-        const std::vector<Token> tokenStream;
+        std::vector<Token> tokenStream;
 
         unsigned int currentTokenIndex = 0;
         bool error = false;
         
         // Token parsing/Tree making
         ExpPtr parseProgram();
+        void parseImport();
         ExpPtr parseExpression();
         ExpPtr parseSimpleExpression();
         std::shared_ptr<Branch> parseBranch();

@@ -9,7 +9,8 @@ Lexer::KEYWORDS{
 	"func",
 	"val", "new",
 	"List", "true", "false", "int", "bool", "char", "null",
-	"case", "match", "any"
+	"case", "match", "any",
+    "import"
 };
 
 const std::set<std::string> 

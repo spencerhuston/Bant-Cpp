@@ -33,6 +33,7 @@ int main(int argc, char ** argv) {
     
     try {
         Format::printHeader("Building...");
+        
         auto lexer = Lexer(std::move(sourceStream));
         auto tokenStream = lexer.makeTokenStream();
 
