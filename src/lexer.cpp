@@ -10,7 +10,7 @@ Lexer::KEYWORDS{
 	"val", "new",
 	"List", "true", "false", "int", "bool", "char", "null",
 	"case", "match", "any",
-    "import"
+    "import", ".."
 };
 
 const std::set<std::string> 
@@ -207,7 +207,7 @@ Lexer::makeToken(const std::string & tokenString) {
 
 bool
 Lexer::isValidCharacter(const char character) {
-    return (isalnum(character) || isCharDelimiter(character) || character == '_' || character == '\\');
+    return (isalnum(character) || isCharDelimiter(character) || character == '_' || character == '\\' || character == '.');
 }
 
 bool

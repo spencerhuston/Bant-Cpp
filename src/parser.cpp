@@ -32,8 +32,19 @@ void
 Parser::parseImport() {
     tokenStream.erase(tokenStream.begin() + currentTokenIndex - 1); // at file name, remove import
     currentTokenIndex--; // at file name again
-    std::string stream = Lexer::readFile(currentToken().text + std::string(".bnt"));
-    tokenStream.erase(tokenStream.begin() + currentTokenIndex); // remove file name
+
+    std::string sourceFileName = currentToken().text;
+    tokenStream.erase(tokenStream.begin() + currentTokenIndex); // remove file name, now on first token of next
+
+    while (currentToken().text == "/") {
+        sourceFileName += currentToken().text; // add "/"
+        tokenStream.erase(tokenStream.begin() + currentTokenIndex);
+
+        sourceFileName += currentToken().text; // add "/"
+        tokenStream.erase(tokenStream.begin() + currentTokenIndex);
+    }
+
+    std::string stream = Lexer::readFile(sourceFileName + std::string(".bnt"));
 
     if (stream.empty())
         return;
