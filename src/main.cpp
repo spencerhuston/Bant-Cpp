@@ -2,8 +2,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "../includes/parser.hpp"
 #include "../includes/lexer.hpp"
+#include "../includes/parser.hpp"
+#include "../includes/typeChecker.hpp"
 
 int main(int argc, char ** argv) {
     std::string sourceStream;
@@ -50,12 +51,18 @@ int main(int argc, char ** argv) {
             exit(4);
         }
 
-        // Type checking phase
+        auto typeChecker = TypeChecker(tree);
+        auto typedTree = typeChecker.check();
+
+        if (typeChecker.errorOccurred()) {
+            Format::printError("One or more errors occurred during type checking, exiting");
+            exit(5);
+        }
 
         Format::printHeader("Running...");
         // Interpreter phase
     //} catch (...) {
-    //    Format::printError("Unexpected error occurred");
+    //    Format::printError("Fatal error occurred");
     //    exit(7);
     //}
 }

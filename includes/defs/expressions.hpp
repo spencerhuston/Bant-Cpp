@@ -2,6 +2,7 @@
 
 #include "types.hpp"
 #include "token.hpp"
+#include "../utils/operator.hpp"
 
 #include <vector>
 #include <string>
@@ -25,7 +26,7 @@ namespace Expressions {
             Expression(const Token & token, 
                        const ExpressionTypes expType, 
                        const Types::TypePtr & returnType)
-            : token(token), 
+            : token(token),
               expType(expType), 
               returnType(returnType) { }
             

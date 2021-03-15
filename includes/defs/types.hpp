@@ -25,41 +25,16 @@ namespace Types {
             Type(const DataTypes dataType)
             : dataType(dataType) { }
 
-            const std::string
-            getTypeAsString() {
-                switch (dataType) {
-                    case DataTypes::INT:
-                        return "INT";
-                        break;
-                    case DataTypes::CHAR:
-                        return "CHAR";
-                        break;
-                    case DataTypes::STRING:
-                        return "STRING";
-                        break;
-                    case DataTypes::BOOL:
-                        return "BOOL";
-                        break;
-                    case DataTypes::NULLVAL:
-                        return "NULL";
-                        break;
-                    case DataTypes::LIST:
-                        return "LIST";
-                        break;
-                    case DataTypes::TUPLE:
-                        return "TUPLE";
-                        break;
-                    case DataTypes::FUNC:
-                        return "FUNC";
-                        break;
-                    case DataTypes::GEN:
-                        return "GEN";
-                        break;
-                    default:
-                        return "UNKN";
-                        break;
-                }
-                return "UNKN";
+            virtual const std::string toString() const = 0;
+
+            bool compare(const std::shared_ptr<Type> & otherType) {
+                auto dataTypeInt = static_cast<int>(dataType);
+                auto otherTypeInt = static_cast<int>(otherType->dataType);
+
+                if (otherTypeInt == static_cast<int>(DataTypes::GEN))
+                    return true;
+
+                return (dataTypeInt == otherTypeInt);
             }
     };
 
@@ -68,6 +43,10 @@ namespace Types {
     class IntType : public Type {
         public:
             IntType() : Type(DataTypes::INT) { }
+
+            const std::string toString() const override {
+                return "int";
+            }
     };
 
     using IntTypePtr = std::shared_ptr<IntType>;
@@ -75,6 +54,10 @@ namespace Types {
     class CharType : public Type {
         public:
             CharType() : Type(DataTypes::CHAR) { }
+
+            const std::string toString() const override {
+                return "char";
+            }
     };
 
     using CharTypePtr = std::shared_ptr<CharType>;
@@ -82,6 +65,10 @@ namespace Types {
     class StringType : public Type {
         public:
             StringType() : Type(DataTypes::STRING) { }
+
+            const std::string toString() const override {
+                return "string";
+            }
     };
 
     using StringTypePtr = std::shared_ptr<StringType>;
@@ -89,6 +76,10 @@ namespace Types {
     class BoolType : public Type {
         public:
             BoolType() : Type(DataTypes::BOOL) { }
+
+            const std::string toString() const override {
+                return "bool";
+            }
     };
 
     using BoolTypePtr = std::shared_ptr<BoolType>;
@@ -96,6 +87,10 @@ namespace Types {
     class NullType : public Type {
         public:
             NullType() : Type(DataTypes::NULLVAL) { }
+
+            const std::string toString() const override {
+                return "null";
+            }
     };
 
     using NullTypePtr = std::shared_ptr<NullType>;
@@ -107,6 +102,10 @@ namespace Types {
             ListType(const TypePtr & listType)
             : Type(DataTypes::LIST),
               listType(listType) { }
+
+            const std::string toString() const override {
+                return std::string("List[") + listType->toString() + std::string("]");
+            }
     };
 
     using ListTypePtr = std::shared_ptr<ListType>;
@@ -118,6 +117,23 @@ namespace Types {
             TupleType(const std::vector<TypePtr> & tupleTypes)
             : Type(DataTypes::TUPLE),
               tupleTypes(tupleTypes) { }
+
+            const std::string toString() const override {
+                std::string typeString("Tuple[");
+
+                if (tupleTypes.empty()) {
+                    typeString += std::string("]");
+                } else if (tupleTypes.size() == 1) {
+                    typeString += tupleTypes.at(0)->toString() + std::string("]");
+                } else {
+                    for (unsigned int typesIndex = 0; typesIndex < tupleTypes.size() - 1; ++typesIndex) {
+                        typeString += tupleTypes.at(typesIndex)->toString() + std::string(", ");
+                    }
+                    typeString += tupleTypes.at(tupleTypes.size() - 1)->toString() + std::string("]");
+                }
+
+                return typeString;
+            }
     };
 
     using TupleTypePtr = std::shared_ptr<TupleType>;
@@ -129,6 +145,10 @@ namespace Types {
             GenType(const std::string & identifier)
             : Type(DataTypes::GEN),
               identifier(identifier) { }
+            
+            const std::string toString() const override {
+                return identifier;
+            }
     };
 
     using GenTypePtr = std::shared_ptr<GenType>;
@@ -146,6 +166,38 @@ namespace Types {
               genericTypes(genericTypes),
               argumentTypes(argumentTypes),
               returnType(returnType) { }
+            
+            const std::string toString() const override {
+                std::string typeString("[");
+
+                if (genericTypes.empty()) {
+                    typeString += std::string("]");
+                } else if (genericTypes.size() == 1) {
+                    typeString += genericTypes.at(0)->toString() + std::string("]");
+                } else {
+                    for (unsigned int typesIndex = 0; typesIndex < genericTypes.size() - 1; ++typesIndex) {
+                        typeString += genericTypes.at(typesIndex)->toString() + std::string(", ");
+                    }
+                    typeString += genericTypes.at(genericTypes.size() - 1)->toString() + std::string("]");
+                }
+
+                typeString += std::string("(");
+                if (argumentTypes.empty()) {
+                    typeString += std::string(")");
+                } else if (argumentTypes.size() == 1) {
+                    typeString += argumentTypes.at(0)->toString() + std::string(")");
+                } else {
+                    for (unsigned int typesIndex = 0; typesIndex < argumentTypes.size() - 1; ++typesIndex) {
+                        typeString += argumentTypes.at(typesIndex)->toString() + std::string(", ");
+                    }
+                    typeString += argumentTypes.at(argumentTypes.size() - 1)->toString() + std::string(")");
+                }
+                
+                typeString += std::string("->");
+                typeString += returnType->toString();
+
+                return typeString;
+            }
     };
 
     using FuncTypePtr = std::shared_ptr<FuncType>;
@@ -165,6 +217,10 @@ namespace Types {
             : Type(DataTypes::TYPECLASS),
               ident(ident),
               fieldTypes({}) { }
+            
+            const std::string toString() const override {
+                return ident;
+            }
     };
 
     using TypeclassTypePtr = std::shared_ptr<TypeclassType>;

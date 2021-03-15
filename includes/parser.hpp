@@ -21,7 +21,7 @@ class Parser {
         bool error = false;
         
         // Token parsing/Tree making
-        ExpPtr parseProgram();
+        std::shared_ptr<Program> parseProgram();
         void preprocessImports();
         std::vector<Token> parseImport(int tokenIndex);
         ExpPtr parseExpression();

@@ -1,12 +1,11 @@
 #include "../includes/parser.hpp"
 
 Parser::Parser(const std::vector<Token> & tokenStream)
-: tokenStream(tokenStream) {
-    Format::printDebugHeader("Parsing Errors");
-}
+: tokenStream(tokenStream) { }
 
 ExpPtr
 Parser::makeTree() {
+    Format::printDebugHeader("Parsing");
     preprocessImports();
     ExpPtr tree = parseProgram();
     // err if anything leftover
@@ -14,7 +13,7 @@ Parser::makeTree() {
     return tree;
 }
 
-ExpPtr
+std::shared_ptr<Program>
 Parser::parseProgram() {
     Token token = currentToken();
 
@@ -88,7 +87,7 @@ Parser::parseExpression() {
         ExpPtr simpleExpression = parseSimpleExpression();
         if (match(Token::TokenType::DELIM, ";")) {
             ExpPtr expression = parseExpression();
-            return std::make_shared<Let>(token, dummy(), Types::NullTypePtr(), simpleExpression, expression);
+            return std::make_shared<Let>(token, dummy(), std::make_shared<Types::NullType>(), simpleExpression, expression);
         }
         return simpleExpression;
     }
@@ -209,7 +208,7 @@ Parser::parseCase() {
     const Token token = currentToken();
     ExpPtr ident; // making this a pointer avoids calling private constructor to init
     if (match(Token::TokenType::KEYWORD, "any")) {
-        ident = std::make_shared<Reference>(token, Types::NullTypePtr(), std::string("$any"));
+        ident = std::make_shared<Reference>(token, std::make_shared<Types::NullType>(), std::string("$any"));
     } else {
         ident = parseAtom();
     }
@@ -252,9 +251,9 @@ Parser::parseUtight() {
 
     ExpPtr rightSide = parseTight();
     if (op == Operator::OperatorTypes::PLUS || op == Operator::OperatorTypes::MINUS) {
-		return std::make_shared<Primitive>(token, Types::IntTypePtr(), op, std::make_shared<Literal>(token, Types::IntTypePtr(), 0), rightSide);
+		return std::make_shared<Primitive>(token, std::make_shared<Types::IntType>(), op, std::make_shared<Literal>(token, std::make_shared<Types::IntType>(), 0), rightSide);
 	} else if (op == Operator::OperatorTypes::NOT) {
-		return std::make_shared<Primitive>(token, Types::BoolTypePtr(), op, std::make_shared<Literal>(token, Types::BoolTypePtr(), false), rightSide);
+		return std::make_shared<Primitive>(token, std::make_shared<Types::BoolType>(), op, std::make_shared<Literal>(token, std::make_shared<Types::BoolType>(), false), rightSide);
 	}
 	return rightSide;
 }
@@ -405,30 +404,30 @@ Parser::parseAtom() {
             if (match(Token::TokenType::DELIM, ".")) {
                 const std::string fieldIdent = currentToken().text;
                 advance();
-                return std::make_shared<Reference>(token, Types::NullTypePtr(), ident, fieldIdent);
+                return std::make_shared<Reference>(token, std::make_shared<Types::NullType>(), ident, fieldIdent);
             }
             
-            return std::make_shared<Reference>(token, Types::NullTypePtr(), ident);
+            return std::make_shared<Reference>(token, std::make_shared<Types::NullType>(), ident);
         } else {
             Token token = currentToken();
             if (matchNoAdvance(Token::TokenType::KEYWORD, "true") ||
                 matchNoAdvance(Token::TokenType::KEYWORD, "false")) {
-                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::BoolTypePtr(), (currentToken().text == "true"));
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), std::make_shared<Types::BoolType>(), (currentToken().text == "true"));
                 advance();
                 return lit;
             } else if (match(Token::TokenType::KEYWORD, "null")) {
                 return std::make_shared<Literal>(token);
             } else if (isValue(currentToken().text)) {
-                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::BoolTypePtr(), std::stoi(currentToken().text));
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), std::make_shared<Types::IntType>(), std::stoi(currentToken().text));
                 advance();
                 return lit;
             } else if (match(Token::TokenType::DELIM, "'") && currentToken().text.length() <= 2) {
-                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::CharTypePtr(), getEscapedCharacter(currentToken().text));
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), std::make_shared<Types::CharType>(), getEscapedCharacter(currentToken().text));
                 advance();
                 skip("'");
                 return lit;
             } else if (match(Token::TokenType::DELIM, "\"")) {
-                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), Types::StringTypePtr(), currentToken().text);
+                std::shared_ptr<Literal> lit = std::make_shared<Literal>(currentToken(), std::make_shared<Types::StringType>(), currentToken().text);
                 advance();
                 skip("\"");
                 return lit;
@@ -448,18 +447,18 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
 		std::string typeString = currentToken().text;
         
 		Types::TypePtr type;
-		if (typeString == "int") type = Types::IntTypePtr();
-		else if (typeString == "bool") type = Types::BoolTypePtr();
-		else if (typeString == "char") type = Types::CharTypePtr();
-        else if (typeString == "string") type = Types::StringTypePtr();
-		else if (typeString == "null") type = Types::NullTypePtr();
+		if (typeString == "int") type = std::make_shared<Types::IntType>();
+		else if (typeString == "bool") type = std::make_shared<Types::BoolType>();
+		else if (typeString == "char") type = std::make_shared<Types::CharType>();
+        else if (typeString == "string") type = std::make_shared<Types::StringType>();
+		else if (typeString == "null") type = std::make_shared<Types::NullType>();
         else if (typeString == "type") {
             advance();
             typeString = currentToken().text;
             type = std::make_shared<Types::TypeclassType>(typeString);
         } else {
 			Format::printError(std::string("Unexpected type: ") + typeString);
-			return Types::NullTypePtr();
+			return std::make_shared<Types::NullType>();
 		}
 		advance();
 		
@@ -506,7 +505,7 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
 
 		if (!genericNameMatches) {
             Format::printError(std::string("Undefined generic type: ") + parameterName);
-			return Types::NullTypePtr();
+			return std::make_shared<Types::NullType>();
 		}
 
 		return type;

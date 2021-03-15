@@ -137,12 +137,12 @@ Lexer::filterComments(const char character) {
             return true;
         }
             break;
-        default: {
-            if (inComment) return false;
-            else return true;
-        }
+        default:
+            break;
     }
-    return false;
+    if (inComment) 
+        return false;
+    return true;
 }
 
 bool
