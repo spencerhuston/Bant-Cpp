@@ -24,11 +24,35 @@ Lexer::DELIMITERS{
 const std::regex
 Lexer::IDENT_REGEX("^[a-zA-z_][a-zA-Z0-9_]*$");
 
+bool Lexer::inQuotes = false;
+
+std::string
+Lexer::readFile(const std::string sourceFileName) {
+    const std::string extension(".bnt");
+    if (sourceFileName.size() <= extension.size() ||
+        sourceFileName.compare(sourceFileName.size() - extension.size(), extension.size(), extension) != 0) {
+        Format::printError(std::string("Error: Files require .bnt extension: ") + sourceFileName);
+        return std::string("");
+    }
+
+    std::ifstream sourceFile(sourceFileName);
+    
+    std::string sourceStream;
+    if (sourceFile.is_open()) {
+        std::ostringstream sourceFileStream;
+        sourceFileStream << sourceFile.rdbuf();
+        sourceStream = sourceFileStream.str();
+    } else
+        Format::printError(std::string("Error: Could not open file: ") + sourceFileName);
+
+    return sourceStream;
+}
+
 Lexer::Lexer(std::string && sourceStream) 
 : sourceStream(sourceStream), currentPosition(1, 1, "") {
-    Format::printHeader("Source text");
-    Format::printHeader(sourceStream);
-    Format::printHeader("Lexing Errors");
+    Format::printDebugHeader("Source text");
+    Format::printDebugHeader(sourceStream);
+    Format::printDebugHeader("Lexing Errors");
 }
 
 const std::vector<Token>
@@ -39,14 +63,14 @@ Lexer::makeTokenStream() {
     if (!currentTokenBlock.empty())
         lexCharacter('\n');
 
-    Format::printHeader("Tokens");
+    Format::printDebugHeader("Tokens");
     
     std::stringstream tokenStringStream;
     for (const auto & token : tokenStream) {
         tokenStringStream << token.toString() << std::endl;
     }
 
-    Format::printHeader(tokenStringStream.str());
+    Format::printDebugHeader(tokenStringStream.str());
 
     return tokenStream;
 }
@@ -182,7 +206,7 @@ Lexer::makeToken(const std::string & tokenString) {
 
 bool
 Lexer::isValidCharacter(const char character) {
-    return (isalnum(character) || isCharDelimiter(character) || character == '_');
+    return (isalnum(character) || isCharDelimiter(character) || character == '_' || character == '\\');
 }
 
 bool
@@ -192,6 +216,8 @@ Lexer::isCharDelimiter(const char character) {
 
 bool
 Lexer::isDelimiter(const std::string & tokenString) {
+    if (tokenString == "'")
+		inQuotes = !inQuotes;
     return (DELIMITERS.find(tokenString) != DELIMITERS.end());
 }
 
@@ -211,7 +237,7 @@ Lexer::isValue(const std::string & tokenString) {
 
 bool
 Lexer::isIdentity(const std::string & tokenString) {
-    return (std::regex_match(tokenString, IDENT_REGEX));
+    return (std::regex_match(tokenString, IDENT_REGEX) || inQuotes);
 }
 
 void

@@ -5,6 +5,7 @@
 #include "defs/token.hpp"
 
 #include <vector>
+#include <fstream>
 #include <sstream>
 #include <set>
 #include <regex>
@@ -19,6 +20,7 @@ class Lexer {
         static const std::regex IDENT_REGEX;
 
         std::string sourceStream;
+
         std::vector<Token> tokenStream;
 
         FilePosition currentPosition;
@@ -26,6 +28,7 @@ class Lexer {
         
         bool updateFilePosition = false;
         bool inComment = false;
+        static bool inQuotes;
         bool error = false;
 
         void lexCharacter(const char character);
@@ -43,7 +46,10 @@ class Lexer {
         void printError(const std::string culprit);
 
     public:
+        static std::string readFile(const std::string sourceFileName);
+        
         Lexer(std::string && sourceStream);
+        
         const std::vector<Token> makeTokenStream();
         bool errorOccurred() const { return error; }
 };

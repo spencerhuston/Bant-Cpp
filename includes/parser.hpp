@@ -14,6 +14,7 @@ using namespace Expressions;
 class Parser {
     private:
         const std::vector<Token> tokenStream;
+
         unsigned int currentTokenIndex = 0;
         bool error = false;
         
@@ -50,7 +51,7 @@ class Parser {
         bool isValue(const std::string & valueString);
         char getEscapedCharacter(const std::string & escapeSequence);
 
-        void printError(const std::string & errorString);
+        void printError(const std::string & errorString, const std::string expected = "$");
 
     public:
         Parser(const std::vector<Token> & tokenStream);

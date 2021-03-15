@@ -1,22 +1,26 @@
 #include "../includes/parser.hpp"
 
 Parser::Parser(const std::vector<Token> & tokenStream)
-: tokenStream(tokenStream) { }
+: tokenStream(tokenStream) {
+    Format::printDebugHeader("Parsing Errors");
+}
 
 ExpPtr
 Parser::makeTree() {
     ExpPtr tree = parseProgram();
     // err if anything leftover
+    Format::printDebugHeader("Parsing Done");
     return tree;
 }
 
 ExpPtr
 Parser::parseProgram() {
+    Token token = currentToken();
     std::vector<std::shared_ptr<Function>> functions;
     while (match(Token::TokenType::KEYWORD, "func"))
         functions.push_back(parseFunc());
 
-    return std::make_shared<Program>(currentToken(), functions, parseExpression());
+    return std::make_shared<Program>(token, functions, parseExpression());
 }
 
 ExpPtr
@@ -55,7 +59,7 @@ Parser::parseSimpleExpression() {
         return parseList();
     } else if (match(Token::TokenType::KEYWORD, "match")) {
         return parseMatch();
-    } else if (match(Token::TokenType::KEYWORD, "func")) {
+    } else if (matchNoAdvance(Token::TokenType::KEYWORD, "func")) {
         return parseProgram();
     }
     return parseUtight(0);
@@ -112,7 +116,6 @@ Parser::parseMatch() {
     return std::make_shared<Match>(token, ident, cases);
 }
 
-// DONE
 std::shared_ptr<Case>
 Parser::parseCase() {
     const Token token = currentToken();
@@ -130,7 +133,6 @@ Parser::parseCase() {
     return std::make_shared<Case>(token, ident, block);
 }
 
-// DONE
 ExpPtr
 Parser::parseUtight(int min) {
     ExpPtr leftSide = parseUtight();
@@ -149,6 +151,7 @@ Parser::parseUtight(int min) {
 
 ExpPtr
 Parser::parseUtight() {
+    Token token = currentToken();
     Operator::OperatorTypes op;
     op = Operator::OperatorTypes::NONE;
     if (match(Token::TokenType::DELIM, "+")) {
@@ -160,7 +163,6 @@ Parser::parseUtight() {
 	}
 
     ExpPtr rightSide = parseTight();
-    Token token = currentToken();
     if (op == Operator::OperatorTypes::PLUS || op == Operator::OperatorTypes::MINUS) {
 		return std::make_shared<Primitive>(token, Types::IntTypePtr(), op, std::make_shared<Literal>(token, Types::IntTypePtr(), 0), rightSide);
 	} else if (op == Operator::OperatorTypes::NOT) {
@@ -207,7 +209,6 @@ Parser::parseApplication() {
     ExpPtr ident = parseAtom();
     if (match(Token::TokenType::DELIM, "(")) {
         std::vector<ExpPtr> arguments;
-        skip("(");
         if (inBounds() && currentToken().text != ")") {
             arguments.push_back(parseSimpleExpression());
         }
@@ -222,7 +223,6 @@ Parser::parseApplication() {
                 token = currentToken();
 
 				std::vector<ExpPtr> argumentsInner;
-                skip("(");
                 if (inBounds() && currentToken().text != ")") {
                     argumentsInner.push_back(parseSimpleExpression());
                 }
@@ -255,7 +255,7 @@ Parser::parseFunc() {
             advance();
             genericTypes.push_back(genericType2);
         }
-        skip("[");
+        skip("]");
     }
 
     skip("(");
@@ -301,7 +301,10 @@ Parser::parseAtom() {
         return exp;
     } else if (inBounds()) {
         if (currentToken().type == Token::TokenType::IDENT) {
-
+            const std::string ident = currentToken().text;
+            std::shared_ptr<Reference> reference = std::make_shared<Reference>(currentToken(), Types::NullTypePtr(), ident);
+		    advance();
+		    return reference;
         } else {
             Token token = currentToken();
             if (matchNoAdvance(Token::TokenType::KEYWORD, "true") ||
@@ -419,7 +422,7 @@ Parser::peek() {
 void
 Parser::skip(const std::string & text) {
     if (inBounds() && currentToken().text != text) {
-        printError(text);
+        printError(text, currentToken().text);
     }
     advance();
 }
@@ -474,13 +477,15 @@ Parser::getEscapedCharacter(const std::string & escapeSequence) {
 }
 
 void
-Parser::printError(const std::string & errorString) {
+Parser::printError(const std::string & errorString, const std::string expected) {
+    std::string expectedString = (expected != std::string("$")) ? (std::string(", Expected: ") + expected) : std::string(" ");
     error = true;
     FilePosition position = currentToken().position;
     std::stringstream errorStream;
     errorStream << "Line: " << position.fileLine
                 << ", Column: " << position.fileColumn - 1 << std::endl
-                << "Unexpected character: " << errorString << std::endl << std::endl
+                << "Unexpected character: " << errorString << expectedString
+                << std::endl << std::endl
                 << position.currentLineText << std::endl
                 << std::string(position.fileColumn - errorString.length() - 1, ' ') << "^";
     Format::printError(errorStream.str());

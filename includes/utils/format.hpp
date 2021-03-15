@@ -4,13 +4,24 @@
 #include <string>
 
 namespace Format {
+    inline bool debug = false;
+
     static const std::string header = "==============================";
 
     inline void 
     printHeader(const std::string & title) {
-        std::cout << header << std::endl << 
-                     title  << std::endl << 
-                     header << std::endl; 
+        std::cout << header << std::endl 
+                << title  << std::endl 
+                << header << std::endl; 
+    }
+
+    inline void 
+    printDebugHeader(const std::string & title) {
+        if (debug) {
+            std::cout << header << std::endl 
+                    << title  << std::endl 
+                    << header << std::endl; 
+        }
     }
 
     inline void
