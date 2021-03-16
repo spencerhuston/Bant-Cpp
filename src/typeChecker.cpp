@@ -115,6 +115,7 @@ TypeChecker::evalLet(const ExpPtr & expression, Environment & environment, const
     return eval(let->afterLet, afterLetEnvironment, expectedType);
 }
 
+// TODO
 ExpPtr
 TypeChecker::evalReference(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     auto reference = std::static_pointer_cast<Reference>(expression);
@@ -144,9 +145,21 @@ TypeChecker::evalArgument(const ExpPtr & expression, Environment & environment, 
 
 ExpPtr
 TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+    auto typeclass = std::static_pointer_cast<Typeclass>(expression);
+    auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
+    if (!type->compare(expectedType)) {
+        printError(typeclass->token, type, expectedType);
+        return typeclass;
+    }
+
+    for (auto & field : typeclass->fields) {
+        eval(field, environment, std::make_shared<Types::NullType>());
+    }
+
+    return typeclass;
 }
 
+// TODO
 ExpPtr
 TypeChecker::evalApplication(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     return nullptr;
@@ -154,24 +167,46 @@ TypeChecker::evalApplication(const ExpPtr & expression, Environment & environmen
 
 ExpPtr
 TypeChecker::evalListDefinition(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+    auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
+
+    if (!listDefinition->returnType->compare(expectedType)) {
+        printError(listDefinition->token, listDefinition->returnType, expectedType);
+    }
+
+    return listDefinition;
 }
 
 ExpPtr
 TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+    auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
+
+    if (!tupleDefinition->returnType->compare(expectedType)) {
+        printError(tupleDefinition->token, tupleDefinition->returnType, expectedType);
+    }
+
+    return tupleDefinition;
 }
 
 ExpPtr
 TypeChecker::evalBlockGet(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+    auto blockGet = std::static_pointer_cast<BlockGet>(expression);
+
+    if (eval(blockGet->index, environment, std::make_shared<Types::IntType>())) {
+        printError(blockGet->token, blockGet->returnType, expectedType);
+        return blockGet;
+    }
+
+    return eval(blockGet->reference, environment, expectedType);
 }
 
+// TODO
 ExpPtr
 TypeChecker::evalCase(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     return nullptr;
 }
 
+
+// TODO
 ExpPtr
 TypeChecker::evalMatch(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     return nullptr;

@@ -15,7 +15,8 @@ namespace Types {
         TUPLE,
         FUNC,
         GEN,
-        TYPECLASS
+        TYPECLASS,
+        UNKNOWN
     };
 
     class Type {
@@ -27,14 +28,17 @@ namespace Types {
 
             virtual const std::string toString() const = 0;
 
-            bool compare(const std::shared_ptr<Type> & otherType) {
-                auto dataTypeInt = static_cast<int>(dataType);
-                auto otherTypeInt = static_cast<int>(otherType->dataType);
+            virtual bool compare(const std::shared_ptr<Type> & otherType) {
+                if (otherType == nullptr)
+                    return false;
 
-                if (otherTypeInt == static_cast<int>(DataTypes::GEN))
+                auto dataTypeEnum = static_cast<int>(dataType);
+                auto otherTypeEnum = static_cast<int>(otherType->dataType);
+
+                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
                     return true;
 
-                return (dataTypeInt == otherTypeInt);
+                return (dataTypeEnum == otherTypeEnum);
             }
     };
 
@@ -103,8 +107,31 @@ namespace Types {
             : Type(DataTypes::LIST),
               listType(listType) { }
 
+            ListType()
+            : Type(DataTypes::UNKNOWN),
+              listType(nullptr) { }
+
             const std::string toString() const override {
                 return std::string("List[") + listType->toString() + std::string("]");
+            }
+
+            bool compare(const std::shared_ptr<Type> & otherType) override {
+                if (otherType == nullptr) {
+                    return false;
+                } else if (dataType == DataTypes::UNKNOWN &&
+                           otherType->dataType == DataTypes::LIST) {
+                    listType = std::static_pointer_cast<ListType>(otherType)->listType;
+                    return true;
+                }
+
+                auto dataTypeEnum = static_cast<int>(dataType);
+                auto otherTypeEnum = static_cast<int>(otherType->dataType);
+
+                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
+                    return true;
+
+                return (dataTypeEnum == otherTypeEnum) &&
+                       (listType == std::static_pointer_cast<ListType>(otherType)->listType);
             }
     };
 
@@ -117,6 +144,10 @@ namespace Types {
             TupleType(const std::vector<TypePtr> & tupleTypes)
             : Type(DataTypes::TUPLE),
               tupleTypes(tupleTypes) { }
+
+            TupleType()
+            : Type(DataTypes::UNKNOWN),
+              tupleTypes({}) { }
 
             const std::string toString() const override {
                 std::string typeString("Tuple[");
@@ -133,6 +164,39 @@ namespace Types {
                 }
 
                 return typeString;
+            }
+
+            bool compare(const std::shared_ptr<Type> & otherType) override {
+                if (otherType == nullptr) {
+                    return false;
+                } else if (dataType == DataTypes::UNKNOWN &&
+                           otherType->dataType == DataTypes::TUPLE) {
+                    tupleTypes = std::static_pointer_cast<TupleType>(otherType)->tupleTypes;
+                    return true;
+                }
+
+                auto dataTypeEnum = static_cast<int>(dataType);
+                auto otherTypeEnum = static_cast<int>(otherType->dataType);
+
+                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
+                    return true;
+
+                if (dataTypeEnum != otherTypeEnum)
+                    return false;
+
+                auto otherTupleType = std::static_pointer_cast<TupleType>(otherType);
+                
+                if (tupleTypes.size() != otherTupleType->tupleTypes.size()) {
+                    return false;
+                }
+
+                for (unsigned int typeIndex = 0; typeIndex < tupleTypes.size(); ++typeIndex) {
+                    if (!tupleTypes.at(typeIndex)->compare(otherTupleType->tupleTypes.at(typeIndex))) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
     };
 
@@ -221,7 +285,33 @@ namespace Types {
             const std::string toString() const override {
                 return ident;
             }
+
+            bool compare(const std::shared_ptr<Type> & otherType) override {
+                if (otherType == nullptr)
+                    return false;
+
+                auto dataTypeEnum = static_cast<int>(dataType);
+                auto otherTypeEnum = static_cast<int>(otherType->dataType);
+
+                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
+                    return true;
+
+                return (dataTypeEnum == otherTypeEnum) &&
+                       (ident == std::static_pointer_cast<TypeclassType>(otherType)->ident);
+            }
     };
 
     using TypeclassTypePtr = std::shared_ptr<TypeclassType>;
+
+    class UnknownType : public Type {
+        public:
+            UnknownType()
+            : Type(DataTypes::UNKNOWN) { }
+        
+        const std::string toString() const override {
+            return "unknown";
+        }
+    };
+
+    using UnknownTypePtr = std::shared_ptr<UnknownType>;
 }

@@ -226,7 +226,7 @@ namespace Expressions {
             Application(const Token & token,
                         const ExpPtr & functionIdent,
                         const std::vector<ExpPtr> arguments)
-            : Expression(token, ExpressionTypes::APP, std::make_shared<Types::NullType>()),
+            : Expression(token, ExpressionTypes::APP, std::make_shared<Types::UnknownType>()),
               functionIdent(functionIdent),
               arguments(arguments) { }
     };
@@ -237,7 +237,7 @@ namespace Expressions {
 
             ListDefinition(const Token & token,
                            const std::vector<ExpPtr> values)
-            : Expression(token, ExpressionTypes::LIST_DEF, std::make_shared<Types::NullType>()),
+            : Expression(token, ExpressionTypes::LIST_DEF, std::make_shared<Types::ListType>()),
               values(values) { }
     };
 
@@ -247,7 +247,7 @@ namespace Expressions {
 
             TupleDefinition(const Token & token,
                             const std::vector<ExpPtr> values)
-            : Expression(token, ExpressionTypes::TUPLE_DEF, std::make_shared<Types::NullType>()),
+            : Expression(token, ExpressionTypes::TUPLE_DEF, std::make_shared<Types::TupleType>()),
               values(values) { }
     };
 
@@ -258,7 +258,7 @@ namespace Expressions {
             BlockGet(const Token & token,
                      const ExpPtr & reference,
                      const ExpPtr & index)
-            : Expression(token, ExpressionTypes::BLOCK_GET, std::make_shared<Types::NullType>()),
+            : Expression(token, ExpressionTypes::BLOCK_GET, std::make_shared<Types::UnknownType>()),
               reference(reference),
               index(index) { }
     };

@@ -404,10 +404,10 @@ Parser::parseAtom() {
             if (match(Token::TokenType::DELIM, ".")) {
                 const std::string fieldIdent = currentToken().text;
                 advance();
-                return std::make_shared<Reference>(token, std::make_shared<Types::NullType>(), ident, fieldIdent);
+                return std::make_shared<Reference>(token, std::make_shared<Types::UnknownType>(), ident, fieldIdent);
             }
             
-            return std::make_shared<Reference>(token, std::make_shared<Types::NullType>(), ident);
+            return std::make_shared<Reference>(token, std::make_shared<Types::UnknownType>(), ident);
         } else {
             Token token = currentToken();
             if (matchNoAdvance(Token::TokenType::KEYWORD, "true") ||
@@ -458,7 +458,7 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
             type = std::make_shared<Types::TypeclassType>(typeString);
         } else {
 			Format::printError(std::string("Unexpected type: ") + typeString);
-			return std::make_shared<Types::NullType>();
+			return std::make_shared<Types::UnknownType>();
 		}
 		advance();
 		
@@ -505,7 +505,7 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
 
 		if (!genericNameMatches) {
             Format::printError(std::string("Undefined generic type: ") + parameterName);
-			return std::make_shared<Types::NullType>();
+			return std::make_shared<Types::UnknownType>();
 		}
 
 		return type;
