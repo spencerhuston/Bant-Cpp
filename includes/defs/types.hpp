@@ -38,7 +38,7 @@ namespace Types {
                 if (dataTypeEnum == static_cast<int>(DataTypes::GEN) ||
                     otherTypeEnum == static_cast<int>(DataTypes::GEN))
                     return true;
-
+                
                 return (dataTypeEnum == otherTypeEnum);
             }
     };

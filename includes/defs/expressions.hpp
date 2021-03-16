@@ -295,7 +295,7 @@ namespace Expressions {
             Match(const Token & token,
                   const std::string & ident,
                   const std::vector<std::shared_ptr<Case>> cases)
-            : Expression(token, ExpressionTypes::MATCH, cases.at(0)->returnType),
+            : Expression(token, ExpressionTypes::MATCH, std::make_shared<Types::UnknownType>()),
               ident(ident),
               cases(cases) { }
     };

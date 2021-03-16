@@ -14,7 +14,7 @@ TypeChecker::check() {
 }
 
 ExpPtr
-TypeChecker::eval(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::eval(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     if (expression->expType == ExpressionTypes::PROG)
         return evalProgram(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::LIT)
@@ -41,8 +41,6 @@ TypeChecker::eval(const ExpPtr & expression, Environment & environment, const Ty
         return evalBlockGet(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::MATCH)
         return evalMatch(expression, environment, expectedType);
-    else if (expression->expType == ExpressionTypes::CASE)
-        return evalCase(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::END)
         return expression;
 
@@ -52,7 +50,7 @@ TypeChecker::eval(const ExpPtr & expression, Environment & environment, const Ty
 }
 
 ExpPtr
-TypeChecker::evalProgram(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalProgram(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto program = std::static_pointer_cast<Program>(expression);
 
     for (auto & function : program->functions) {
@@ -79,10 +77,10 @@ TypeChecker::evalProgram(const ExpPtr & expression, Environment & environment, c
 }
 
 ExpPtr
-TypeChecker::evalLiteral(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalLiteral(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto literal = std::static_pointer_cast<Literal>(expression);
     
-    if (!literal->returnType->compare(expectedType)) {
+    if (!compare(literal->returnType, expectedType)) {
         printMismatchError(literal->token, literal->returnType, expectedType);
     }
     
@@ -90,7 +88,7 @@ TypeChecker::evalLiteral(const ExpPtr & expression, Environment & environment, c
 }
 
 ExpPtr
-TypeChecker::evalPrimitive(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalPrimitive(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto primitive = std::static_pointer_cast<Primitive>(expression);
 
     // unary op:
@@ -138,7 +136,7 @@ TypeChecker::evalPrimitive(const ExpPtr & expression, Environment & environment,
 }
 
 ExpPtr
-TypeChecker::evalLet(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalLet(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto let = std::static_pointer_cast<Let>(expression);
     
     eval(let->value, environment, let->valueType);
@@ -150,27 +148,22 @@ TypeChecker::evalLet(const ExpPtr & expression, Environment & environment, const
 }
 
 ExpPtr
-TypeChecker::evalReference(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalReference(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto reference = std::static_pointer_cast<Reference>(expression);
 
-    auto referenceType = environment.find(reference->ident);
-    if (referenceType == environment.end()) {
-        printError(reference->token, std::string("Error: ") + reference->ident + 
-                           std::string(" does not exist in this scope"));
-        return reference;
-    }
+    auto referenceType = getName(reference->token, environment, reference->ident);
 
-    if (!referenceType->second->compare(expectedType)) {
-        printMismatchError(reference->token, referenceType->second, expectedType);
+    if (!compare(referenceType, expectedType)) {
+        printMismatchError(reference->token, referenceType, expectedType);
     } else if (expectedType->dataType == Types::DataTypes::GEN) {
-        reference->returnType = referenceType->second;
+        reference->returnType = referenceType;
     }
 
     return reference;
 }
 
 ExpPtr
-TypeChecker::evalBranch(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalBranch(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto branch = std::static_pointer_cast<Branch>(expression);
 
     eval(branch->condition, environment, std::make_shared<Types::BoolType>());
@@ -180,7 +173,7 @@ TypeChecker::evalBranch(const ExpPtr & expression, Environment & environment, co
 }
 
 ExpPtr
-TypeChecker::evalArgument(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalArgument(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto argument = std::static_pointer_cast<Argument>(expression);
 
     if (argument->defaultValue) {
@@ -193,10 +186,10 @@ TypeChecker::evalArgument(const ExpPtr & expression, Environment & environment, 
 // TODO
 // - addName for fields
 ExpPtr
-TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
     auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
-    if (!type->compare(expectedType)) {
+    if (!compare(type, expectedType)) {
         printMismatchError(typeclass->token, type, expectedType);
         return typeclass;
     }
@@ -208,8 +201,10 @@ TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment,
     return typeclass;
 }
 
+// TODO
+// - check if typeclass from application and check it
 ExpPtr
-TypeChecker::evalApplication(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalApplication(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto application = std::static_pointer_cast<Application>(expression);
 
     auto ident = eval(application->ident, environment, std::make_shared<Types::GenType>("$"));
@@ -229,10 +224,10 @@ TypeChecker::evalApplication(const ExpPtr & expression, Environment & environmen
 }
 
 ExpPtr
-TypeChecker::evalListDefinition(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalListDefinition(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
 
-    if (!listDefinition->returnType->compare(expectedType)) {
+    if (!compare(listDefinition->returnType, expectedType)) {
         printMismatchError(listDefinition->token, listDefinition->returnType, expectedType);
     }
 
@@ -240,10 +235,10 @@ TypeChecker::evalListDefinition(const ExpPtr & expression, Environment & environ
 }
 
 ExpPtr
-TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
 
-    if (!tupleDefinition->returnType->compare(expectedType)) {
+    if (!compare(tupleDefinition->returnType, expectedType)) {
         printMismatchError(tupleDefinition->token, tupleDefinition->returnType, expectedType);
     }
 
@@ -251,23 +246,37 @@ TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment & enviro
 }
 
 ExpPtr
-TypeChecker::evalBlockGet(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalBlockGet(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
     auto blockGet = std::static_pointer_cast<BlockGet>(expression);
 
     eval(blockGet->index, environment, std::make_shared<Types::IntType>());
     return eval(blockGet->reference, environment, expectedType);
 }
 
-// TODO
 ExpPtr
-TypeChecker::evalMatch(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+TypeChecker::evalMatch(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
+    auto match = std::static_pointer_cast<Match>(expression);
+
+    auto caseType = getName(match->token, environment, match->ident);
+
+    for (auto & casePtr : match->cases) {
+        eval(casePtr->ident, environment, caseType);
+        eval(casePtr->body, environment, expectedType);
+    }
+
+    return match;
 }
 
-// TODO
-ExpPtr
-TypeChecker::evalCase(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+bool 
+TypeChecker::compare(Types::TypePtr leftType, Types::TypePtr rightType) {
+    if (leftType->dataType == Types::DataTypes::UNKNOWN) {
+        leftType = rightType;
+        return true;
+    } else if (rightType->dataType ==  Types::DataTypes::UNKNOWN) {
+        rightType = leftType;
+        return true;
+    }
+    return leftType->compare(rightType);
 }
 
 void
@@ -276,6 +285,17 @@ TypeChecker::addName(Environment & environment, std::string name, Types::TypePtr
 		environment.erase(name);
 	}
 	environment.insert(std::pair<std::string, Types::TypePtr>(name, type));
+}
+
+Types::TypePtr
+TypeChecker::getName(const Token & token, Environment & environment, std::string name) {
+    auto type = environment.find(name);
+    if (type == environment.end()) {
+        printError(token, std::string("Error: ") + name + 
+                          std::string(" does not exist in this scope"));
+        return std::make_shared<Types::UnknownType>();
+    }
+    return type->second;
 }
 
 void
