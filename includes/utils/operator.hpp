@@ -63,7 +63,7 @@ namespace Operator {
     }
 
     inline bool
-    isComparisonOperator(const OperatorTypes & op) {
+    isBinaryBooleanOperator(const OperatorTypes & op) {
         if (op == OperatorTypes::EQ ||
             op == OperatorTypes::NOTEQ || 
             op == OperatorTypes::GRTEQ || 

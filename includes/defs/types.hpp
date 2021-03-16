@@ -132,6 +132,12 @@ namespace Types {
                 if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
                     return true;
 
+                if (dataTypeEnum == otherTypeEnum &&
+                    listType->dataType == DataTypes::UNKNOWN) {
+                    listType = std::static_pointer_cast<ListType>(otherType)->listType;
+                    return true;
+                }
+
                 return (dataTypeEnum == otherTypeEnum) &&
                        (listType->compare(std::static_pointer_cast<ListType>(otherType)->listType));
             }
@@ -194,7 +200,15 @@ namespace Types {
                 }
 
                 for (unsigned int typeIndex = 0; typeIndex < tupleTypes.size(); ++typeIndex) {
-                    if (!tupleTypes.at(typeIndex)->compare(otherTupleType->tupleTypes.at(typeIndex))) {
+                    auto type = tupleTypes.at(typeIndex);
+                    auto otherType = otherTupleType->tupleTypes.at(typeIndex);
+
+                    if (type->dataType == DataTypes::UNKNOWN) {
+                        tupleTypes.at(typeIndex) = otherTupleType->tupleTypes.at(typeIndex);
+                        continue;
+                    }
+
+                    if (!type->compare(otherType)) {
                         return false;
                     }
                 }
@@ -272,10 +286,10 @@ namespace Types {
     class TypeclassType : public Type {
         public:
             const std::string ident;
-            std::vector<TypePtr> fieldTypes;
+            std::vector<std::pair<std::string, TypePtr>> fieldTypes;
 
             TypeclassType(const std::string & ident,
-                          const std::vector<TypePtr> & fieldTypes)
+                          const std::vector<std::pair<std::string, TypePtr>> & fieldTypes)
             : Type(DataTypes::TYPECLASS),
               ident(ident),
               fieldTypes(fieldTypes) { }

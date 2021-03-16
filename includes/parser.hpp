@@ -6,6 +6,7 @@
 
 #include "lexer.hpp"
 
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>

@@ -87,7 +87,7 @@ Parser::parseExpression() {
         ExpPtr simpleExpression = parseSimpleExpression();
         if (match(Token::TokenType::DELIM, ";")) {
             ExpPtr expression = parseExpression();
-            return std::make_shared<Let>(token, dummy(), std::make_shared<Types::NullType>(), simpleExpression, expression);
+            return std::make_shared<Let>(token, dummy(), std::make_shared<Types::UnknownType>(), simpleExpression, expression);
         }
         return simpleExpression;
     }
@@ -127,9 +127,21 @@ Parser::parseTypeclass() {
     }
     skip("}");
 
-    std::vector<Types::TypePtr> fieldTypes;
+    std::vector<std::pair<std::string, Types::TypePtr>> fieldTypes;
+    auto fieldExists = [&fieldTypes](const std::string & fieldName) {
+        for (const auto & field : fieldTypes) {
+            if (fieldName == field.first)
+                return true;
+        }
+        return false;
+    };
+
     for (const auto & field : fields) {
-        fieldTypes.push_back(field->returnType);
+        if (fieldExists(field->name)) {
+		    printError(field->name + std::string(" in typeclass ") + ident +
+                       std::string(" has already been declared"));
+	    }
+	    fieldTypes.push_back(std::pair<std::string, Types::TypePtr>(field->name, field->returnType));
     }
 
     Types::TypeclassTypePtr type = std::make_shared<Types::TypeclassType>(ident, fieldTypes);
@@ -458,7 +470,7 @@ Parser::parseAtom() {
                 skip("\"");
                 return lit;
             } else {
-                printError(currentToken().text);
+                printError(std::string("Unexpected character: ") + currentToken().text);
             }
         }
     }
@@ -569,7 +581,7 @@ Parser::peek() {
 void
 Parser::skip(const std::string & text) {
     if (inBounds() && currentToken().text != text) {
-        printError(text, currentToken().text);
+        printError(std::string("Unexpected character: ") + text, currentToken().text);
     }
     advance();
 }
@@ -631,7 +643,7 @@ Parser::printError(const std::string & errorString, const std::string expected) 
     std::stringstream errorStream;
     errorStream << "Line: " << position.fileLine
                 << ", Column: " << position.fileColumn - 1 << std::endl
-                << "Unexpected character: " << errorString << expectedString
+                << errorString << expectedString
                 << std::endl << std::endl
                 << position.currentLineText << std::endl
                 << std::string(position.fileColumn - errorString.length() - 1, ' ') << "^";

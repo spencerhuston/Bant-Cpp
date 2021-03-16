@@ -1,0 +1,34 @@
+typeclass Point {
+	x : int = 0,
+	y : int = 0
+};
+
+typeclass Car {
+	fourWheelDrive : bool,
+	carType : int, # 0 = sports, 1 = offroad, 2 = family
+	color : int, # 0 = white, 1 = black, 2 = red
+	currentPosition : type Point
+};
+
+val car1 : type Car = Car(false, 0, 1, Point(1, 1));
+val car2 : type Car = Car(true, 1, 2, Point(1, 1));
+val car3 : type Car = Car(false, 2, 1, Point(0, 0));
+
+func carsCollided(car1 : type Car, car2 : type Car) -> bool = {
+	func samePoint(p1 : type Point, p2 : type Point) -> bool = {
+		if (p1.x == p2.x && p1.y == p2.y)
+			true
+		else
+			false
+	};
+
+	if (samePoint(car1.currentPosition, car2.currentPosition))
+		true
+	else
+		false
+};
+
+if (carsCollided(car1, car2))
+	1
+else
+	2

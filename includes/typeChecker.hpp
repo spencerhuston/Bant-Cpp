@@ -15,19 +15,19 @@ class TypeChecker {
 
         ExpPtr eval(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
         
-        ExpPtr evalProgram(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalLiteral(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalPrimitive(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalLet(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalReference(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalBranch(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalArgument(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
+        ExpPtr evalProgram(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalLiteral(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalPrimitive(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalLet(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalReference(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalBranch(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalArgument(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
         ExpPtr evalTypeclass(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalApplication(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalListDefinition(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalTupleDefinition(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalBlockGet(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
-        ExpPtr evalMatch(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType);
+        ExpPtr evalApplication(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalListDefinition(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalTupleDefinition(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalBlockGet(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
+        ExpPtr evalMatch(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType);
 
         bool compare(Types::TypePtr leftType, Types::TypePtr rightType);
 
