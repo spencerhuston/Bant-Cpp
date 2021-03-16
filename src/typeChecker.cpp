@@ -154,6 +154,32 @@ TypeChecker::evalReference(const ExpPtr & expression, Environment environment, T
     auto referenceType = getName(reference->token, environment, reference->ident);
     reference->returnType = referenceType;
 
+    if (referenceType->dataType == Types::DataTypes::TUPLE && !reference->fieldIdent.empty()) {
+        auto tupleType = std::static_pointer_cast<Types::TupleType>(referenceType);
+
+        int tupleIndex = -1;
+        try {
+            tupleIndex = std::stoi(reference->fieldIdent);
+        } catch (...) {
+            printError(reference->token, std::string("Error: Tuple requires valid index: ") + reference->fieldIdent);
+            return reference;
+        }
+        
+        Types::TypePtr tupleElementType;
+        try {
+            tupleElementType = tupleType->tupleTypes.at(tupleIndex);
+        } catch (...) {
+            printError(reference->token, std::string("Error: Index not in range of tuple: ") + std::to_string(tupleIndex));
+            return reference;
+        }
+
+        if (!compare(tupleElementType, expectedType)) {
+            printMismatchError(reference->token, tupleElementType, expectedType);
+        }   
+        
+        reference->returnType = tupleElementType;
+    }
+
     if (referenceType->dataType == Types::DataTypes::TYPECLASS && !reference->fieldIdent.empty()) {
         auto typeclassIdent = std::static_pointer_cast<Types::TypeclassType>(referenceType)->ident;
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(getName(reference->token, environment, typeclassIdent));

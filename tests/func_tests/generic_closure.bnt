@@ -9,10 +9,10 @@ func f[T](size: int) -> (T, int, List[T]) -> List[T] = {
 };
 
 val a : (int, int, List[int]) -> List[int] = f(10);
-val arr : List[int] = a(5, 0, new List { });
+val arr : List[int] = a(5, 0, List { });
 
 val b : (bool, int, List[bool]) -> List[bool] = f(4);
-val arr2 : List[bool] = b(false, 0, new List { });
+val arr2 : List[bool] = b(false, 0, List { });
 
 if (arr[9] == 5 && !arr2[3])
 	5

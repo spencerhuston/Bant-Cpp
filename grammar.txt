@@ -1,9 +1,9 @@
 <type> ::= <ident>
-	| <type> '->' <type>
-	| '('[<type>[','<type>]*]')' '->' <type>
-	| 'List' '[' <type> ']'
-	| 'Tuple' '[' <type> ']'
-	| 'type' <ident>
+		| <type> '->' <type>
+		| '('[<type>[','<type>]*]')' '->' <type>
+		| 'List' '[' <type> ']'
+		| 'Tuple' '[' <type> ']'
+		| 'type' <ident>
 
 <op> ::= [ '*' | '/' | '+' | '-' | '<' | '>' | '!' | '==' | '!=' | '<=' | '>=' | '&&' | '||' ]
 
@@ -14,11 +14,11 @@
 <bool> ::= 'true' | 'false'
 
 <atom> ::= <number> | <bool> | 'null' | <char> | <string>
-	| '('<simp>')'
-	| <ident>['.'<ident>]
+		| '('<simp>')'
+		| <ident>['.'<ident>]*
 
 <tight> ::= <atom>[ ['('[<simp>[','<simp>]*]')']* ] | ['['<simp>']']+
-	| '{'<exp>'}'
+		| '{'<exp>'}'
 
 <utight> ::= [<op>]<tight>
 
@@ -29,12 +29,12 @@
 <prog> ::= ['func' <ident>'['<type> [',' <type> ]* ']' '('[<arg>[','<arg>]*]')'['->' <type>] '=' <simp>';' ]* 
 
 <simp> ::= <utight>[<op><utight>]*
-	| 'if' '('<simp>')' <simp> ['else' <simp>]
-	| 'List' '{'[<simp>[','<simp>]*]'}'
-	| 'Tuple '{'[<simp>[','<simp>]*]'}'
-    | 'match' '('<ident>')' '{' ['case' <atom> '=' { <simp> }; ]* ['case' 'any' '=' { <simp> }; ] '}'
-	| <typeclass>
-	| <prog> <exp>
+		| 'if' '('<simp>')' <simp> ['else' <simp>]
+		| 'List' '{'[<simp>[','<simp>]*]'}'
+		| 'Tuple '{'[<simp>[','<simp>]*]'}'
+		| 'match' '('<ident>')' '{' ['case' <atom> '=' { <simp> }; ]* ['case' 'any' '=' { <simp> }; ] '}'
+		| <typeclass>
+		| <prog> <exp>
 
 <exp> ::= <simp>[;<exp>]
-	| 'val' <ident> ':' <type> '=' <simp>';' <exp>
+		| 'val' <ident> ':' <type> '=' <simp>';' <exp>

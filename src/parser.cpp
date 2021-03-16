@@ -135,10 +135,10 @@ Parser::parseTypeclass() {
         }
         return false;
     };
-
+    
     for (const auto & field : fields) {
         if (fieldExists(field->name)) {
-		    printError(field->name + std::string(" in typeclass ") + ident +
+		    printError(false, field->name + std::string(" in typeclass ") + ident +
                        std::string(" has already been declared"));
 	    }
 	    fieldTypes.push_back(std::pair<std::string, Types::TypePtr>(field->name, field->returnType));
@@ -470,7 +470,7 @@ Parser::parseAtom() {
                 skip("\"");
                 return lit;
             } else {
-                printError(std::string("Unexpected character: ") + currentToken().text);
+                printError(false, currentToken().text, "<literal>");
             }
         }
     }
@@ -581,7 +581,7 @@ Parser::peek() {
 void
 Parser::skip(const std::string & text) {
     if (inBounds() && currentToken().text != text) {
-        printError(std::string("Unexpected character: ") + text, currentToken().text);
+        printError(true, currentToken().text, text);
     }
     advance();
 }
@@ -636,16 +636,20 @@ Parser::getEscapedCharacter(const std::string & escapeSequence) {
 }
 
 void
-Parser::printError(const std::string & errorString, const std::string expected) {
-    std::string expectedString = (expected != std::string("$")) ? (std::string(", Expected: ") + expected) : std::string(" ");
+Parser::printError(bool useUnexpected, const std::string & errorString, const std::string expected) {
     error = true;
+    std::string expectedString = (expected != std::string("$")) ? (std::string(", Expected: ") + expected) : std::string(" ");
+    std::string unexpectedCharacterString = (useUnexpected) ? (std::string("Unexpected character: ")) : std::string(" ");
+
+
+
     FilePosition position = currentToken().position;
     std::stringstream errorStream;
     errorStream << "Line: " << position.fileLine
                 << ", Column: " << position.fileColumn - 1 << std::endl
-                << errorString << expectedString
+                << unexpectedCharacterString << errorString << expectedString
                 << std::endl << std::endl
                 << position.currentLineText << std::endl
-                << std::string(position.fileColumn - errorString.length() - 1, ' ') << "^";
+                << std::string(position.fileColumn - static_cast<int>(errorString.length()) - 1, ' ') << "^";
     Format::printError(errorStream.str());
 }

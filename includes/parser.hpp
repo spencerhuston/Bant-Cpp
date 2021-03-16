@@ -58,7 +58,7 @@ class Parser {
         bool isValue(const std::string & valueString);
         char getEscapedCharacter(const std::string & escapeSequence);
 
-        void printError(const std::string & errorString, const std::string expected = "$");
+        void printError(bool useUnexpected, const std::string & errorString, const std::string expected = "$");
 
     public:
         Parser(const std::vector<Token> & tokenStream);
