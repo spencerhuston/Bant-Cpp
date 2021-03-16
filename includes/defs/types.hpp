@@ -35,7 +35,8 @@ namespace Types {
                 auto dataTypeEnum = static_cast<int>(dataType);
                 auto otherTypeEnum = static_cast<int>(otherType->dataType);
 
-                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
+                if (dataTypeEnum == static_cast<int>(DataTypes::GEN) ||
+                    otherTypeEnum == static_cast<int>(DataTypes::GEN))
                     return true;
 
                 return (dataTypeEnum == otherTypeEnum);
@@ -315,5 +316,18 @@ namespace Types {
         }
     };
 
-    using UnknownTypePtr = std::shared_ptr<UnknownType>;
+    using UnknownTypePtr = std::shared_ptr<UnknownType>;\
+
+    inline bool
+    isPrimitiveType(const TypePtr type) {
+        if (type->dataType == DataTypes::INT ||
+            type->dataType == DataTypes::CHAR ||
+            type->dataType == DataTypes::STRING ||
+            type->dataType == DataTypes::BOOL ||
+            type->dataType == DataTypes::NULLVAL ||
+            type->dataType == DataTypes::GEN) {
+            return true;
+        }
+        return false;
+    }
 }

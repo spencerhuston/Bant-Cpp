@@ -344,7 +344,7 @@ Parser::parseApplication() {
                 }
 				skip(")");
                 std::shared_ptr<Application> appInner = std::make_shared<Application>(token, ident, arguments);
-                app->functionIdent = appInner;
+                app->ident = appInner;
                 app->arguments = argumentsInner;
 			}
 			return app;

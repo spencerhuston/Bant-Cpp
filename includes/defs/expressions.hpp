@@ -220,14 +220,14 @@ namespace Expressions {
 
     class Application : public Expression {
         public:
-            ExpPtr functionIdent;
+            ExpPtr ident;
             std::vector<ExpPtr> arguments;
 
             Application(const Token & token,
-                        const ExpPtr & functionIdent,
+                        const ExpPtr & ident,
                         const std::vector<ExpPtr> arguments)
             : Expression(token, ExpressionTypes::APP, std::make_shared<Types::UnknownType>()),
-              functionIdent(functionIdent),
+              ident(ident),
               arguments(arguments) { }
     };
 

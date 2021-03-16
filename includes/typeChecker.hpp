@@ -30,8 +30,9 @@ class TypeChecker {
         ExpPtr evalCase(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType);
         ExpPtr evalMatch(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType);
 
-        void addName(Environment environment, std::string name, Types::TypePtr type);
-        void printError(const Token & token, const Types::TypePtr & type, const Types::TypePtr & expectedType);
+        void addName(Environment & environment, std::string name, Types::TypePtr type);
+        void printMismatchError(const Token & token, const Types::TypePtr & type, const Types::TypePtr & expectedType);
+        void printError(const Token & token, const std::string & errorMessage);
 
     public:
         TypeChecker(const ExpPtr & rootExpression);

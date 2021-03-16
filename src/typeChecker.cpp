@@ -46,13 +46,7 @@ TypeChecker::eval(const ExpPtr & expression, Environment & environment, const Ty
     else if (expression->expType == ExpressionTypes::END)
         return expression;
 
-    error = true;
-
-    std::stringstream errorStream;
-    errorStream << "Unknown expression type: " << expression->token.text 
-                << std::endl << expression->token.toString() << std::endl;
-
-    Format::printError(errorStream.str());
+    printError(expression->token, std::string("Unknown expression type: ") + expression->token.text);
 
     return nullptr;
 }
@@ -89,13 +83,12 @@ TypeChecker::evalLiteral(const ExpPtr & expression, Environment & environment, c
     auto literal = std::static_pointer_cast<Literal>(expression);
     
     if (!literal->returnType->compare(expectedType)) {
-        printError(literal->token, literal->returnType, expectedType);
+        printMismatchError(literal->token, literal->returnType, expectedType);
     }
     
     return literal;
 }
 
-// TODO
 ExpPtr
 TypeChecker::evalPrimitive(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     auto primitive = std::static_pointer_cast<Primitive>(expression);
@@ -107,26 +100,37 @@ TypeChecker::evalPrimitive(const ExpPtr & expression, Environment & environment,
     // binary op:
     //  - AND/OR for bool only
     //  - ARITH for int only
-    //  - COMP for all
+    //  - COMP for primitives
 
     if (Operator::isUnaryOperator(primitive->op)) {
         if (primitive->op == Operator::OperatorTypes::NOT) {
             eval(primitive->rightSide, environment, std::make_shared<Types::BoolType>());
+            primitive->returnType = std::make_shared<Types::BoolType>();
         } else if (primitive->op == Operator::OperatorTypes::PLUS ||
                    primitive->op == Operator::OperatorTypes::MINUS) {
             eval(primitive->rightSide, environment, std::make_shared<Types::IntType>());
+            primitive->returnType = std::make_shared<Types::IntType>();
         }
-    } else if (Operator::isBinaryOperator(primitive->op)) {
+    } else if (Operator::isComparisonOperator(primitive->op) ||
+               Operator::isArithmeticOperator(primitive->op)) {
         if (primitive->op == Operator::OperatorTypes::AND ||
             primitive->op == Operator::OperatorTypes::OR) {
             eval(primitive->leftSide, environment, std::make_shared<Types::BoolType>());
             eval(primitive->rightSide, environment, std::make_shared<Types::BoolType>());
+            primitive->returnType = std::make_shared<Types::BoolType>();
         } else if (Operator::isArithmeticOperator(primitive->op)) {
             eval(primitive->leftSide, environment, std::make_shared<Types::IntType>());
             eval(primitive->rightSide, environment, std::make_shared<Types::IntType>());
-        } else {
+            primitive->returnType = std::make_shared<Types::IntType>();
+        } else { // is comparison operator
             eval(primitive->leftSide, environment, std::make_shared<Types::GenType>("$"));
+
+            if (!Types::isPrimitiveType(primitive->leftSide->returnType)) {
+                printError(primitive->token, "Binary operators can only be used on primitive types");
+            }
+
             eval(primitive->rightSide, environment, primitive->leftSide->returnType);
+            primitive->returnType = primitive->leftSide->returnType;
         }
     }
 
@@ -145,11 +149,24 @@ TypeChecker::evalLet(const ExpPtr & expression, Environment & environment, const
     return eval(let->afterLet, afterLetEnvironment, expectedType);
 }
 
-// TODO
 ExpPtr
 TypeChecker::evalReference(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     auto reference = std::static_pointer_cast<Reference>(expression);
-    return nullptr;
+
+    auto referenceType = environment.find(reference->ident);
+    if (referenceType == environment.end()) {
+        printError(reference->token, std::string("Error: ") + reference->ident + 
+                           std::string(" does not exist in this scope"));
+        return reference;
+    }
+
+    if (!referenceType->second->compare(expectedType)) {
+        printMismatchError(reference->token, referenceType->second, expectedType);
+    } else if (expectedType->dataType == Types::DataTypes::GEN) {
+        reference->returnType = referenceType->second;
+    }
+
+    return reference;
 }
 
 ExpPtr
@@ -173,26 +190,42 @@ TypeChecker::evalArgument(const ExpPtr & expression, Environment & environment, 
     return nullptr;
 }
 
+// TODO
+// - addName for fields
 ExpPtr
 TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
     auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
     if (!type->compare(expectedType)) {
-        printError(typeclass->token, type, expectedType);
+        printMismatchError(typeclass->token, type, expectedType);
         return typeclass;
     }
 
     for (auto & field : typeclass->fields) {
-        eval(field, environment, std::make_shared<Types::NullType>());
+        evalArgument(field, environment, std::make_shared<Types::NullType>());
     }
 
     return typeclass;
 }
 
-// TODO
 ExpPtr
 TypeChecker::evalApplication(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
-    return nullptr;
+    auto application = std::static_pointer_cast<Application>(expression);
+
+    auto ident = eval(application->ident, environment, std::make_shared<Types::GenType>("$"));
+
+    auto functionType = std::static_pointer_cast<Types::FuncType>(ident->returnType);
+    application->returnType = functionType->returnType;
+    
+    if (application->arguments.size() != functionType->argumentTypes.size()) {
+        printError(application->token, "Function application does not match signature");
+    }
+
+    for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
+        eval(application->arguments.at(argumentIndex), environment, functionType->argumentTypes.at(argumentIndex));
+    }
+
+    return application;
 }
 
 ExpPtr
@@ -200,7 +233,7 @@ TypeChecker::evalListDefinition(const ExpPtr & expression, Environment & environ
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
 
     if (!listDefinition->returnType->compare(expectedType)) {
-        printError(listDefinition->token, listDefinition->returnType, expectedType);
+        printMismatchError(listDefinition->token, listDefinition->returnType, expectedType);
     }
 
     return listDefinition;
@@ -211,7 +244,7 @@ TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment & enviro
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
 
     if (!tupleDefinition->returnType->compare(expectedType)) {
-        printError(tupleDefinition->token, tupleDefinition->returnType, expectedType);
+        printMismatchError(tupleDefinition->token, tupleDefinition->returnType, expectedType);
     }
 
     return tupleDefinition;
@@ -238,7 +271,7 @@ TypeChecker::evalCase(const ExpPtr & expression, Environment & environment, cons
 }
 
 void
-TypeChecker::addName(Environment environment, std::string name, Types::TypePtr type) {
+TypeChecker::addName(Environment & environment, std::string name, Types::TypePtr type) {
     if (environment.count(name)) {
 		environment.erase(name);
 	}
@@ -246,7 +279,7 @@ TypeChecker::addName(Environment environment, std::string name, Types::TypePtr t
 }
 
 void
-TypeChecker::printError(const Token & token, const Types::TypePtr & type, const Types::TypePtr & expectedType) {
+TypeChecker::printMismatchError(const Token & token, const Types::TypePtr & type, const Types::TypePtr & expectedType) {
     error = true;
 
     std::stringstream errorStream;
@@ -255,5 +288,17 @@ TypeChecker::printError(const Token & token, const Types::TypePtr & type, const 
                 << "Mismatched type: " << type->toString()
                 << ", Expected: " << expectedType->toString()
                 << std::endl << token.position.currentLineText << std::endl;
+    Format::printError(errorStream.str());
+}
+
+void
+TypeChecker::printError(const Token & token, const std::string & errorMessage) {
+    error = true;
+
+    std::stringstream errorStream;
+    errorStream << "Line: " << token.position.fileLine
+                << ", Column: " << token.position.fileColumn << std::endl
+                << errorMessage << std::endl 
+                << token.position.currentLineText << std::endl;
     Format::printError(errorStream.str());
 }
