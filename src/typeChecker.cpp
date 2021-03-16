@@ -100,7 +100,37 @@ ExpPtr
 TypeChecker::evalPrimitive(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     auto primitive = std::static_pointer_cast<Primitive>(expression);
 
-    return nullptr;
+    // unary op:
+    //  - NOT for bool only
+    //  - PLUS/MINUS for int only
+    // 
+    // binary op:
+    //  - AND/OR for bool only
+    //  - ARITH for int only
+    //  - COMP for all
+
+    if (Operator::isUnaryOperator(primitive->op)) {
+        if (primitive->op == Operator::OperatorTypes::NOT) {
+            eval(primitive->rightSide, environment, std::make_shared<Types::BoolType>());
+        } else if (primitive->op == Operator::OperatorTypes::PLUS ||
+                   primitive->op == Operator::OperatorTypes::MINUS) {
+            eval(primitive->rightSide, environment, std::make_shared<Types::IntType>());
+        }
+    } else if (Operator::isBinaryOperator(primitive->op)) {
+        if (primitive->op == Operator::OperatorTypes::AND ||
+            primitive->op == Operator::OperatorTypes::OR) {
+            eval(primitive->leftSide, environment, std::make_shared<Types::BoolType>());
+            eval(primitive->rightSide, environment, std::make_shared<Types::BoolType>());
+        } else if (Operator::isArithmeticOperator(primitive->op)) {
+            eval(primitive->leftSide, environment, std::make_shared<Types::IntType>());
+            eval(primitive->rightSide, environment, std::make_shared<Types::IntType>());
+        } else {
+            eval(primitive->leftSide, environment, std::make_shared<Types::GenType>("$"));
+            eval(primitive->rightSide, environment, primitive->leftSide->returnType);
+        }
+    }
+
+    return primitive;
 }
 
 ExpPtr
@@ -191,24 +221,19 @@ ExpPtr
 TypeChecker::evalBlockGet(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     auto blockGet = std::static_pointer_cast<BlockGet>(expression);
 
-    if (eval(blockGet->index, environment, std::make_shared<Types::IntType>())) {
-        printError(blockGet->token, blockGet->returnType, expectedType);
-        return blockGet;
-    }
-
+    eval(blockGet->index, environment, std::make_shared<Types::IntType>());
     return eval(blockGet->reference, environment, expectedType);
 }
 
 // TODO
 ExpPtr
-TypeChecker::evalCase(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalMatch(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     return nullptr;
 }
 
-
 // TODO
 ExpPtr
-TypeChecker::evalMatch(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
+TypeChecker::evalCase(const ExpPtr & expression, Environment & environment, const Types::TypePtr & expectedType) {
     return nullptr;
 }
 

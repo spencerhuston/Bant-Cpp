@@ -239,6 +239,12 @@ namespace Expressions {
                            const std::vector<ExpPtr> values)
             : Expression(token, ExpressionTypes::LIST_DEF, std::make_shared<Types::ListType>()),
               values(values) { }
+
+            ListDefinition(const Token & token,
+                           const std::vector<ExpPtr> values,
+                           const Types::TypePtr returnType)
+            : Expression(token, ExpressionTypes::LIST_DEF, returnType),
+              values(values) { }
     };
 
     class TupleDefinition : public Expression {
@@ -248,6 +254,12 @@ namespace Expressions {
             TupleDefinition(const Token & token,
                             const std::vector<ExpPtr> values)
             : Expression(token, ExpressionTypes::TUPLE_DEF, std::make_shared<Types::TupleType>()),
+              values(values) { }
+            
+            TupleDefinition(const Token & token,
+                            const Types::TypePtr & returnType,
+                            const std::vector<ExpPtr> values)
+            : Expression(token, ExpressionTypes::TUPLE_DEF, returnType),
               values(values) { }
     };
 

@@ -165,8 +165,22 @@ Parser::parseList() {
         }
     }
 
+    std::shared_ptr<ListDefinition> listDefinition;
+    if (listValues.empty()) {
+        listDefinition = std::make_shared<ListDefinition>(token, listValues);
+    } else {
+        auto listType = listValues.at(0)->returnType;
+        for (auto & value : listValues) {
+            if (!listType->compare(value->returnType)) {
+                Format::printError(std::string("Error: List types must match: ") + currentToken().position.currentLineText);
+	            return listDefinition = std::make_shared<ListDefinition>(token, listValues);
+            }
+        }
+        listDefinition = std::make_shared<ListDefinition>(token, listValues, std::make_shared<Types::ListType>(listType));
+    }
+
     skip("}");
-    return std::make_shared<ListDefinition>(token, listValues);
+    return listDefinition;
 }
 
 std::shared_ptr<TupleDefinition>
@@ -182,8 +196,20 @@ Parser::parseTuple() {
         }
     }
 
+    std::shared_ptr<TupleDefinition> tupleDefinition;
+    if (tupleValues.empty()) {
+        tupleDefinition = std::make_shared<TupleDefinition>(token, tupleValues);
+    } else {
+        std::vector<Types::TypePtr> tupleTypes;
+        for (auto & value : tupleValues) {
+            tupleTypes.push_back(value->returnType);
+        }
+        auto tupleType = std::make_shared<Types::TupleType>(tupleTypes);
+        tupleDefinition = std::make_shared<TupleDefinition>(token, tupleType, tupleValues);
+    }
+
     skip("}");
-    return std::make_shared<TupleDefinition>(token, tupleValues);
+    return tupleDefinition;
 }
 
 std::shared_ptr<Match>

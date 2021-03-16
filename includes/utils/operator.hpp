@@ -51,4 +51,39 @@ namespace Operator {
         return ((std::find(ops.begin(), ops.end(), op) != ops.end()) && 
                 (getPrecedence(getOperator(op)) >= min));
     }
+
+    inline bool 
+    isUnaryOperator(const OperatorTypes & op) {
+        if (op == OperatorTypes::PLUS ||
+            op == OperatorTypes::MINUS || 
+            op == OperatorTypes::NOT) {
+            return true;
+        }
+        return false;
+    }
+
+    inline bool
+    isBinaryOperator(const OperatorTypes & op) {
+        if (op == OperatorTypes::EQ ||
+            op == OperatorTypes::NOTEQ || 
+            op == OperatorTypes::GRTEQ || 
+            op == OperatorTypes::LSTEQ ||
+            op == OperatorTypes::AND || 
+            op == OperatorTypes::OR) {
+            return true;
+        }
+        return false;
+    }
+
+    inline bool
+    isArithmeticOperator(const OperatorTypes & op) {
+        if (op == OperatorTypes::PLUS ||
+            op == OperatorTypes::MINUS || 
+            op == OperatorTypes::TIMES || 
+            op == OperatorTypes::DIV ||
+            op == OperatorTypes::MOD) {
+            return true;
+        }
+        return false;
+    }
 }

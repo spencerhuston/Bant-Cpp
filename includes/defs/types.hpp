@@ -121,6 +121,7 @@ namespace Types {
                 } else if (dataType == DataTypes::UNKNOWN &&
                            otherType->dataType == DataTypes::LIST) {
                     listType = std::static_pointer_cast<ListType>(otherType)->listType;
+                    dataType = DataTypes::LIST;
                     return true;
                 }
 
@@ -131,7 +132,7 @@ namespace Types {
                     return true;
 
                 return (dataTypeEnum == otherTypeEnum) &&
-                       (listType == std::static_pointer_cast<ListType>(otherType)->listType);
+                       (listType->compare(std::static_pointer_cast<ListType>(otherType)->listType));
             }
     };
 
@@ -172,6 +173,7 @@ namespace Types {
                 } else if (dataType == DataTypes::UNKNOWN &&
                            otherType->dataType == DataTypes::TUPLE) {
                     tupleTypes = std::static_pointer_cast<TupleType>(otherType)->tupleTypes;
+                    dataType = DataTypes::TUPLE;
                     return true;
                 }
 
