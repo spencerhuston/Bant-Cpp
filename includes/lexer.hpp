@@ -48,7 +48,7 @@ class Lexer {
     public:
         static std::string readFile(const std::string sourceFileName);
         
-        Lexer(std::string && sourceStream);
+        explicit Lexer(std::string && sourceStream);
         
         const std::vector<Token> makeTokenStream();
         bool errorOccurred() const { return error; }

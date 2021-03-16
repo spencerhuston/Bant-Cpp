@@ -338,7 +338,6 @@ namespace Types {
             type->dataType == DataTypes::CHAR ||
             type->dataType == DataTypes::STRING ||
             type->dataType == DataTypes::BOOL ||
-            type->dataType == DataTypes::NULLVAL ||
             type->dataType == DataTypes::GEN) {
             return true;
         }

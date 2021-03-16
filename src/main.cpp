@@ -5,6 +5,7 @@
 #include "../includes/lexer.hpp"
 #include "../includes/parser.hpp"
 #include "../includes/typeChecker.hpp"
+#include "../includes/interpreter.hpp"
 
 int main(int argc, char ** argv) {
     std::string sourceStream;
@@ -59,8 +60,16 @@ int main(int argc, char ** argv) {
             exit(5);
         }
 
+        Format::printHeader("Successful Build...");
         Format::printHeader("Running...");
-        // Interpreter phase
+        
+        auto interpreter = Interpreter(typedTree);
+        interpreter.run();
+
+        if (interpreter.errorOccurred()) {
+            Format::printError("One or more errors occurred during type checking, exiting");
+            exit(6);
+        }
     //} catch (...) {
     //    Format::printError("Fatal error occurred");
     //    exit(7);

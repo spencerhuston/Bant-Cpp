@@ -61,7 +61,7 @@ class Parser {
         void printError(bool useUnexpected, const std::string & errorString, const std::string expected = "$");
 
     public:
-        Parser(const std::vector<Token> & tokenStream);
+        explicit Parser(const std::vector<Token> & tokenStream);
 
         ExpPtr makeTree();
         bool errorOccurred() const { return error; }

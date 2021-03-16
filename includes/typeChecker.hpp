@@ -38,7 +38,7 @@ class TypeChecker {
         void printError(const Token & token, const std::string & errorMessage);
 
     public:
-        TypeChecker(const ExpPtr & rootExpression);
+        explicit TypeChecker(const ExpPtr & rootExpression);
         
         ExpPtr check();
         bool errorOccurred() const { return error; }
