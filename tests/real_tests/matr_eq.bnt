@@ -21,8 +21,8 @@ func eq(
 		false
 };
 
-val mat1 : List[List[int]] = new List { new List { 1, 2 }, new List { 3, 4 } };
-val mat2 : List[List[int]] = new List { new List { 1, 2 }, new List { 3, 4 } };
+val mat1 : List[List[int]] = List { List { 1, 2 }, List { 3, 4 } };
+val mat2 : List[List[int]] = List { List { 1, 2 }, List { 3, 4 } };
 
 if (eq(size(mat1), 0, mat1, mat2))
 	2

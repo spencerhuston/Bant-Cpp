@@ -51,10 +51,10 @@ Values::ValuePtr
 Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & environment) {
     auto program = std::static_pointer_cast<Program>(expression);
 
-    Values::Environment programEnvironment;
+    Values::Environment programEnvironment = environment;
 
     for (auto & function : program->functions) {
-        Values::Environment functionInnerEnvironment;
+        Values::Environment functionInnerEnvironment = environment;
 
         std::vector<std::string> parameterNames;
         for (auto & parameter : function->parameters) {
@@ -62,12 +62,8 @@ Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & e
             //auto defaultValue = interpret(parameter->defaultValue);
         }
         auto functionValue = std::make_shared<Values::FunctionValue>(function->returnType, parameterNames, function->functionBody, functionInnerEnvironment);
-        addName(functionInnerEnvironment, function->name, functionValue);
+        addName(functionValue->functionBodyEnvironment, function->name, functionValue);
         addName(programEnvironment, function->name, functionValue);
-    }
-
-    for (auto & environmentVariable : environment) {
-        addName(programEnvironment, environmentVariable.first, environmentVariable.second);
     }
 
     return interpret(program->body, programEnvironment);
@@ -118,7 +114,7 @@ Interpreter::interpretLet(const ExpPtr & expression, Values::Environment & envir
     auto let = std::static_pointer_cast<Let>(expression);
 
     auto letValue = interpret(let->value, environment);
-    Values::Environment afterLetEnvironment;
+    Values::Environment afterLetEnvironment = environment;
     addName(afterLetEnvironment, let->ident, letValue);
     return interpret(let->afterLet, afterLetEnvironment);
 }
@@ -200,13 +196,13 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
     // else has to be a function type
 
     auto functionValue = std::static_pointer_cast<Values::FunctionValue>(ident);
-    Values::Environment functionEnvironment;
+    Values::Environment functionEnvironment = environment;
     for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
         addName(functionEnvironment, functionValue->parameterNames.at(argumentIndex), interpret(application->arguments.at(argumentIndex), environment));
     }
 
-    for (auto & environmentExpression : functionValue->functionBodyEnvironment) {
-        addName(functionEnvironment, environmentExpression.first, environmentExpression.second);
+    for (auto & environmentVariable : functionValue->functionBodyEnvironment) {
+        addName(functionEnvironment, environmentVariable.first, environmentVariable.second);
     }
 
     return interpret(functionValue->functionBody, functionEnvironment);

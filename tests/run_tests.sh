@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 NONE='\033[0m'
 
 function test {
-	ret=`./bant $1`
+	ret=`../build/bant $1`
 	if [ "$ret" -eq "$2" ]; then
 		echo -e "${GREEN} PASSED ${NONE} $3"
 	else

@@ -120,10 +120,14 @@ Parser::parseTypeclass() {
 
     std::vector<std::shared_ptr<Argument>> fields;
     if (inBounds() && currentToken().type != Token::TokenType::DELIM && currentToken().text != "}") {
-        fields.push_back(parseArg({}));
-        while (match(Token::TokenType::DELIM, ",")) {
-            fields.push_back(parseArg({}));
-        }
+        do {
+            auto field = parseArg({});
+            if (field->defaultValue == nullptr) {
+                printError(false, field->name + std::string(" in typeclass ") + ident +
+                            std::string(" requires initialization"));
+            }
+            fields.push_back(field);
+        } while (match(Token::TokenType::DELIM, ","));
     }
     skip("}");
 
@@ -345,21 +349,19 @@ Parser::parseApplication() {
         std::shared_ptr<Application> app = std::make_shared<Application>(token, ident, arguments);
 
         while (match(Token::TokenType::DELIM, "(")) {
-                token = currentToken();
+            token = currentToken();
 
-				std::vector<ExpPtr> argumentsInner;
-                if (inBounds() && currentToken().text != ")") {
-                    argumentsInner.push_back(parseSimpleExpression());
-                }
-                while (match(Token::TokenType::DELIM, ",")) {
-                    argumentsInner.push_back(parseSimpleExpression());	
-                }
-				skip(")");
-                std::shared_ptr<Application> appInner = std::make_shared<Application>(token, ident, arguments);
-                app->ident = appInner;
-                app->arguments = argumentsInner;
-			}
-			return app;
+            std::vector<ExpPtr> argumentsOuter;
+            if (inBounds() && currentToken().text != ")") {
+                argumentsOuter.push_back(parseSimpleExpression());
+            }
+            while (match(Token::TokenType::DELIM, ",")) {
+                argumentsOuter.push_back(parseSimpleExpression());	
+            }
+            skip(")");
+            app = std::make_shared<Application>(token, app, argumentsOuter);
+        }
+        return app;
     }
     return std::static_pointer_cast<Application>(ident);
 }
@@ -638,18 +640,18 @@ Parser::getEscapedCharacter(const std::string & escapeSequence) {
 void
 Parser::printError(bool useUnexpected, const std::string & errorString, const std::string expected) {
     error = true;
-    std::string expectedString = (expected != std::string("$")) ? (std::string(", Expected: ") + expected) : std::string(" ");
-    std::string unexpectedCharacterString = (useUnexpected) ? (std::string("Unexpected character: ")) : std::string(" ");
-
-
-
+    
     FilePosition position = currentToken().position;
+    std::string expectedString = (expected != std::string("$")) ? (std::string(", Expected: ") + expected) : std::string("");
+    std::string unexpectedCharacterString = (useUnexpected) ? (std::string("Unexpected character: ")) : std::string("");
+    std::string characterArrow = (useUnexpected) ? std::string(position.fileColumn - static_cast<int>(errorString.length()) - 1, ' ') + std::string("^") : std::string("");
+
     std::stringstream errorStream;
     errorStream << "Line: " << position.fileLine
                 << ", Column: " << position.fileColumn - 1 << std::endl
                 << unexpectedCharacterString << errorString << expectedString
                 << std::endl << std::endl
                 << position.currentLineText << std::endl
-                << std::string(position.fileColumn - static_cast<int>(errorString.length()) - 1, ' ') << "^";
+                << characterArrow;
     Format::printError(errorStream.str());
 }

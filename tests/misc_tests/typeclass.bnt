@@ -4,13 +4,13 @@ typeclass Point {
 };
 
 typeclass Car {
-	fourWheelDrive : bool,
-	carType : int, # 0 = sports, 1 = offroad, 2 = family
-	color : int, # 0 = white, 1 = black, 2 = red
-	currentPosition : type Point
+	fourWheelDrive : bool = false,
+	carType : int = 0, # 0 = sports, 1 = offroad, 2 = family
+	color : int = 0, # 0 = white, 1 = black, 2 = red
+	currentPosition : type Point = (Point(0, 0))
 };
 
-val car1 : type Car = Car(false, 0, 1, Point(1, 1));
+val car1 : type Car = Car(false, 0, 1, Point(0, 1));
 val car2 : type Car = Car(true, 1, 2, Point(1, 1));
 val car3 : type Car = Car(false, 2, 1, Point(0, 0));
 
