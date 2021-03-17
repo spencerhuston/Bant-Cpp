@@ -13,8 +13,8 @@
   ````insertInPlace[T](l: List[T], element: T, index: int) -> List[T]````
 - RemoveInPlace: Remove element from list at the specified index, returns same list<br>
   ````removeInPlace[T](l: List[T], index: int) -> List[T]````
-- Replace: Remove element from list at the specified index, returns same list<br>
-  ````replace[T](l: List[T], element: T, index: int) -> List[T]````
+- ReplaceInPlace: Remove element from list at the specified index, returns same list<br>
+  ````replaceInPlace[T](l: List[T], element: T, index: int) -> List[T]````
 - PushFrontInPlace: Insert element to front of list, returns same list<br>
   ````pushFrontInPlace[T](l: List[T], element: T) -> List[T]````
 - PushBackInPlace: Remove element from front of list, returns same list<br>
