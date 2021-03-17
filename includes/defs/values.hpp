@@ -76,10 +76,10 @@ namespace Values {
 
     class ListValue : public Value {
         public:
-            std::vector<Value> listData;
+            std::vector<ValuePtr> listData;
 
             ListValue(const Types::TypePtr & type,
-                      const std::vector<Value> & listData)
+                      const std::vector<ValuePtr> & listData)
             : Value(type),
               listData(listData) { }
     };
@@ -88,10 +88,10 @@ namespace Values {
 
     class TupleValue : public Value {
         public:
-            std::vector<Value> tupleData;
+            std::vector<ValuePtr> tupleData;
 
             TupleValue(const Types::TypePtr & type,
-                       const std::vector<Value> & tupleData)
+                       const std::vector<ValuePtr> & tupleData)
             : Value(type),
               tupleData(tupleData) { }
     };
@@ -121,12 +121,12 @@ namespace Values {
 
     class TypeclassValue : public Value {
         public:
-            std::vector<std::string> fieldNames;
+            std::map<std::string, ValuePtr> fields;
 
             TypeclassValue(const Types::TypePtr & type,
-                           const std::vector<std::string> & fieldNames)
+                           const std::map<std::string, ValuePtr> & fields)
             : Value(type),
-              fieldNames(fieldNames) { }
+              fields(fields) { }
     };
 
     using TypeclassValuePtr = std::shared_ptr<TypeclassValue>;

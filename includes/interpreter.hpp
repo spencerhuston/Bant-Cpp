@@ -4,6 +4,8 @@
 #include "defs/values.hpp"
 #include "typeChecker.hpp"
 
+#include <iostream>
+
 class Interpreter {
     private:
         ExpPtr rootExpression;

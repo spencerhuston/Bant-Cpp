@@ -5,7 +5,10 @@ Interpreter::Interpreter(const ExpPtr & rootExpression)
 
 void
 Interpreter::run() {
-
+    Values::Environment environment{};
+    auto resultValue = std::static_pointer_cast<Values::IntValue>(interpret(rootExpression, environment));
+    std::cout << std::to_string(resultValue->data) << std::endl;
+    // print here or something
 }
 
 Values::ValuePtr
@@ -63,7 +66,11 @@ Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & e
         addName(programEnvironment, function->name, functionValue);
     }
 
-    return nullptr;
+    for (auto & environmentVariable : environment) {
+        addName(programEnvironment, environmentVariable.first, environmentVariable.second);
+    }
+
+    return interpret(program->body, programEnvironment);
 }
 
 Values::ValuePtr
@@ -110,28 +117,53 @@ Values::ValuePtr
 Interpreter::interpretLet(const ExpPtr & expression, Values::Environment & environment) {
     auto let = std::static_pointer_cast<Let>(expression);
 
-    return nullptr;
+    auto letValue = interpret(let->value, environment);
+    Values::Environment afterLetEnvironment;
+    addName(afterLetEnvironment, let->ident, letValue);
+    return interpret(let->afterLet, afterLetEnvironment);
 }
 
 Values::ValuePtr
 Interpreter::interpretReference(const ExpPtr & expression, Values::Environment & environment) {
     auto reference = std::static_pointer_cast<Reference>(expression);
 
+    auto referenceValue = getName(reference->token, environment, reference->ident);
+    if (referenceValue->type->dataType == Types::DataTypes::TUPLE && !reference->fieldIdent.empty()) {
+        auto tupleValue = std::static_pointer_cast<Values::TupleValue>(referenceValue);
+        int tupleIndex = std::stoi(reference->fieldIdent);
+        return tupleValue->tupleData.at(tupleIndex);
+    } else if (referenceValue->type->dataType == Types::DataTypes::TYPECLASS && !reference->fieldIdent.empty()) {
+        auto typeclassValue = std::static_pointer_cast<Values::TypeclassValue>(referenceValue);
+        auto fieldValue = typeclassValue->fields.find(reference->fieldIdent);
+        if (fieldValue == environment.end()) {
+            //printError(reference->token, std::string("Error: typeclass ") +
+            //           typeclassType->ident + std::string(" has no field ") +
+            //          reference->fieldIdent);
+            return std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>());
+        }
+        return fieldValue->second;
+    }
 
-
-    return nullptr;
+    return referenceValue;
 }
 
 Values::ValuePtr
 Interpreter::interpretBranch(const ExpPtr & expression, Values::Environment & environment) {
     auto branch = std::static_pointer_cast<Branch>(expression);
 
-    return nullptr;
+    auto conditionValue = std::static_pointer_cast<Values::BoolValue>(interpret(branch->condition, environment));
+    if (conditionValue->data) {
+        return interpret(branch->ifBranch, environment);
+    } 
+
+    return interpret(branch->elseBranch, environment);
 }
 
 Values::ValuePtr
 Interpreter::interpretArgument(const ExpPtr & expression, Values::Environment & environment) {
     auto argument = std::static_pointer_cast<Argument>(expression);
+
+    // For default values, do later
 
     return nullptr;
 }
@@ -140,35 +172,80 @@ Values::ValuePtr
 Interpreter::interpretTypeclass(const ExpPtr & expression, Values::Environment & environment) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
 
-    return nullptr;
+    std::map<std::string, Values::ValuePtr> fields;
+    for (unsigned int fieldIndex = 0; fieldIndex < typeclass->fields.size(); ++fieldIndex) {
+        addName(fields, typeclass->fields.at(fieldIndex)->name, interpret(typeclass->fieldValues.at(fieldIndex), environment));
+    }
+
+    auto typeclassValue = std::make_shared<Values::TypeclassValue>(typeclass->returnType, fields);
+    addName(environment, typeclass->ident, typeclassValue);
+
+    return typeclassValue;
 }
 
 Values::ValuePtr
 Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment & environment) {
     auto application = std::static_pointer_cast<Application>(expression);
 
-    return nullptr;
+    auto ident = interpret(application->ident, environment);
+    if (ident->type->dataType == Types::DataTypes::TYPECLASS) {
+        auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(application->returnType);
+        Values::Environment typeclassArguments;
+        for (unsigned int argumentIndex = 0; argumentIndex < typeclassType->fieldTypes.size(); ++argumentIndex) {
+            addName(typeclassArguments, typeclassType->fieldTypes.at(argumentIndex).first, interpret(application->arguments.at(argumentIndex), environment));
+        }
+        return std::make_shared<Values::TypeclassValue>(typeclassType, typeclassArguments);
+    } 
+    
+    // else has to be a function type
+
+    auto functionValue = std::static_pointer_cast<Values::FunctionValue>(ident);
+    Values::Environment functionEnvironment;
+    for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
+        addName(functionEnvironment, functionValue->parameterNames.at(argumentIndex), interpret(application->arguments.at(argumentIndex), environment));
+    }
+
+    for (auto & environmentExpression : functionValue->functionBodyEnvironment) {
+        addName(functionEnvironment, environmentExpression.first, environmentExpression.second);
+    }
+
+    return interpret(functionValue->functionBody, functionEnvironment);
 }
 
 Values::ValuePtr
 Interpreter::interpretListDefinition(const ExpPtr & expression, Values::Environment & environment) {
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
 
-    return nullptr;
+    std::vector<Values::ValuePtr> listData;
+    for (auto & element : listDefinition->values) {
+        listData.push_back(interpret(element, environment));
+    }
+
+    return std::make_shared<Values::ListValue>(listDefinition->returnType, listData);
 }
 
 Values::ValuePtr
 Interpreter::interpretTupleDefinition(const ExpPtr & expression, Values::Environment & environment) {
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
 
-    return nullptr;
+    std::vector<Values::ValuePtr> tupleData;
+    for (auto & element : tupleDefinition->values) {
+        tupleData.push_back(interpret(element, environment));
+    }
+
+    return std::make_shared<Values::TupleValue>(tupleDefinition->returnType, tupleData);
 }
 
 Values::ValuePtr
 Interpreter::interpretBlockGet(const ExpPtr & expression, Values::Environment & environment) {
     auto blockGet = std::static_pointer_cast<BlockGet>(expression);
 
-    return nullptr;
+    unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(blockGet->index, environment))->data;
+    auto listValue = std::static_pointer_cast<Values::ListValue>(interpret(blockGet->reference, environment));
+    if (index > listValue->listData.size()) {
+        // fatal error, out of bounds access
+    }
+    return listValue->listData.at(index);
 }
 
 Values::ValuePtr

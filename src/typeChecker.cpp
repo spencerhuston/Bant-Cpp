@@ -3,18 +3,17 @@
 TypeChecker::TypeChecker(const ExpPtr & rootExpression)
 : rootExpression(rootExpression) { }
 
-ExpPtr
+void
 TypeChecker::check() {
     Format::printDebugHeader("Type checking/inference");
     Environment environment{};
     Types::GenTypePtr programReturnType = std::make_shared<Types::GenType>("$");
-    ExpPtr typedRootExpression = eval(rootExpression, environment, programReturnType);
+    eval(rootExpression, environment, programReturnType);
     Format::printDebugHeader("Type checking/inference Done");
-    return typedRootExpression;
 }
 
 ExpPtr
-TypeChecker::eval(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     if (expression->expType == ExpressionTypes::PROG)
         return evalProgram(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::LIT)
@@ -50,7 +49,7 @@ TypeChecker::eval(const ExpPtr & expression, Environment & environment, Types::T
 }
 
 ExpPtr
-TypeChecker::evalProgram(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto program = std::static_pointer_cast<Program>(expression);
 
     for (auto & function : program->functions) {
@@ -77,7 +76,7 @@ TypeChecker::evalProgram(const ExpPtr & expression, Environment environment, Typ
 }
 
 ExpPtr
-TypeChecker::evalLiteral(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalLiteral(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto literal = std::static_pointer_cast<Literal>(expression);
     
     if (!compare(literal->returnType, expectedType)) {
@@ -88,7 +87,7 @@ TypeChecker::evalLiteral(const ExpPtr & expression, Environment environment, Typ
 }
 
 ExpPtr
-TypeChecker::evalPrimitive(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto primitive = std::static_pointer_cast<Primitive>(expression);
 
     // unary op:
@@ -136,7 +135,7 @@ TypeChecker::evalPrimitive(const ExpPtr & expression, Environment environment, T
 }
 
 ExpPtr
-TypeChecker::evalLet(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalLet(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto let = std::static_pointer_cast<Let>(expression);
     
     eval(let->value, environment, let->valueType);
@@ -148,7 +147,7 @@ TypeChecker::evalLet(const ExpPtr & expression, Environment environment, Types::
 }
 
 ExpPtr
-TypeChecker::evalReference(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalReference(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto reference = std::static_pointer_cast<Reference>(expression);
 
     auto referenceType = getName(reference->token, environment, reference->ident);
@@ -178,9 +177,7 @@ TypeChecker::evalReference(const ExpPtr & expression, Environment environment, T
         }   
         
         reference->returnType = tupleElementType;
-    }
-
-    if (referenceType->dataType == Types::DataTypes::TYPECLASS && !reference->fieldIdent.empty()) {
+    } else if (referenceType->dataType == Types::DataTypes::TYPECLASS && !reference->fieldIdent.empty()) {
         auto typeclassIdent = std::static_pointer_cast<Types::TypeclassType>(referenceType)->ident;
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(getName(reference->token, environment, typeclassIdent));
 
@@ -214,7 +211,7 @@ TypeChecker::evalReference(const ExpPtr & expression, Environment environment, T
 }
 
 ExpPtr
-TypeChecker::evalBranch(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalBranch(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto branch = std::static_pointer_cast<Branch>(expression);
 
     eval(branch->condition, environment, std::make_shared<Types::BoolType>());
@@ -224,7 +221,7 @@ TypeChecker::evalBranch(const ExpPtr & expression, Environment environment, Type
 }
 
 ExpPtr
-TypeChecker::evalArgument(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto argument = std::static_pointer_cast<Argument>(expression);
 
     if (argument->defaultValue) {
@@ -235,7 +232,7 @@ TypeChecker::evalArgument(const ExpPtr & expression, Environment environment, Ty
 }
 
 ExpPtr
-TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
     auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
     
@@ -254,7 +251,7 @@ TypeChecker::evalTypeclass(const ExpPtr & expression, Environment & environment,
 }
 
 ExpPtr
-TypeChecker::evalApplication(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto application = std::static_pointer_cast<Application>(expression);
 
     auto ident = eval(application->ident, environment, std::make_shared<Types::GenType>("$"));
@@ -291,7 +288,7 @@ TypeChecker::evalApplication(const ExpPtr & expression, Environment environment,
 }
 
 ExpPtr
-TypeChecker::evalListDefinition(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalListDefinition(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
 
     if (!compare(listDefinition->returnType, expectedType)) {
@@ -302,7 +299,7 @@ TypeChecker::evalListDefinition(const ExpPtr & expression, Environment environme
 }
 
 ExpPtr
-TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalTupleDefinition(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
 
     if (!compare(tupleDefinition->returnType, expectedType)) {
@@ -313,7 +310,7 @@ TypeChecker::evalTupleDefinition(const ExpPtr & expression, Environment environm
 }
 
 ExpPtr
-TypeChecker::evalBlockGet(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto blockGet = std::static_pointer_cast<BlockGet>(expression);
 
     eval(blockGet->index, environment, std::make_shared<Types::IntType>());
@@ -327,7 +324,7 @@ TypeChecker::evalBlockGet(const ExpPtr & expression, Environment environment, Ty
 }
 
 ExpPtr
-TypeChecker::evalMatch(const ExpPtr & expression, Environment environment, Types::TypePtr expectedType) {
+TypeChecker::evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto match = std::static_pointer_cast<Match>(expression);
 
     auto caseType = getName(match->token, environment, match->ident);

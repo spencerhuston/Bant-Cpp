@@ -53,7 +53,7 @@ int main(int argc, char ** argv) {
         }
 
         auto typeChecker = TypeChecker(tree);
-        auto typedTree = typeChecker.check();
+        typeChecker.check();
 
         if (typeChecker.errorOccurred()) {
             Format::printError("One or more errors occurred during type checking, exiting");
@@ -63,11 +63,13 @@ int main(int argc, char ** argv) {
         Format::printHeader("Successful Build...");
         Format::printHeader("Running...");
         
-        auto interpreter = Interpreter(typedTree);
+        auto interpreter = Interpreter(tree);
         interpreter.run();
 
+        Format::printHeader("Done");
+
         if (interpreter.errorOccurred()) {
-            Format::printError("One or more errors occurred during type checking, exiting");
+            Format::printError("One or more errors occurred at runtime, exiting");
             exit(6);
         }
     //} catch (...) {
