@@ -27,9 +27,9 @@
   ````head[T](l: List[T]) -> List[T]````
 - Tail: Get all elements but the first from a list<br>
   ````tail[T](l: List[T]) -> List[T]````
-- Combine: Return new list consisting of two appended lists<br>
+- Combine: Append second list to back of first list (returns new list)<br>
   ````combine[T](l1: List[T], l2: List[T]) -> List[T]````
-- Append: Append second list to back of first list<br>
+- Append: Append second list to back of first list (returns first list)<br>
   ````combine[T](l1: List[T], l2: List[T]) -> List[T]````
 - Size: Get size of list<br>
   ````size[T](l: List[T]) -> int````
