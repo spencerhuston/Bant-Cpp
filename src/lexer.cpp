@@ -51,8 +51,9 @@ Lexer::readFile(const std::string sourceFileName) {
     return sourceStream;
 }
 
-Lexer::Lexer(std::string && sourceStream) 
-: sourceStream(sourceStream), currentPosition(1, 1, "") {
+Lexer::Lexer(const std::string & sourceStream) 
+: sourceStream(sourceStream),
+  currentPosition(1, 1, "") {
     Format::printDebugHeader("Source text");
     Format::printDebugHeader(sourceStream);
     Format::printDebugHeader("Lexing Errors");

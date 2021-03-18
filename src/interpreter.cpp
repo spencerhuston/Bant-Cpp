@@ -1,14 +1,16 @@
 #include "../includes/interpreter.hpp"
 
 Interpreter::Interpreter(const ExpPtr & rootExpression)
-: rootExpression(rootExpression) { }
+: rootExpression(rootExpression),
+  errorNullValue(std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>())) { }
 
 void
 Interpreter::run() {
     Values::Environment environment{};
     auto resultValue = std::static_pointer_cast<Values::IntValue>(interpret(rootExpression, environment));
-    std::cout << std::to_string(resultValue->data) << std::endl;
-    // print here or something
+
+    if (!error)
+        std::cout << std::to_string(resultValue->data) << std::endl;
 }
 
 Values::ValuePtr
@@ -42,9 +44,9 @@ Interpreter::interpret(const ExpPtr & expression, Values::Environment & environm
     else if (expression->expType == ExpressionTypes::END)
         return nullptr;
 
-    //printError(expression->token, std::string("Unknown expression type: ") + expression->token.text);
+    printError(expression->token, std::string("Unknown expression type: ") + expression->token.text);
 
-    return nullptr;
+    return errorNullValue;
 }
 
 Values::ValuePtr
@@ -62,6 +64,12 @@ Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & e
             //auto defaultValue = interpret(parameter->defaultValue);
         }
         auto functionValue = std::make_shared<Values::FunctionValue>(function->returnType, parameterNames, function->functionBody, functionInnerEnvironment);
+
+        if (BuiltinDefinitions::isBuiltin(function->name)) {
+            functionValue->isBuiltin = true;
+            functionValue->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
+        }
+
         addName(functionValue->functionBodyEnvironment, function->name, functionValue);
         addName(programEnvironment, function->name, functionValue);
     }
@@ -85,8 +93,9 @@ Interpreter::interpretLiteral(const ExpPtr & expression, Values::Environment & e
         return std::make_shared<Values::NullValue>(literal->returnType);
     }
 
-    // err for unknown literal type
-    return nullptr;
+    printError(literal->token, std::string("Error: Unknown literal type: ") + 
+               literal->token.position.currentLineText);
+    return errorNullValue;
 }
 
 Values::ValuePtr
@@ -105,8 +114,9 @@ Interpreter::interpretPrimitive(const ExpPtr & expression, Values::Environment &
         return doOperation<Values::BoolValue>(primitive->op, leftValue, rightValue);
     }
 
-    // err about cannot perform operation on these types
-    return nullptr;
+    printError(primitive->token, std::string("Error: Binary operator requires primitive types: ")  + 
+               primitive->token.position.currentLineText);
+    return errorNullValue;
 }
 
 Values::ValuePtr
@@ -132,10 +142,10 @@ Interpreter::interpretReference(const ExpPtr & expression, Values::Environment &
         auto typeclassValue = std::static_pointer_cast<Values::TypeclassValue>(referenceValue);
         auto fieldValue = typeclassValue->fields.find(reference->fieldIdent);
         if (fieldValue == environment.end()) {
-            //printError(reference->token, std::string("Error: typeclass ") +
-            //           typeclassType->ident + std::string(" has no field ") +
-            //          reference->fieldIdent);
-            return std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>());
+            printError(reference->token, std::string("Error: typeclass ") +
+                       reference->ident + std::string(" has no field ") +
+                       reference->fieldIdent);
+            return errorNullValue;
         }
         return fieldValue->second;
     }
@@ -205,6 +215,10 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
         addName(functionEnvironment, environmentVariable.first, environmentVariable.second);
     }
 
+    if (functionValue->isBuiltin) {
+        return BuiltinImplementations::runBuiltin(functionValue, functionEnvironment);
+    }
+
     return interpret(functionValue->functionBody, functionEnvironment);
 }
 
@@ -238,8 +252,9 @@ Interpreter::interpretBlockGet(const ExpPtr & expression, Values::Environment & 
 
     unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(blockGet->index, environment))->data;
     auto listValue = std::static_pointer_cast<Values::ListValue>(interpret(blockGet->reference, environment));
-    if (index > listValue->listData.size()) {
-        // fatal error, out of bounds access
+    if (index >= listValue->listData.size()) {
+        printError(blockGet->token, "Error: out of bounds list access: " + blockGet->token.position.currentLineText);
+        return errorNullValue;
     }
     return listValue->listData.at(index);
 }
@@ -263,9 +278,9 @@ Values::ValuePtr
 Interpreter::getName(const Token & token, Values::Environment & environment, std::string name) {
     auto value = environment.find(name);
     if (value == environment.end()) {
-        //printError(token, std::string("Error: ") + name + 
-        //                  std::string(" does not exist in this scope"));
-        //return std::make_shared<Types::NullType>();
+        printError(token, std::string("Error: ") + name + 
+                          std::string(" does not exist in this scope"));
+        return errorNullValue;
     }
     return value->second;
 }
@@ -327,6 +342,17 @@ Interpreter::doOperation(Operator::OperatorTypes op, const Values::ValuePtr & le
                                                    std::static_pointer_cast<Values::BoolValue>(rightSide)->data);
     }
 
-    // err here about bad operator type
-    return std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>());
+    return errorNullValue;
+}
+
+void
+Interpreter::printError(const Token & token, const std::string & errorMessage) {
+    error = true;
+
+    std::stringstream errorStream;
+    errorStream << "Line: " << token.position.fileLine
+                << ", Column: " << token.position.fileColumn << std::endl
+                << errorMessage << std::endl 
+                << token.position.currentLineText << std::endl;
+    Format::printError(errorStream.str());
 }

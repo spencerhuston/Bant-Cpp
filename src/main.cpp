@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
     //try {
         Format::printHeader("Building...");
 
-        auto lexer = Lexer(std::move(sourceStream));
+        auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
         auto tokenStream = lexer.makeTokenStream();
 
         if (lexer.errorOccurred()) {
@@ -60,8 +60,7 @@ int main(int argc, char ** argv) {
             exit(5);
         }
 
-        Format::printHeader("Successful Build...");
-        Format::printHeader("Running...");
+        Format::printHeader("Successful Build, Running...");
         
         auto interpreter = Interpreter(tree);
         interpreter.run();
@@ -73,7 +72,7 @@ int main(int argc, char ** argv) {
             exit(6);
         }
     //} catch (...) {
-    //    Format::printError("Fatal error occurred");
+    //    Format::printError("Unexpected error occurred, exiting");
     //    exit(7);
     //}
 }

@@ -472,12 +472,11 @@ Parser::parseAtom() {
                 skip("\"");
                 return lit;
             } else {
-                printError(false, currentToken().text, "<literal>");
+                printError(true, currentToken().text, "<literal>");
             }
         }
     }
     
-    Format::printError(std::string("Parsing error: ") + currentToken().toString());
 	return Expression::End();
 }
 

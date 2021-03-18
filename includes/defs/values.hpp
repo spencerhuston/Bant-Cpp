@@ -1,6 +1,9 @@
 #pragma once
 
+class Builtin;
+
 #include "expressions.hpp"
+#include "builtin/builtinDefinitions.hpp"
 #include "types.hpp"
 
 #include <map>
@@ -105,6 +108,7 @@ namespace Values {
             Environment functionBodyEnvironment;
 
             bool isBuiltin = false;
+            BuiltinDefinitions::BuiltinEnums builtinEnum;
 
             FunctionValue(const Types::TypePtr & type,
                           const std::vector<std::string> & parameterNames,

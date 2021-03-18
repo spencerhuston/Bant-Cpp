@@ -1,8 +1,10 @@
 #pragma once
 
+#include "../utils/operator.hpp"
+
 #include "types.hpp"
 #include "token.hpp"
-#include "../utils/operator.hpp"
+#include "builtin/builtinDefinitions.hpp"
 
 #include <vector>
 #include <string>
@@ -65,6 +67,9 @@ namespace Expressions {
             std::vector<std::shared_ptr<Argument>> parameters{};
 
             ExpPtr functionBody;
+
+            bool isBuiltin = false;
+            BuiltinDefinitions::BuiltinEnums builtinEnum;
 
             Function(const Token & token, 
                      const Types::TypePtr & returnType,

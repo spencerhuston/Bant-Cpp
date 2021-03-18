@@ -1,5 +1,6 @@
 #pragma once
 
+#include "defs/builtin/builtinDefinitions.hpp"
 #include "defs/expressions.hpp"
 
 #include "parser.hpp"

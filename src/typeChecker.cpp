@@ -64,12 +64,18 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
         }
 
         for (auto & parameter : function->parameters) {
-            eval(parameter, functionInnerEnvironment, parameter->returnType);
+            //eval(parameter, functionInnerEnvironment, parameter->returnType); for default parameter values
             addName(functionInnerEnvironment, parameter->name, parameter->returnType);
         }
 
         auto functionReturnType = std::static_pointer_cast<Types::FuncType>(function->returnType);
-        eval(function->functionBody, functionInnerEnvironment, functionReturnType->returnType);
+
+        if (BuiltinDefinitions::isBuiltin(function->name)) {
+            function->isBuiltin = true;
+            function->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
+        } else {
+            eval(function->functionBody, functionInnerEnvironment, functionReturnType->returnType);
+        }
     }
 
     return eval(program->body, environment, expectedType);
@@ -97,7 +103,7 @@ TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::
     // binary op:
     //  - AND/OR for bool only
     //  - ARITH for int only
-    //  - COMP for primitives
+    //  - COMP for primitives only
 
     if (Operator::isUnaryOperator(primitive->op)) {
         if (primitive->op == Operator::OperatorTypes::NOT) {

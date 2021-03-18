@@ -2,6 +2,8 @@
 
 #include "utils/format.hpp"
 #include "utils/operator.hpp"
+
+#include "defs/builtin/builtinDefinitions.hpp"
 #include "defs/expressions.hpp"
 
 #include "lexer.hpp"

@@ -1,15 +1,23 @@
 #pragma once
 
 #include "utils/operator.hpp"
+
+#include "defs/token.hpp"
 #include "defs/values.hpp"
+#include "defs/builtin/builtinDefinitions.hpp"
+#include "defs/builtin/builtinImplementations.hpp"
+
 #include "typeChecker.hpp"
 
 #include <iostream>
+#include <memory>
 
 class Interpreter {
     private:
         ExpPtr rootExpression;
         bool error = false;
+
+        std::shared_ptr<Values::NullValue> errorNullValue;
 
         Values::ValuePtr interpret(const ExpPtr & expression, Values::Environment & environment);
 
@@ -32,6 +40,8 @@ class Interpreter {
 
         void addName(Values::Environment & environment, std::string name, Values::ValuePtr value);
         Values::ValuePtr getName(const Token & token, Values::Environment & environment, std::string name);
+
+        void printError(const Token & token, const std::string & errorMessage);
 
     public:
         explicit Interpreter(const ExpPtr & rootExpression);
