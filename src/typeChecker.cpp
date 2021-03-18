@@ -240,10 +240,10 @@ TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::T
 ExpPtr
 TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
-    auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
+    //auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
     
-    if (!compare(type, expectedType)) {
-        printMismatchError(typeclass->token, type, expectedType);
+    if (!compare(typeclass->returnType, expectedType)) {
+        printMismatchError(typeclass->token, typeclass->returnType, expectedType);
         return typeclass;
     }
 
@@ -251,7 +251,7 @@ TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::
         evalArgument(field, environment, std::make_shared<Types::GenType>("$")); // deduce default values
     }
 
-    addName(environment, typeclass->ident, type);
+    addName(environment, typeclass->ident, typeclass->returnType);
 
     return typeclass;
 }
@@ -355,7 +355,7 @@ TypeChecker::evalMatch(ExpPtr expression, Environment & environment, Types::Type
 }
 
 bool 
-TypeChecker::compare(Types::TypePtr leftType, Types::TypePtr rightType) {
+TypeChecker::compare(Types::TypePtr & leftType, Types::TypePtr & rightType) {
     if (leftType->dataType == Types::DataTypes::UNKNOWN) {
         leftType = rightType;
         return true;

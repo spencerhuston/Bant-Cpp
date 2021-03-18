@@ -30,7 +30,7 @@ class TypeChecker {
         ExpPtr evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr expectedType);
         ExpPtr evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr expectedType);
 
-        bool compare(Types::TypePtr leftType, Types::TypePtr rightType);
+        bool compare(Types::TypePtr & leftType, Types::TypePtr & rightType);
 
         void addName(Environment & environment, std::string name, Types::TypePtr type);
         Types::TypePtr getName(const Token & token, Environment & environment, std::string name);

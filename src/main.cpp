@@ -65,8 +65,6 @@ int main(int argc, char ** argv) {
         auto interpreter = Interpreter(tree);
         interpreter.run();
 
-        Format::printHeader("Done");
-
         if (interpreter.errorOccurred()) {
             Format::printError("One or more errors occurred at runtime, exiting");
             exit(6);

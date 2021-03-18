@@ -10,16 +10,18 @@ class BuiltinImplementations {
         template<class ValueType>
         static std::shared_ptr<ValueType> getArgumentValue(const int & index, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         
+        static Values::ListValuePtr makeListType(Values::ListValuePtr listValue, std::vector<Values::ValuePtr> listData);
+
         static Values::ValuePtr insertBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr removeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr replaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr pushFrontBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr pushBackBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr insertInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr removeInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr replaceInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr pushFrontInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr pushBackInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr removeBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr replaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr pushFrontBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr pushBackBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr insertInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr removeInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr replaceInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr pushFrontInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr pushBackInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr frontBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr backBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr headBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);

@@ -29,6 +29,6 @@ func carsCollided(car1 : type Car, car2 : type Car) -> bool = {
 };
 
 if (carsCollided(car1, car2))
-	1
+	printInt(1)
 else
-	2
+	printInt(2)
