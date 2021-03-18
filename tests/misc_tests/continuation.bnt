@@ -1,0 +1,12 @@
+func f(x: int, c: null -> null) -> null = {
+	if (x < 50) {
+		printInt(x);
+		f(x + 1, c)
+	}
+	else
+		c(null)
+};
+
+func c(n: null) -> null = halt();
+
+f(20, c)

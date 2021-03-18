@@ -279,6 +279,60 @@ namespace Types {
 
                 return typeString;
             }
+
+            bool compare(const std::shared_ptr<Type> & otherType) override {
+                if (otherType == nullptr) {
+                    return false;
+                } else if (dataType == DataTypes::UNKNOWN &&
+                           otherType->dataType == DataTypes::FUNC) {
+                    auto funcType = std::static_pointer_cast<FuncType>(otherType);
+                    genericTypes = funcType->genericTypes;
+                    argumentTypes = funcType->argumentTypes;
+                    returnType = funcType->returnType;
+                    dataType = DataTypes::FUNC;
+                    return true;
+                } else if (dataType == DataTypes::FUNC &&
+                           otherType->dataType == DataTypes::FUNC) {
+                    auto dataTypeEnum = static_cast<int>(dataType);
+                    auto otherTypeEnum = static_cast<int>(otherType->dataType);
+
+                    if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
+                        return true;
+
+                    if (dataTypeEnum != otherTypeEnum)
+                        return false;
+
+                    auto otherFuncType = std::static_pointer_cast<FuncType>(otherType);
+                    
+                    if (genericTypes.size() != otherFuncType->genericTypes.size()) {
+                        return false;
+                    }
+
+                    if (argumentTypes.size() != otherFuncType->argumentTypes.size()) {
+                        return false;
+                    }
+
+                    for (unsigned int argumentIndex = 0; argumentIndex < argumentTypes.size(); ++argumentIndex) {
+                        if (!argumentTypes.at(argumentIndex)->compare(otherFuncType->argumentTypes.at(argumentIndex))) {
+                            return false;
+                        }
+                    }
+
+                    if (!returnType->compare(otherFuncType->returnType)) {
+                        return false;
+                    }
+
+                    return true;
+                } else if (dataType == DataTypes::FUNC &&
+                           otherType->dataType != DataTypes::GEN) {
+                    if (!returnType->compare(otherType)) {
+                        return false;
+                    }
+                    return true;
+                }
+
+                return true;
+            }
     };
 
     using FuncTypePtr = std::shared_ptr<FuncType>;

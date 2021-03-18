@@ -7,13 +7,13 @@ void
 TypeChecker::check() {
     Format::printDebugHeader("Type checking/inference");
     Environment environment{};
-    Types::GenTypePtr programReturnType = std::make_shared<Types::GenType>("$");
-    eval(rootExpression, environment, programReturnType);
+    auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::GenType>("$"));
+    eval(rootExpression, environment, temp->returnType);
     Format::printDebugHeader("Type checking/inference Done");
 }
 
 ExpPtr
-TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     if (expression->expType == ExpressionTypes::PROG)
         return evalProgram(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::LIT)
@@ -49,7 +49,7 @@ TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr e
 }
 
 ExpPtr
-TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto program = std::static_pointer_cast<Program>(expression);
 
     for (auto & function : program->functions) {
@@ -82,7 +82,7 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
 }
 
 ExpPtr
-TypeChecker::evalLiteral(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalLiteral(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto literal = std::static_pointer_cast<Literal>(expression);
     
     if (!compare(literal->returnType, expectedType)) {
@@ -93,7 +93,7 @@ TypeChecker::evalLiteral(ExpPtr expression, Environment & environment, Types::Ty
 }
 
 ExpPtr
-TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto primitive = std::static_pointer_cast<Primitive>(expression);
 
     // unary op:
@@ -107,26 +107,31 @@ TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::
 
     if (Operator::isUnaryOperator(primitive->op)) {
         if (primitive->op == Operator::OperatorTypes::NOT) {
-            eval(primitive->rightSide, environment, std::make_shared<Types::BoolType>());
+            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::BoolType>());
+            eval(primitive->rightSide, environment, temp->returnType);
             primitive->returnType = std::make_shared<Types::BoolType>();
         } else if (primitive->op == Operator::OperatorTypes::PLUS ||
                    primitive->op == Operator::OperatorTypes::MINUS) {
-            eval(primitive->rightSide, environment, std::make_shared<Types::IntType>());
+            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::IntType>());
+            eval(primitive->rightSide, environment, temp->returnType);
             primitive->returnType = std::make_shared<Types::IntType>();
         }
     } else if (Operator::isBinaryBooleanOperator(primitive->op) ||
                Operator::isArithmeticOperator(primitive->op)) {
         if (primitive->op == Operator::OperatorTypes::AND ||
             primitive->op == Operator::OperatorTypes::OR) {
-            eval(primitive->leftSide, environment, std::make_shared<Types::BoolType>());
-            eval(primitive->rightSide, environment, std::make_shared<Types::BoolType>());
+            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::BoolType>());
+            eval(primitive->leftSide, environment, temp->returnType);
+            eval(primitive->rightSide, environment, temp->returnType);
             primitive->returnType = std::make_shared<Types::BoolType>();
         } else if (Operator::isArithmeticOperator(primitive->op)) {
-            eval(primitive->leftSide, environment, std::make_shared<Types::IntType>());
-            eval(primitive->rightSide, environment, std::make_shared<Types::IntType>());
+            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::IntType>());
+            eval(primitive->leftSide, environment, temp->returnType);
+            eval(primitive->rightSide, environment, temp->returnType);
             primitive->returnType = std::make_shared<Types::IntType>();
         } else { // is comparison operator
-            eval(primitive->leftSide, environment, std::make_shared<Types::GenType>("$"));
+            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::GenType>("$"));
+            eval(primitive->leftSide, environment, temp->returnType);
 
             if (!Types::isPrimitiveType(primitive->leftSide->returnType)) {
                 printError(primitive->token, "Binary operators can only be used on primitive types");
@@ -141,7 +146,7 @@ TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::
 }
 
 ExpPtr
-TypeChecker::evalLet(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalLet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto let = std::static_pointer_cast<Let>(expression);
     
     eval(let->value, environment, let->valueType);
@@ -153,7 +158,7 @@ TypeChecker::evalLet(ExpPtr expression, Environment & environment, Types::TypePt
 }
 
 ExpPtr
-TypeChecker::evalReference(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalReference(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto reference = std::static_pointer_cast<Reference>(expression);
 
     auto referenceType = getName(reference->token, environment, reference->ident);
@@ -217,17 +222,18 @@ TypeChecker::evalReference(ExpPtr expression, Environment & environment, Types::
 }
 
 ExpPtr
-TypeChecker::evalBranch(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalBranch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto branch = std::static_pointer_cast<Branch>(expression);
-
-    eval(branch->condition, environment, std::make_shared<Types::BoolType>());
+    
+    auto temp = std::make_shared<Temp>(branch->token, std::make_shared<Types::BoolType>());
+    eval(branch->condition, environment, temp->returnType);
 
     Types::TypePtr elseType = eval(branch->elseBranch, environment, expectedType)->returnType;
     return eval(branch->ifBranch, environment, elseType);
 }
 
 ExpPtr
-TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto argument = std::static_pointer_cast<Argument>(expression);
 
     if (argument->defaultValue) {
@@ -238,7 +244,7 @@ TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::T
 }
 
 ExpPtr
-TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
     //auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
     
@@ -248,7 +254,8 @@ TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::
     }
 
     for (auto & field : typeclass->fields) {
-        evalArgument(field, environment, std::make_shared<Types::GenType>("$")); // deduce default values
+        auto temp = std::make_shared<Temp>(typeclass->token, std::make_shared<Types::GenType>("$"));
+        evalArgument(field, environment, temp->returnType); // deduce default values
     }
 
     addName(environment, typeclass->ident, typeclass->returnType);
@@ -257,10 +264,10 @@ TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::
 }
 
 ExpPtr
-TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto application = std::static_pointer_cast<Application>(expression);
 
-    auto ident = eval(application->ident, environment, std::make_shared<Types::GenType>("$"));
+    auto ident = eval(application->ident, environment, expectedType);
 
     if (ident->returnType->dataType == Types::DataTypes::FUNC) {
         auto functionType = std::static_pointer_cast<Types::FuncType>(ident->returnType);
@@ -294,7 +301,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
 }
 
 ExpPtr
-TypeChecker::evalListDefinition(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalListDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
 
     if (!compare(listDefinition->returnType, expectedType)) {
@@ -305,7 +312,7 @@ TypeChecker::evalListDefinition(ExpPtr expression, Environment & environment, Ty
 }
 
 ExpPtr
-TypeChecker::evalTupleDefinition(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalTupleDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
 
     if (!compare(tupleDefinition->returnType, expectedType)) {
@@ -316,11 +323,13 @@ TypeChecker::evalTupleDefinition(ExpPtr expression, Environment & environment, T
 }
 
 ExpPtr
-TypeChecker::evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto blockGet = std::static_pointer_cast<BlockGet>(expression);
 
-    eval(blockGet->index, environment, std::make_shared<Types::IntType>());
-    eval(blockGet->reference, environment, std::make_shared<Types::ListType>(expectedType));
+    auto temp = std::make_shared<Temp>(blockGet->token, std::make_shared<Types::IntType>());
+    eval(blockGet->index, environment, temp->returnType);
+    temp->returnType = std::make_shared<Types::ListType>(expectedType);
+    eval(blockGet->reference, environment, temp->returnType);
 
     if (blockGet->reference->returnType->dataType == Types::DataTypes::LIST) {
         blockGet->returnType = std::static_pointer_cast<Types::ListType>(blockGet->reference->returnType)->listType;
@@ -330,7 +339,7 @@ TypeChecker::evalBlockGet(ExpPtr expression, Environment & environment, Types::T
 }
 
 ExpPtr
-TypeChecker::evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr expectedType) {
+TypeChecker::evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto match = std::static_pointer_cast<Match>(expression);
 
     auto caseType = getName(match->token, environment, match->ident);
@@ -363,6 +372,18 @@ TypeChecker::compare(Types::TypePtr & leftType, Types::TypePtr & rightType) {
         rightType = leftType;
         return true;
     }
+
+    // generic type resolution
+    /*
+    if (leftType->dataType == Types::DataTypes::GEN) {
+        leftType = rightType;
+        return true;
+    } else if (rightType->dataType == Types::DataTypes::GEN) {
+        rightType = leftType;
+        return true;
+    }
+    */
+
     return leftType->compare(rightType);
 }
 

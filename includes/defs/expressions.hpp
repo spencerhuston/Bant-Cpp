@@ -16,7 +16,7 @@ namespace Expressions {
         PROG, LIT, PRIM, LET, 
         REF, BRANCH, ARG, FUN_DEF, TYPECLASS,
         APP, LIST_DEF, TUPLE_DEF, BLOCK_GET,
-        CASE, MATCH, END
+        CASE, MATCH, END, TEMP
     };
 
     class Expression {
@@ -303,5 +303,13 @@ namespace Expressions {
             : Expression(token, ExpressionTypes::MATCH, std::make_shared<Types::UnknownType>()),
               ident(ident),
               cases(cases) { }
+    };
+
+    class Temp : public Expression {
+        public:
+
+            Temp(const Token & token,
+                const Types::TypePtr & type)
+            : Expression(token, ExpressionTypes::TEMP, type) { }
     };
 }
