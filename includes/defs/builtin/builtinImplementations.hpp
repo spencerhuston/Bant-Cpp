@@ -1,11 +1,16 @@
 #pragma once
 
 #include "../values.hpp"
+#include "../token.hpp"
+#include "../../utils/format.hpp"
 #include "builtinDefinitions.hpp"
 
 class BuiltinImplementations {
     private:
-        static Values::ValuePtr insertBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        template<class ValueType>
+        static std::shared_ptr<ValueType> getArgumentValue(const int & index, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        
+        static Values::ValuePtr insertBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr removeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr replaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr pushFrontBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
@@ -58,6 +63,11 @@ class BuiltinImplementations {
         static Values::ValuePtr printStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr haltBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
 
+        static std::shared_ptr<Values::NullValue> nullValue;
+        static bool error;
+
+        static void printError(const Token & token, const std::string & errorMessage);
+
     public:
-        static Values::ValuePtr runBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr runBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
 };

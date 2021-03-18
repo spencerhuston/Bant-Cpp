@@ -1,13 +1,58 @@
 #include "../includes/defs/builtin/builtinImplementations.hpp"
 
 Values::ValuePtr
-BuiltinImplementations::runBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INSERT) {
+        return insertBuiltin(token, functionValue, environment);
+    }  else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INTTOCHAR) {
+        return intToCharBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CHARTOINT) {
+        return charToIntBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::STRINGTOCHARLIST) {
+        return stringToCharListBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CHARLISTTOSTRING) {
+        return charListToStringBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTINT) {
+        return printIntBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTBOOL) {
+        return printBoolBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::READCHAR) {
+        return readCharBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTCHAR) {
+        return printCharBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::READSTRING) {
+        return readStringBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTSTRING) {
+        return printStringBuiltin(functionValue, environment);
+    }
+    return nullValue;
+}
+
+template<class ValueType>
+std::shared_ptr<ValueType>
+BuiltinImplementations::getArgumentValue(const int & index, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    return std::static_pointer_cast<ValueType>(environment.at(functionValue->parameterNames.at(index)));
 }
 
 Values::ValuePtr
-BuiltinImplementations::insertBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::insertBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+    unsigned int index = getArgumentValue<Values::IntValue>(2, functionValue, environment)->data;
+    
+    if (index >= listValue->listData.size()) {
+        printError(token, "Error: Out of bounds list access: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    std::vector<Values::ValuePtr> listData;
+    for (auto & value : listValue->listData) {
+        listData.push_back(value);
+    }
+
+    listData.insert(listData.begin() + index, elementValue);
+
+    return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(elementValue->type), listData);
 }
 
 Values::ValuePtr
@@ -192,32 +237,48 @@ BuiltinImplementations::equalsBuiltin(Values::FunctionValuePtr functionValue, Va
 
 Values::ValuePtr
 BuiltinImplementations::intToCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto intValue = getArgumentValue<Values::IntValue>(0, functionValue, environment)->data;
+    return std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), (char)intValue);
 }
 
 Values::ValuePtr
 BuiltinImplementations::charToIntBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto charValue = getArgumentValue<Values::CharValue>(0, functionValue, environment)->data;
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), (int)charValue);
 }
 
 Values::ValuePtr
 BuiltinImplementations::stringToCharListBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto stringValue = getArgumentValue<Values::StringValue>(0, functionValue, environment)->data;
+    std::vector<Values::ValuePtr> listData;
+    for (auto & character : stringValue) {
+        listData.push_back(std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), character));
+    }
+    return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(std::make_shared<Types::CharType>()), listData);
 }
 
 Values::ValuePtr
 BuiltinImplementations::charListToStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    std::string stringValue;
+    for (auto & value : listValue->listData) {
+        stringValue += std::string(1, std::static_pointer_cast<Values::CharValue>(value)->data);
+    }
+    return std::make_shared<Values::StringValue>(std::make_shared<Types::StringType>(), stringValue);
 }
 
 Values::ValuePtr
 BuiltinImplementations::printIntBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto intValue = getArgumentValue<Values::IntValue>(0, functionValue, environment)->data;
+    std::cout << intValue << std::endl;
+    return nullValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::printBoolBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto boolValue = getArgumentValue<Values::BoolValue>(0, functionValue, environment)->data;
+    std::cout << ((boolValue) ? std::string("true") : std::string("false")) << std::endl;
+    return nullValue;
 }
 
 Values::ValuePtr
@@ -242,24 +303,47 @@ BuiltinImplementations::print4TupleBuiltin(Values::FunctionValuePtr functionValu
 
 Values::ValuePtr
 BuiltinImplementations::readCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    char charValue;
+    std::cin >> charValue;
+    return std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), charValue);
 }
 
 Values::ValuePtr
 BuiltinImplementations::printCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto charValue = getArgumentValue<Values::CharValue>(0, functionValue, environment)->data;
+    std::cout << charValue << std::endl;
+    return nullValue;
 }
 Values::ValuePtr
 BuiltinImplementations::readStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    std::string stringValue;
+    std::cin >> stringValue;
+    return std::make_shared<Values::StringValue>(std::make_shared<Types::StringType>(), stringValue);
 }
 
 Values::ValuePtr
 BuiltinImplementations::printStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto stringValue = getArgumentValue<Values::StringValue>(0, functionValue, environment)->data;
+    std::cout << stringValue << std::endl;
+    return nullValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::haltBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
+}
+
+std::shared_ptr<Values::NullValue> BuiltinImplementations::nullValue = std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>());
+bool BuiltinImplementations::error = false;
+
+void
+BuiltinImplementations::printError(const Token & token, const std::string & errorMessage) {
+    error = true;
+
+    std::stringstream errorStream;
+    errorStream << "Line: " << token.position.fileLine - BuiltinDefinitions::builtinNumber()
+                << ", Column: " << token.position.fileColumn << std::endl
+                << errorMessage << std::endl 
+                << token.position.currentLineText << std::endl;
+    Format::printError(errorStream.str());
 }

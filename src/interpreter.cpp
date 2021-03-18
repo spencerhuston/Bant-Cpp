@@ -7,10 +7,7 @@ Interpreter::Interpreter(const ExpPtr & rootExpression)
 void
 Interpreter::run() {
     Values::Environment environment{};
-    auto resultValue = std::static_pointer_cast<Values::IntValue>(interpret(rootExpression, environment));
-
-    if (!error)
-        std::cout << std::to_string(resultValue->data) << std::endl;
+    interpret(rootExpression, environment);
 }
 
 Values::ValuePtr
@@ -212,11 +209,13 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
     }
 
     for (auto & environmentVariable : functionValue->functionBodyEnvironment) {
-        addName(functionEnvironment, environmentVariable.first, environmentVariable.second);
+        if (!BuiltinDefinitions::isBuiltin(environmentVariable.first)) {
+            addName(functionEnvironment, environmentVariable.first, environmentVariable.second);
+        }
     }
 
     if (functionValue->isBuiltin) {
-        return BuiltinImplementations::runBuiltin(functionValue, functionEnvironment);
+        return BuiltinImplementations::runBuiltin(application->token, functionValue, functionEnvironment);
     }
 
     return interpret(functionValue->functionBody, functionEnvironment);
@@ -253,7 +252,7 @@ Interpreter::interpretBlockGet(const ExpPtr & expression, Values::Environment & 
     unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(blockGet->index, environment))->data;
     auto listValue = std::static_pointer_cast<Values::ListValue>(interpret(blockGet->reference, environment));
     if (index >= listValue->listData.size()) {
-        printError(blockGet->token, "Error: out of bounds list access: " + blockGet->token.position.currentLineText);
+        printError(blockGet->token, "Error: Out of bounds list access: " + blockGet->token.position.currentLineText);
         return errorNullValue;
     }
     return listValue->listData.at(index);

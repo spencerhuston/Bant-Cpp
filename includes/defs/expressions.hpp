@@ -37,7 +37,7 @@ namespace Expressions {
                           FilePosition(-1, -1, "END"),
                           std::string({}))),
               expType(ExpressionTypes::END),
-              returnType(Types::NullTypePtr()) { }
+              returnType(std::make_shared<Types::NullType>()) { }
             
             static std::shared_ptr<Expression> End() {
                 return std::make_shared<Expression>();
@@ -146,7 +146,7 @@ namespace Expressions {
               data(std::variant<int, bool, char, std::string>(data)) { }
             
             Literal(const Token & token)
-            : Expression(token, ExpressionTypes::LIT, Types::NullTypePtr()) { }
+            : Expression(token, ExpressionTypes::LIT, std::make_shared<Types::NullType>()) { }
 
             template<typename T>
             T getData() {
