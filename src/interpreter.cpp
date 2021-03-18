@@ -262,8 +262,33 @@ Interpreter::interpretBlockGet(const ExpPtr & expression, Values::Environment & 
 Values::ValuePtr
 Interpreter::interpretMatch(const ExpPtr & expression, Values::Environment & environment) {
     auto match = std::static_pointer_cast<Match>(expression);
+    auto matchValue = getName(match->token, environment, match->ident);
 
-    return nullptr;
+    for (auto & casePtr : match->cases) {
+        if (casePtr->ident->expType == ExpressionTypes::REF &&
+            std::static_pointer_cast<Reference>(casePtr->ident)->ident == std::string("$any")) {
+            return interpret(casePtr->body, environment);
+        }
+
+        auto caseValue = interpret(casePtr->ident, environment);
+        
+        Values::ValuePtr resultValue;
+        if (matchValue->type->dataType == Types::DataTypes::INT) {
+            resultValue = doOperation<Values::IntValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+        } else if (matchValue->type->dataType == Types::DataTypes::CHAR) {
+            resultValue = doOperation<Values::CharValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+        } else if (matchValue->type->dataType == Types::DataTypes::STRING) {
+            resultValue = doOperation<Values::StringValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+        } else if (matchValue->type->dataType == Types::DataTypes::BOOL) {
+            resultValue = doOperation<Values::BoolValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+        }
+
+        if (std::static_pointer_cast<Values::BoolValue>(resultValue)->data) {
+            return interpret(casePtr->body, environment);
+        }
+    }
+
+    return errorNullValue;
 }
 
 void
@@ -350,7 +375,7 @@ Interpreter::printError(const Token & token, const std::string & errorMessage) {
     error = true;
 
     std::stringstream errorStream;
-    errorStream << "Line: " << token.position.fileLine
+    errorStream << "Line: " << token.position.fileLine - BuiltinDefinitions::builtinNumber()
                 << ", Column: " << token.position.fileColumn << std::endl
                 << errorMessage << std::endl 
                 << token.position.currentLineText << std::endl;

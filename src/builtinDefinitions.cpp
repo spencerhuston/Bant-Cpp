@@ -24,6 +24,11 @@ const std::vector<std::string> BuiltinDefinitions::builtinNames{
     "halt"
 };
 
+int
+BuiltinDefinitions::builtinNumber() {
+    return static_cast<int>(BuiltinEnums::BUILTINNUM);
+}
+
 const std::string BuiltinDefinitions::builtinDefinitions = 
 R"(func insert[T](l: List[T], e: T, index: int) -> List[T] = { 0 };
 func remove[T](l: List[T], index: int) -> List[T] = { 0 };

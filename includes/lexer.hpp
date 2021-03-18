@@ -2,6 +2,7 @@
 
 #include "utils/format.hpp"
 #include "utils/filePosition.hpp"
+#include "defs/builtin/builtinDefinitions.hpp"
 #include "defs/token.hpp"
 
 #include <vector>

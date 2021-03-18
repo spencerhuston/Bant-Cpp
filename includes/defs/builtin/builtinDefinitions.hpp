@@ -30,8 +30,11 @@ class BuiltinDefinitions {
             PRINTLIST, PRINT2TUPLE, PRINT3TUPLE, PRINT4TUPLE,
             READCHAR, PRINTCHAR,
             READSTRING, PRINTSTRING,
-            HALT
+            HALT,
+            BUILTINNUM = HALT + 1
         };
+
+        static int builtinNumber();
 
         static const std::string builtinDefinitions;
 

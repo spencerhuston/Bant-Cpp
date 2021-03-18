@@ -242,13 +242,14 @@ Parser::parseMatch() {
         cases.push_back(parseCase());
     }
     skip("}");
+    
     return std::make_shared<Match>(token, ident, cases);
 }
 
 std::shared_ptr<Case>
 Parser::parseCase() {
     const Token token = currentToken();
-    ExpPtr ident; // making this a pointer avoids calling private constructor to init
+    ExpPtr ident;
     if (match(Token::TokenType::KEYWORD, "any")) {
         ident = std::make_shared<Reference>(token, std::make_shared<Types::NullType>(), std::string("$any"));
     } else {
@@ -646,7 +647,7 @@ Parser::printError(bool useUnexpected, const std::string & errorString, const st
     std::string characterArrow = (useUnexpected) ? std::string(position.fileColumn - static_cast<int>(errorString.length()) - 1, ' ') + std::string("^") : std::string("");
 
     std::stringstream errorStream;
-    errorStream << "Line: " << position.fileLine
+    errorStream << "Line: " << position.fileLine - BuiltinDefinitions::builtinNumber()
                 << ", Column: " << position.fileColumn - 1 << std::endl
                 << unexpectedCharacterString << errorString << expectedString
                 << std::endl << std::endl

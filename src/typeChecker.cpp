@@ -335,9 +335,20 @@ TypeChecker::evalMatch(ExpPtr expression, Environment & environment, Types::Type
 
     auto caseType = getName(match->token, environment, match->ident);
 
+    bool anyOccurred = false;
     for (auto & casePtr : match->cases) {
-        eval(casePtr->ident, environment, caseType);
-        eval(casePtr->body, environment, expectedType);
+        if (anyOccurred) {
+            printError(casePtr->token, "Warning: case statement below 'any' is always ignored");
+        }
+
+        if (casePtr->ident->expType == ExpressionTypes::REF &&
+            std::static_pointer_cast<Reference>(casePtr->ident)->ident == std::string("$any")) {
+            anyOccurred = true;
+            eval(casePtr->body, environment, expectedType);
+        } else {
+            eval(casePtr->ident, environment, caseType);
+            eval(casePtr->body, environment, expectedType);
+        }
     }
 
     return match;
@@ -379,7 +390,7 @@ TypeChecker::printMismatchError(const Token & token, const Types::TypePtr & type
     error = true;
 
     std::stringstream errorStream;
-    errorStream << "Line: " << token.position.fileLine
+    errorStream << "Line: " << token.position.fileLine - BuiltinDefinitions::builtinNumber()
                 << ", Column: " << token.position.fileColumn << std::endl
                 << "Mismatched type: " << type->toString()
                 << ", Expected: " << expectedType->toString()
@@ -392,7 +403,7 @@ TypeChecker::printError(const Token & token, const std::string & errorMessage) {
     error = true;
 
     std::stringstream errorStream;
-    errorStream << "Line: " << token.position.fileLine
+    errorStream << "Line: " << token.position.fileLine - BuiltinDefinitions::builtinNumber()
                 << ", Column: " << token.position.fileColumn << std::endl
                 << errorMessage << std::endl 
                 << token.position.currentLineText << std::endl;

@@ -248,7 +248,7 @@ void
 Lexer::printError(const std::string culprit) {
     error = true;
     std::stringstream errorStream;
-    errorStream << "Line: " << currentPosition.fileLine
+    errorStream << "Line: " << currentPosition.fileLine - BuiltinDefinitions::builtinNumber()
                 << ", Column: " << currentPosition.fileColumn - 1 << std::endl
                 << "Unexpected character: " << culprit << std::endl << std::endl
                 << currentPosition.currentLineText << std::endl
