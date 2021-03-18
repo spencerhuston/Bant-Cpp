@@ -53,10 +53,10 @@ class BuiltinImplementations {
         static Values::ValuePtr charListToStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr printIntBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr printBoolBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr printListBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr print2TupleBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr print3TupleBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr print4TupleBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr printListBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr print2TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr print3TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr print4TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr readCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr printCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr readStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
@@ -66,6 +66,8 @@ class BuiltinImplementations {
         static std::shared_ptr<Values::NullValue> nullValue;
         static bool error;
 
+        static void printTuple(const Token & token, const std::vector<Values::ValuePtr> & tupleData, const std::string & collectionType);
+        static void printValue(const Token & token, Values::ValuePtr value, const std::string & collectionType);
         static void printError(const Token & token, const std::string & errorMessage);
 
     public:

@@ -4,7 +4,15 @@ Values::ValuePtr
 BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INSERT) {
         return insertBuiltin(token, functionValue, environment);
-    }  else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INTTOCHAR) {
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
+        return printListBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT2TUPLE) {
+        return print2TupleBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT3TUPLE) {
+        return print3TupleBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT4TUPLE) {
+        return print4TupleBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INTTOCHAR) {
         return intToCharBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CHARTOINT) {
         return charToIntBuiltin(functionValue, environment);
@@ -282,23 +290,38 @@ BuiltinImplementations::printBoolBuiltin(Values::FunctionValuePtr functionValue,
 }
 
 Values::ValuePtr
-BuiltinImplementations::printListBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::printListBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listData = getArgumentValue<Values::ListValue>(0, functionValue, environment)->listData;
+
+    const std::string collectionType = "printList";
+    
+    std::cout << "(";
+    for (unsigned int listIndex = 0; listIndex < listData.size() - 1; ++listIndex) {
+        printValue(token, listData.at(listIndex), collectionType);
+        std::cout << ", ";
+    }
+    printValue(token, listData.at(listData.size() - 1), collectionType);
+    std::cout << ")" << std::endl;
+
+    return nullValue;
 }
 
 Values::ValuePtr
-BuiltinImplementations::print2TupleBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::print2TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    printTuple(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment)->tupleData, "print2Tuple");
+    return nullValue;
 }
 
 Values::ValuePtr
-BuiltinImplementations::print3TupleBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::print3TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    printTuple(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment)->tupleData, "print3Tuple");
+    return nullValue;
 }
 
 Values::ValuePtr
-BuiltinImplementations::print4TupleBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::print4TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    printTuple(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment)->tupleData, "print4Tuple");
+    return nullValue;
 }
 
 Values::ValuePtr
@@ -335,6 +358,38 @@ BuiltinImplementations::haltBuiltin(Values::FunctionValuePtr functionValue, Valu
 
 std::shared_ptr<Values::NullValue> BuiltinImplementations::nullValue = std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>());
 bool BuiltinImplementations::error = false;
+
+void
+BuiltinImplementations::printTuple(const Token & token, const std::vector<Values::ValuePtr> & tupleData, const std::string & collectionType) {
+    std::cout << "(";
+    for (unsigned int tupleIndex = 0; tupleIndex < tupleData.size() - 1; ++tupleIndex) {
+        printValue(token, tupleData.at(tupleIndex), collectionType);
+        std::cout << ", ";
+    }
+    printValue(token, tupleData.at(tupleData.size() - 1), collectionType);
+    std::cout << ")" << std::endl;
+}
+
+
+void
+BuiltinImplementations::printValue(const Token & token, Values::ValuePtr value, const std::string & collectionType) {
+    if (!Types::isPrimitiveType(value->type) || value->type->dataType == Types::DataTypes::GEN) {
+        printError(token, std::string("Error: ") + collectionType + 
+                          std::string(" only takes non-generic primitives"));
+    }
+
+    if (value->type->dataType == Types::DataTypes::INT) {
+        std::cout << std::static_pointer_cast<Values::IntValue>(value)->data;
+    } else if (value->type->dataType == Types::DataTypes::CHAR) {
+        std::cout << std::string("'") << std::string(1, std::static_pointer_cast<Values::CharValue>(value)->data)
+                  << std::string("'");
+    } else if (value->type->dataType == Types::DataTypes::STRING) {
+        std::cout << std::string("\"") << std::static_pointer_cast<Values::StringValue>(value)->data
+                  << std::string("\"");
+    } else if (value->type->dataType == Types::DataTypes::BOOL) {
+        std::cout << ((std::static_pointer_cast<Values::BoolValue>(value)->data) ? std::string("true") : std::string("false"));
+    }
+}
 
 void
 BuiltinImplementations::printError(const Token & token, const std::string & errorMessage) {
