@@ -6,6 +6,9 @@
 #include "builtinDefinitions.hpp"
 #include "../../interpreter.hpp"
 
+#include <climits>
+#include <algorithm>
+
 class BuiltinImplementations {
     private:
         template<class ValueType>
@@ -32,12 +35,12 @@ class BuiltinImplementations {
         static Values::ValuePtr sizeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr rangeBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr isEmptyBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr sumBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr productBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr maxBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr minBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr sortlhBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr sorthlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr sumBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr productBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr maxBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr minBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr sortlhBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr sorthlBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr containsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr findBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
@@ -71,6 +74,7 @@ class BuiltinImplementations {
 
         static void printTuple(const Token & token, const std::vector<Values::ValuePtr> & tupleData, const std::string & collectionType);
         static void printValue(const Token & token, Values::ValuePtr value, const std::string & collectionType);
+        
         static void printError(const Token & token, const std::string & errorMessage);
 
     public:

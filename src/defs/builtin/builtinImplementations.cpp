@@ -36,6 +36,18 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return rangeBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::ISEMPTY) {
         return isEmptyBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SUM) {
+        return sumBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MAX) {
+        return maxBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MIN) {
+        return minBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SORTLH) {
+        return sortlhBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SORTHL) {
+        return sorthlBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRODUCT) {
+        return productBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
         return printListBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT2TUPLE) {
@@ -412,33 +424,123 @@ BuiltinImplementations::isEmptyBuiltin(Values::FunctionValuePtr functionValue, V
 }
 
 Values::ValuePtr
-BuiltinImplementations::sumBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::sumBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: sum requires List[int]: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    int sum = 0;
+    for (auto & value : listValue->listData) {
+        sum += std::static_pointer_cast<Values::IntValue>(value)->data;
+    }
+
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), sum);
 }
 
 Values::ValuePtr
-BuiltinImplementations::productBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::productBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: product requires List[int]: " + token.position.currentLineText);
+        return nullValue;
+    } else if (listValue->listData.empty()) {
+        return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), 0);
+    }
+
+    int product = 1;
+    for (auto & value : listValue->listData) {
+        product *= std::static_pointer_cast<Values::IntValue>(value)->data;
+    }
+
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), product);
 }
 
 Values::ValuePtr
-BuiltinImplementations::maxBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::maxBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: max requires List[int]: " + token.position.currentLineText);
+        return nullValue;
+    } else if (listValue->listData.empty()) {
+        printError(token, "Error: List[int] passed to max cannot be empty: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    int max = INT_MIN;
+    for (auto & value : listValue->listData) {
+        auto intValue = std::static_pointer_cast<Values::IntValue>(value)->data;
+
+        if (max < intValue) {
+            max = intValue;
+        }
+    }
+
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), max);
 }
 
 Values::ValuePtr
-BuiltinImplementations::minBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::minBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: min requires List[int]: " + token.position.currentLineText);
+        return nullValue;
+    } else if (listValue->listData.empty()) {
+        printError(token, "Error: List[int] passed to min cannot be empty: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    int min = INT_MAX;
+    for (auto & value : listValue->listData) {
+        auto intValue = std::static_pointer_cast<Values::IntValue>(value)->data;
+
+        if (min > intValue) {
+            min = intValue;
+        }
+    }
+
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), min);
 }
 
 Values::ValuePtr
-BuiltinImplementations::sortlhBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::sortlhBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: sortlh requires List[int]: " + token.position.currentLineText);
+        return nullValue;
+    } else if (listValue->listData.empty()) {
+        return listValue;
+    }
+
+    std::sort(listValue->listData.begin(), listValue->listData.end(), 
+              [](const Values::ValuePtr & lhs, const Values::ValuePtr & rhs) {
+                    return std::static_pointer_cast<Values::IntValue>(lhs)->data < std::static_pointer_cast<Values::IntValue>(rhs)->data;
+                });
+    return listValue;
 }
 
 Values::ValuePtr
-BuiltinImplementations::sorthlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::sorthlBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: sorthl requires List[int]: " + token.position.currentLineText);
+        return nullValue;
+    } else if (listValue->listData.empty()) {
+        return listValue;
+    }
+
+    std::sort(listValue->listData.begin(), listValue->listData.end(), 
+              [](const Values::ValuePtr & lhs, const Values::ValuePtr & rhs) {
+                    return std::static_pointer_cast<Values::IntValue>(lhs)->data > std::static_pointer_cast<Values::IntValue>(rhs)->data;
+                });
+    return listValue;
 }
 
 Values::ValuePtr
