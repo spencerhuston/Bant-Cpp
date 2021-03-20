@@ -12,6 +12,30 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return pushFrontBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PUSHBACK) {
         return pushBackBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INSERTINPLACE) {
+        return insertInPlaceBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REMOVEINPLACE) {
+        return removeInPlaceBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REPLACEINPLACE) {
+        return replaceInPlaceBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FRONT) {
+        return frontBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::BACK) {
+        return backBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::HEAD) {
+        return headBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::TAIL) {
+        return tailBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::COMBINE) {
+        return combineBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::APPEND) {
+        return appendBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SIZE) {
+        return sizeBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::RANGE) {
+        return rangeBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::ISEMPTY) {
+        return isEmptyBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
         return printListBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT2TUPLE) {
@@ -69,7 +93,7 @@ BuiltinImplementations::insertBuiltin(const Token & token, Values::FunctionValue
 
     unsigned int index = getArgumentValue<Values::IntValue>(2, functionValue, environment)->data;
     
-    if (index >= listValue->listData.size()) {
+    if (!listValue->listData.empty() && index >= listValue->listData.size()) {
         printError(token, "Error: Out of bounds list access: " + token.position.currentLineText);
         return nullValue;
     }
@@ -163,72 +187,228 @@ BuiltinImplementations::pushBackBuiltin(const Token & token, Values::FunctionVal
 
 Values::ValuePtr
 BuiltinImplementations::insertInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+
+    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
+        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    unsigned int index = getArgumentValue<Values::IntValue>(2, functionValue, environment)->data;
+    
+    if (!listValue->listData.empty() && index >= listValue->listData.size()) {
+        printError(token, "Error: Out of bounds list access: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    listValue->listData.insert(listValue->listData.begin() + index, elementValue);
+
+    return listValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::removeInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot remove from empty list: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    unsigned int index = getArgumentValue<Values::IntValue>(1, functionValue, environment)->data;
+    
+    if (index >= listValue->listData.size()) {
+        printError(token, "Error: Out of bounds list access: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    listValue->listData.erase(listValue->listData.begin() + index);
+
+    return listValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::replaceInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot replace with element in empty list: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    unsigned int index = getArgumentValue<Values::IntValue>(2, functionValue, environment)->data;
+    
+    if (index >= listValue->listData.size()) {
+        printError(token, "Error: Out of bounds list access: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+
+    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
+        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    listValue->listData.at(index) = elementValue;
+
+    return listValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::pushFrontInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+    
+    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
+        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    listValue->listData.insert(listValue->listData.begin(), elementValue);
+    return listValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::pushBackInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+    
+    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
+        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    listValue->listData.insert(listValue->listData.begin() + listValue->listData.size(), elementValue);
+    return listValue;
 }
 
 Values::ValuePtr
-BuiltinImplementations::frontBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::frontBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot get element from empty list: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    return listValue->listData.at(0);
 }
 
 Values::ValuePtr
-BuiltinImplementations::backBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::backBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot get element from empty list: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    return listValue->listData.at(listValue->listData.size() - 1);
 }
 
 Values::ValuePtr
-BuiltinImplementations::headBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::headBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot get sublist from empty list: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    auto listData = listValue->listData;
+    listData.pop_back();
+    return makeListType(listValue, listData);
 }
 
 Values::ValuePtr
-BuiltinImplementations::tailBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::tailBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot get sublist from empty list: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    auto listData = listValue->listData;
+    listData.erase(listData.begin());
+    return makeListType(listValue, listData);
 }
 
 Values::ValuePtr
-BuiltinImplementations::combineBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::combineBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
+
+    if (!listValue1->type->compare(listValue2->type)) {
+        printError(token, "Error: List types must match: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    auto combinedListData = listValue1->listData;
+    combinedListData.insert(combinedListData.end(), listValue2->listData.begin(), listValue2->listData.end());
+    return makeListType(listValue1, combinedListData);
 }
 
 Values::ValuePtr
-BuiltinImplementations::appendBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::appendBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
+
+    if (!listValue1->type->compare(listValue2->type)) {
+        printError(token, "Error: List types must match: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    listValue1->listData.insert(listValue1->listData.end(), listValue2->listData.begin(), listValue2->listData.end());
+    return listValue1;
 }
 
 Values::ValuePtr
 BuiltinImplementations::sizeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), listValue->listData.size());
 }
 
 Values::ValuePtr
-BuiltinImplementations::rangeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::rangeBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto startValue = getArgumentValue<Values::IntValue>(1, functionValue, environment);
+    auto endValue = getArgumentValue<Values::IntValue>(2, functionValue, environment);
+
+    if (listValue->listData.empty()) {
+        printError(token, "Error: Cannot get sublist from empty list: " + token.position.currentLineText);
+        return nullValue;
+    } else if (!startValue->type->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: Start range index must be integer type: " + token.position.currentLineText);
+        return nullValue;
+    } else if (!endValue->type->compare(std::make_shared<Types::IntType>())) {
+        printError(token, "Error: End range index must be integer type: " + token.position.currentLineText);
+        return nullValue;
+    }
+    
+    unsigned int startIndex = std::static_pointer_cast<Values::IntValue>(startValue)->data;
+    unsigned int endIndex = std::static_pointer_cast<Values::IntValue>(endValue)->data;
+
+    if (startIndex > endIndex || 
+        startIndex >= listValue->listData.size() || endIndex >= listValue->listData.size() ||
+        startIndex < 0 || endIndex < 0) {
+        printError(token, "Error: Invalid range: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    std::vector<Values::ValuePtr> listData;
+    for (unsigned int index = startIndex; index <= endIndex; ++index) {
+        listData.push_back(listValue->listData.at(index));
+    }
+    return makeListType(listValue, listData);
 }
 
 Values::ValuePtr
 BuiltinImplementations::isEmptyBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), listValue->listData.empty());
 }
 
 Values::ValuePtr
