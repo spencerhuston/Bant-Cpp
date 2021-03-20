@@ -246,7 +246,6 @@ TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::T
 ExpPtr
 TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
-    //auto type = std::static_pointer_cast<Types::TypeclassType>(typeclass->returnType);
     
     if (!compare(typeclass->returnType, expectedType)) {
         printMismatchError(typeclass->token, typeclass->returnType, expectedType);
