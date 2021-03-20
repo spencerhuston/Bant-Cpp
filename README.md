@@ -1,6 +1,9 @@
 # Bant
 Bant is an interpreted, statically typed, toy functional programming language made purely for my own entertainment
 
+### Build:
+Simply clone and run ```make```. Run using ```[bant directory]/build/bant [source file name].bnt```
+
 ### Features:
 - first-class functions
 - closures
