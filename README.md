@@ -20,3 +20,7 @@ Simply clone and run ```make```. Run using ```[bant directory]/build/bant [sourc
 - static type-checking
 - comments
 - external file importing
+
+### TODO:
+- Finish built in functions
+- Implement better system for generics

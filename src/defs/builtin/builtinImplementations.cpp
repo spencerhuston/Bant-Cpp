@@ -38,6 +38,8 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return isEmptyBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SUM) {
         return sumBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRODUCT) {
+        return productBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MAX) {
         return maxBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MIN) {
@@ -46,8 +48,12 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return sortlhBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SORTHL) {
         return sorthlBuiltin(token, functionValue, environment);
-    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRODUCT) {
-        return productBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CONTAINS) {
+        return containsBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FIND) {
+        return findBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MAP) { // TODO
+        return mapBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
         return printListBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT2TUPLE) {
@@ -544,60 +550,178 @@ BuiltinImplementations::sorthlBuiltin(const Token & token, Values::FunctionValue
 }
 
 Values::ValuePtr
-BuiltinImplementations::containsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listType = std::static_pointer_cast<Types::ListType>(listValue->type);
+
+    if (listValue->listData.empty()) {
+        return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+    } else if (!Types::isPrimitiveType(listType->listType) || listType->listType->dataType == Types::DataTypes::GEN) {
+        printError(token, "Error: contains requires list of non-generic primitives: " + token.position.currentLineText);
+        return nullValue;
+    }
+    
+    int typeEnum = static_cast<int>(listType->listType->dataType);
+    auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+
+    for (auto & value : listValue->listData) {
+        switch (typeEnum) {
+            case 0: { // INT
+                auto intValue = std::static_pointer_cast<Values::IntValue>(value)->data;
+                auto searchIntValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (intValue == searchIntValue) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
+                }
+            }
+                break;
+            case 1: { // CHAR
+                auto charValue = std::static_pointer_cast<Values::IntValue>(value)->data;
+                auto searchCharValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (charValue == searchCharValue) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
+                }
+            }
+                break;
+            case 2: { // STRING
+                auto stringValue = std::static_pointer_cast<Values::IntValue>(value)->data;
+                auto searchStringValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (stringValue == searchStringValue) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
+                }
+            }
+                break;
+            case 3: { // BOOL
+                auto boolValue = std::static_pointer_cast<Values::IntValue>(value)->data;
+                auto searchBoolValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (boolValue == searchBoolValue) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
+                }
+            }
+                break;
+        }
+    }
+
+    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
 }
 
 Values::ValuePtr
-BuiltinImplementations::findBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listType = std::static_pointer_cast<Types::ListType>(listValue->type);
+
+    if (listValue->listData.empty()) {
+        return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+    } else if (!Types::isPrimitiveType(listType->listType) || listType->listType->dataType == Types::DataTypes::GEN) {
+        printError(token, "Error: find requires list of non-generic primitives: " + token.position.currentLineText);
+        return nullValue;
+    }
+    
+    int typeEnum = static_cast<int>(listType->listType->dataType);
+    auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+
+    for (unsigned int index = 0; index < listValue->listData.size(); ++index) {
+        switch (typeEnum) {
+            case 0: { // INT
+                auto intValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
+                auto searchIntValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (intValue == searchIntValue) {
+                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
+                }
+            }
+                break;
+            case 1: { // CHAR
+                auto charValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
+                auto searchCharValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (charValue == searchCharValue) {
+                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
+                }
+            }
+                break;
+            case 2: { // STRING
+                auto stringValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
+                auto searchStringValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (stringValue == searchStringValue) {
+                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
+                }
+            }
+                break;
+            case 3: { // BOOL
+                auto boolValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
+                auto searchBoolValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+
+                if (boolValue == searchBoolValue) {
+                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
+                }
+            }
+                break;
+        }
+    }
+
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), -1);
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    return nullValue;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::filterBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::fillBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::reverseBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::zipBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::equalsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
