@@ -1,7 +1,0 @@
-val a : List[int] = new List { 1, 2, 3, 4, 5 };
-val b : List[int] = removeInPlace(a, 2);
-
-if (equals(a, b) && b[2] == 4)
-	2
-else
-	1

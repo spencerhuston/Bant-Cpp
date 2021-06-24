@@ -1,7 +1,0 @@
-val x : int = 99;
-val c : char = intToChar(x);
-
-if (c == 'c')
-	2
-else
-	1

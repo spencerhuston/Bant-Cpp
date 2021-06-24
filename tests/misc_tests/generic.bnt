@@ -1,8 +1,0 @@
-func eq[T](x: T, y: T) -> bool = {
-	x == y
-};
-
-if (eq(1, 1) || eq(true, false) || eq('c', 'c')) 
-	2
-else
-	3

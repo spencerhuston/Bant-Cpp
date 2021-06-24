@@ -1,7 +1,0 @@
-val arr : List[int] = new List { 1, 2, 3 };
-val arr2 : List[int] = pushFront(arr, 0);
-
-if (arr2[0] == 0 && arr[0] == 1)
-	2
-else
-	1

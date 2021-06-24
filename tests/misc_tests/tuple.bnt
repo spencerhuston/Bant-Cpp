@@ -1,2 +1,0 @@
-val t : Tuple[int, bool] = Tuple { 0, true };
-t(0)

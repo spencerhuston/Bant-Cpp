@@ -1,8 +1,0 @@
-val scores : List[int] = new List { 3, 4, 5, 1, 2, 3 };
-val half1 : int = sum(range(scores, 0, (size(scores) / 2) - 1)) / (size(scores) / 2);
-val half2 : int = sum(range(scores, (size(scores) / 2), (size(scores) - 1))) / (size(scores) / 2);
-
-if (half1 >= half2)
-	half1
-else
-	half2

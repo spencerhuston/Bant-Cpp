@@ -1,9 +1,0 @@
-func f(x: int) -> int -> int = {
-	func g(y: int) -> int = {
-		x + y
-	};	
-	g
-};
-
-val a : int -> int = f(1);
-a(2)

@@ -1,8 +1,0 @@
-val a : List[int] = new List { 1, 2, 4, 5 };
-val x : int = 3;
-val b : List[int] = insert(a, x, 2);
-
-if (b[2] == 3 && a[2] == 4)
-	2
-else
-	1

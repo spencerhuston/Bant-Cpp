@@ -1,7 +1,0 @@
-val x : int = 32;
-val y : List[int] = match (x) {
-			case 1 = { new List { 1, 2 } };
-			case 2 = { new List { 3, 4 } };
-			case any = { new List { 5, 6 } };
-		};
-y[1]

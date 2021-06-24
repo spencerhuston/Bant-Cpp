@@ -1,8 +1,0 @@
-func f(x: int, y: int, z: int, a: List[int]) -> int = {
-	if (x > 0)
-		f(x - 1, y, z, a)
-	else
-		x
-};
-
-f(7000, 5000, 10000, new List { 5000, 10000, 25000, 40000 })

@@ -1,5 +1,0 @@
-val a : List[int] = tail(new List { 1, 2, 3, 4 });
-if (size(a) == 3 && a[size(a) - 1] == 4)
-	2
-else
-	1

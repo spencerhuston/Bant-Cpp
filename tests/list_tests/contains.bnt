@@ -1,7 +1,0 @@
-val a : List[int] = new List { 1, 2, 3 };
-val c : List[char] = new List { 'a', 'b', 'c' };
-
-if (contains(a, 1) && !contains(a, 4) && contains(c, 'a') && !contains(c, 'd'))
-	2
-else
-	1

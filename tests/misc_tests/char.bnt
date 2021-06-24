@@ -1,6 +1,0 @@
-val arr : List[char] = new List { 'a', 'b', 'c' };
-
-if (arr[2] == 'c')
-	50
-else
-	60

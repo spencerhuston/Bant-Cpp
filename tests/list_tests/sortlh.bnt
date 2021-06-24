@@ -1,6 +1,0 @@
-val a : List[int] = new List {40,60,89,53,69,22,79,3,65,82,92,5,11,94,37};
-val b : List[int] = sortlh(a);
-if (b[0] == 3 && b[size(b) - 1] == 94)
-	2
-else
-	1

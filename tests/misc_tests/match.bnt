@@ -1,6 +1,0 @@
-val x : int = 2;
-match(x) {
-	case 0 = { 1 };
-	case 1 = { 2 };
-	case 2 = { 3 };
-}
