@@ -22,5 +22,8 @@ Simply clone and run ```make```. Run using ```[bant directory]/build/bant [sourc
 - external file importing
 
 ### TODO:
-- Finish built in functions
+- Finish test suite (update as builtins and generics are finished)
+- Finish builtin functions
 - Implement better system for generics
+- Add builtins list to this md
+- Add documentation on language features
