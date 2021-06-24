@@ -1,0 +1,13 @@
+func get_max(n: int, arr: List[int], size: int, max: int) -> int = {
+	if (n >= size)
+		max
+	else {
+		if (arr[n] > max)
+			get_max(n + 1, arr, size, arr[n])
+		else
+			get_max(n + 1, arr, size, max)
+	}
+};
+
+val a : List[int] = new List {40,60,89,53,69,22,79,3,65,82,92,5,11,94,37};
+get_max(0, a, 15, a[0])

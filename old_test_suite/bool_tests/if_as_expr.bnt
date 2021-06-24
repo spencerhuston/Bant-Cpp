@@ -1,0 +1,2 @@
+val x : int = if (false) 1 else 100;
+x

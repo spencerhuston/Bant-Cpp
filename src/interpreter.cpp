@@ -2,7 +2,8 @@
 
 Interpreter::Interpreter(const ExpPtr & rootExpression)
 : rootExpression(rootExpression),
-  errorNullValue(std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>())) { }
+  errorNullValue(std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>())) 
+{ }
 
 void
 Interpreter::run() {

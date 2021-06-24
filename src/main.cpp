@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(2);
     
-    //try {
+    try {
         Format::printHeader("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
@@ -69,8 +69,8 @@ int main(int argc, char ** argv) {
             Format::printError("One or more errors occurred at runtime, exiting");
             exit(6);
         }
-    //} catch (...) {
-    //    Format::printError("Unexpected error occurred, exiting");
-    //    exit(7);
-    //}
+    } catch (...) {
+        Format::printError("Unexpected error occurred, exiting");
+        exit(7);
+    }
 }

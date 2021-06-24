@@ -1,0 +1,2 @@
+val a : List[int] = new List { 1, 2, 3 };
+front(a)

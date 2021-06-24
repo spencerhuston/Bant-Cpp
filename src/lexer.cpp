@@ -152,13 +152,21 @@ Lexer::filterWhitespace(const char character) {
         case ' ': {
             currentPosition.fileColumn += 1;
             currentPosition.currentLineText += character;
-            return true;
+
+            if (inQuotes)
+                currentTokenBlock += character;
+
+            return !inQuotes; // if in quotes, return false
         }
             break;
         case '\t': {
             currentPosition.fileColumn += 8;
             currentPosition.currentLineText += character;
-            return true;
+
+            if (inQuotes)
+                currentTokenBlock += character;
+
+            return !inQuotes; // if in quotes, return false
         }
             break;
         case '\r': {
@@ -167,9 +175,26 @@ Lexer::filterWhitespace(const char character) {
             break;
         case '\n': {
             updateFilePosition = true;
+
+            if (inQuotes)
+                printError(std::string({character}));
+            
             return true;
         }
             break;
+        case '\"': {
+            currentPosition.fileColumn += 1;
+            currentPosition.currentLineText += character;
+            currentTokenBlock += character;
+
+            if (inQuotes) {
+                inQuotes = false;
+                return true;
+            }
+
+            inQuotes = true;
+            return false;
+        }
         default: {
             if (isValidCharacter(character)) {
                 currentPosition.fileColumn += 1;

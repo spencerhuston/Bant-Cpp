@@ -1,0 +1,30 @@
+func eq(
+	size: int, 
+	row: int, 
+	a1: List[List[int]], 
+	a2: List[List[int]]
+) -> bool = {
+	func eq_col(col: int) -> bool = {
+		if (col >= size)
+			true	
+		else if (a1[row][col] == a2[row][col])
+			eq_col(col + 1)
+		else
+			false
+	};
+	
+	if (row >= size)
+		true
+	else if (eq_col(0))
+		eq(size, row + 1, a1, a2)	
+	else
+		false
+};
+
+val mat1 : List[List[int]] = List { List { 1, 2 }, List { 3, 4 } };
+val mat2 : List[List[int]] = List { List { 1, 2 }, List { 3, 4 } };
+
+if (eq(size(mat1), 0, mat1, mat2))
+	2
+else
+	1

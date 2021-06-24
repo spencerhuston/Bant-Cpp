@@ -1,0 +1,8 @@
+val a : List[int] = new List { 1, 2, 3, 4 };
+val b : List[int] = new List { 0, 2, 4, 6, 8 };
+val c : List[int] = intersect(a, b);
+
+if (size(c) == 2 && front(c) == 2 && back(c) == 4)
+	2
+else
+	1

@@ -1,0 +1,14 @@
+func f(x: int, y: int -> int, b: bool) -> int = {
+	if (b)
+		x + 1
+	else
+		y(x)
+};
+
+func g(x: int) -> int = {
+	x + 2
+};
+
+val x : int = 1;
+val b : bool = false;
+f(x, g, b)

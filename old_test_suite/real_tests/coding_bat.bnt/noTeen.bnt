@@ -1,0 +1,7 @@
+val l : List[int] = filter(new List { 12, 13, 19, 20 },
+			   func isTeen(x: int) -> bool = (x < 13 || x > 19); isTeen);
+
+if (size(l) == 2 && front(l) == 12 && back(l) == 20)
+	2
+else
+	1

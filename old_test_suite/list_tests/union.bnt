@@ -1,0 +1,8 @@
+val a : List[int] = new List { 1, 3, 4, 5 };
+val b : List[int] = new List { 2, 4, 6 };
+val c : List[int] = union(a, b);
+
+if (size(c) == 6 && front(c) == 1 && back(c) == 6)
+	2
+else
+	1

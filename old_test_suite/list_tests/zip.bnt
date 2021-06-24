@@ -1,0 +1,8 @@
+val a : List[int] = new List { 1, 2, 3 };
+val b : List[int] = new List { 4, 5, 6 };
+val c : List[List[int]] = zip(a, b);
+
+if (sum(c[0]) == 5 && sum(c[1]) == 7 && sum(c[2]) == 9)
+	2
+else
+	1

@@ -1,0 +1,3 @@
+func f(x: int = 0, y: bool) -> int = { if (y) x + 1 else x };
+
+f(1, false)

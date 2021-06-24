@@ -1,0 +1,26 @@
+func f[T](opt: int) -> int -> T = {
+	match (opt) {
+		case 1 = { func g(x: int) -> int = x * x; g };
+		case 2 = { func g(x: int) -> int = x + 10; g };
+		case any = { func g(x: int) -> bool = {
+					if (x > 10) g(x % 10)
+					else !(x == 5 || x == 6)
+				};
+				g
+			   }; 
+	}
+};
+
+func make_list(list: List[int], newlist: List[int], curr: int) -> List[int] = {
+	if (curr == size(list))
+		newlist
+	else if (curr % 2 == 0)
+		make_list(list, pushBack(newlist, f(1)(list[curr]) + 2), curr + 1)
+	else
+		make_list(list, pushBack(newlist, f(2)(list[curr])), curr + 1)
+};
+
+val l : List[int] = make_list(new List {44,89,93,102,115,46,35,78,59,10,37,63,21,54,72}, new List { }, 0);
+val l2 : List[int] = filter(map(map(l, f(1)), f(2)), f(3)); 
+
+size(l2)

@@ -1,0 +1,6 @@
+val a : List[int] = new List { 1 };
+removeInPlace(a, 0);
+if (isEmpty(a))
+	2
+else
+	1

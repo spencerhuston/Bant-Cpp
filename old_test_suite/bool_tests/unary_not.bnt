@@ -1,0 +1,5 @@
+val x : bool = true;
+if (!x)
+	0
+else
+	1

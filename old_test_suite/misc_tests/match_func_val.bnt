@@ -1,0 +1,22 @@
+val z : int = 32;
+val y : int -> int = match (z) {
+			case 1 = { 
+				func g(x: int) -> int = {
+					x + x	
+				};
+				g
+			};
+			case 2 = {
+				func g(x: int) -> int = {
+					x * x
+				};
+				g
+			};
+			case any = {
+				func g(x: int) -> int = {
+					x + 1
+				};	
+				g
+			};
+		};
+y(1)

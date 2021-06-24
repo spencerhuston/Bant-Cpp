@@ -1,0 +1,19 @@
+func f[T](opt: int) -> int -> T = {
+	match (opt) {
+		case 1 = { func g(x: int) -> int = x * x; g };
+		case 2 = { func g(x: int) -> int = x + 10; g };
+		case any = { func g(x: int) -> bool = {
+					if (x > 10) g(x % 10)
+					else !(x == 5 || x == 6)
+				};
+				g
+			   }; 
+	}
+};
+
+val l : List[int] = filter(map(map(new List { 3, 1, 4 }, f(1)), f(2)), f(3)); 
+
+if (size(l) == 2 && front(l) == 19 && back(l) == 11)
+	2
+else
+	1	

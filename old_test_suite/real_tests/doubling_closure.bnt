@@ -1,0 +1,16 @@
+func make_double(multiple: int) -> (int, List[int], int, List[int]) -> List[int] = {
+	func double(s: int, arr: List[int], curr: int, newlist: List[int]) -> List[int] = {	
+		if (curr == s)
+			newlist
+		else
+			double(s, arr, curr + 1, pushBack(newlist, (multiple * arr[curr])))
+	};
+	double
+};
+
+val original : List[int] = new List { 1, 2, 3, 4, 5 };
+
+val d : (int, List[int], int, List[int]) -> int = make_double(3);
+val doubled_list : List[int] = d(size(original), original, 0, new List { });
+
+doubled_list[4]

@@ -1,0 +1,2 @@
+val str : List[char] = new List { 'H','e','l','l','o','\s','W','o','r','l','d','!','\n' };
+printString(str)
