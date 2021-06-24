@@ -1,5 +1,5 @@
 val x : bool = true;
 if (!x)
-	0
+	printInt(0)
 else
-	1
+	printInt(1)

@@ -1,0 +1,2 @@
+val s : string = "test multi spaces";
+printString(s)

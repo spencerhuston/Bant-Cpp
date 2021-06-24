@@ -1,0 +1,5 @@
+func f() -> int = {
+    5
+};
+
+print2Tuple(Tuple { 0, f })

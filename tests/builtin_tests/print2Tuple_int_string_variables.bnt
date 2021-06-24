@@ -1,0 +1,3 @@
+val i : int = 0;
+val s : string = "test";
+print2Tuple(Tuple { i, s })

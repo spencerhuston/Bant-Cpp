@@ -1,0 +1,4 @@
+if (1 == 2 || 3 == 3)
+	printInt(2)
+else
+	printInt(1)

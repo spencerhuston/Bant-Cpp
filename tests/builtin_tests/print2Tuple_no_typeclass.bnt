@@ -1,0 +1,7 @@
+typeclass X {
+    x : int = 0
+};
+
+val x : type X = X(1);
+
+print2Tuple(Tuple { x, 0 })

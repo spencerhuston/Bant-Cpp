@@ -34,7 +34,7 @@ int main(int argc, char ** argv) {
         exit(2);
     
     try {
-        Format::printHeader("Building...");
+        Format::printDebugHeader("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
         auto tokenStream = lexer.makeTokenStream();
@@ -60,7 +60,7 @@ int main(int argc, char ** argv) {
             exit(5);
         }
 
-        Format::printHeader("Successful Build, Running...");
+        Format::printDebugHeader("Successful Build, Running...");
         
         auto interpreter = Interpreter(tree);
         interpreter.run();

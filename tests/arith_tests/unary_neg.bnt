@@ -7,4 +7,4 @@ func g(x: int) -> int = {
 		x
 };
 
-g(x)
+printInt(g(x))

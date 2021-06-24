@@ -1,0 +1,2 @@
+val s : string = "test";
+printString(s)
