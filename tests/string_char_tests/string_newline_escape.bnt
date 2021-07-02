@@ -1,0 +1,2 @@
+printString("newline\n");
+printString("test")

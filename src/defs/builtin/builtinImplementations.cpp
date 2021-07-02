@@ -81,7 +81,7 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::READSTRING) {
         return readStringBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTSTRING) {
-        return printStringBuiltin(functionValue, environment);
+        return printStringBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::HALT) {
         return haltBuiltin(functionValue, environment);
     }
@@ -564,6 +564,11 @@ BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionVal
     int typeEnum = static_cast<int>(listType->listType->dataType);
     auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
+    if (typeEnum != static_cast<int>(searchValue->type->dataType)) {
+        printError(token, "Error: contains: mistmatched types: " + token.position.currentLineText);
+        return nullValue;
+    }
+
     for (auto & value : listValue->listData) {
         switch (typeEnum) {
             case 0: { // INT
@@ -576,8 +581,8 @@ BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionVal
             }
                 break;
             case 1: { // CHAR
-                auto charValue = std::static_pointer_cast<Values::IntValue>(value)->data;
-                auto searchCharValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+                auto charValue = std::static_pointer_cast<Values::CharValue>(value)->data;
+                auto searchCharValue = std::static_pointer_cast<Values::CharValue>(searchValue)->data;
 
                 if (charValue == searchCharValue) {
                     return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
@@ -585,8 +590,8 @@ BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionVal
             }
                 break;
             case 2: { // STRING
-                auto stringValue = std::static_pointer_cast<Values::IntValue>(value)->data;
-                auto searchStringValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+                auto stringValue = std::static_pointer_cast<Values::StringValue>(value)->data;
+                auto searchStringValue = std::static_pointer_cast<Values::StringValue>(searchValue)->data;
 
                 if (stringValue == searchStringValue) {
                     return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
@@ -594,8 +599,8 @@ BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionVal
             }
                 break;
             case 3: { // BOOL
-                auto boolValue = std::static_pointer_cast<Values::IntValue>(value)->data;
-                auto searchBoolValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
+                auto boolValue = std::static_pointer_cast<Values::BoolValue>(value)->data;
+                auto searchBoolValue = std::static_pointer_cast<Values::BoolValue>(searchValue)->data;
 
                 if (boolValue == searchBoolValue) {
                     return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
@@ -622,6 +627,11 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
     
     int typeEnum = static_cast<int>(listType->listType->dataType);
     auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+
+    if (typeEnum != static_cast<int>(searchValue->type->dataType)) {
+        printError(token, "Error: contains: mistmatched types: " + token.position.currentLineText);
+        return nullValue;
+    }
 
     for (unsigned int index = 0; index < listValue->listData.size(); ++index) {
         switch (typeEnum) {
@@ -667,25 +677,25 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
     return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), -1);
 }
 
-// TODO
+// TODO - 
 Values::ValuePtr
 BuiltinImplementations::mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullValue;
 }
 
-// TODO
+// TODO - 
 Values::ValuePtr
 BuiltinImplementations::filterBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO
+// TODO - any
 Values::ValuePtr
 BuiltinImplementations::fillBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO
+// TODO - any
 Values::ValuePtr
 BuiltinImplementations::reverseBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
@@ -697,31 +707,31 @@ BuiltinImplementations::foldlBuiltin(Values::FunctionValuePtr functionValue, Val
     return nullptr;
 }
 
-// TODO
+// TODO - 
 Values::ValuePtr
 BuiltinImplementations::foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO
+// TODO - Any type
 Values::ValuePtr
 BuiltinImplementations::zipBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO
+// TODO - Primitives
 Values::ValuePtr
 BuiltinImplementations::unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO
+// TODO - Primitives
 Values::ValuePtr
 BuiltinImplementations::intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO
+// TODO - Primitives
 Values::ValuePtr
 BuiltinImplementations::equalsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
@@ -834,9 +844,49 @@ BuiltinImplementations::readStringBuiltin(Values::FunctionValuePtr functionValue
 }
 
 Values::ValuePtr
-BuiltinImplementations::printStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::printStringBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto stringValue = getArgumentValue<Values::StringValue>(0, functionValue, environment)->data;
-    std::cout << stringValue << std::endl;
+
+    for (unsigned int i = 0; i < stringValue.length(); ++i) {
+        if (stringValue.at(i) == '\\' && i <= stringValue.length() - 1) {
+            switch (stringValue.at(i + 1)) {
+                case '?':
+                    std::cout << "?";
+                    break;
+                case '\\':
+                    std::cout << "\\";
+                    break;
+                case 'b':
+                    std::cout << "\b";
+                    break;
+                case 'n':
+                    std::cout << "\n";
+                    break;
+                case 'r':
+                    std::cout << "\r";
+                    break;
+                case 't':
+                    std::cout << "\t";
+                    break;
+                case 's':
+                    std::cout << " ";
+                    break;
+                default:
+                    printError(token, std::string("Error: invalid escape sequence: ") + std::string({stringValue.at(i + 1)}));
+            }
+            i++;
+        } 
+        else if (stringValue.at(i) == '\\' && i == stringValue.length()) {
+            printError(token, "Error: escape slash requires escape character");
+            return nullValue;
+        }
+        else {
+            std::cout << std::string({stringValue.at(i)});
+        }
+    }
+
+    std::cout << std::endl;
+
     return nullValue;
 }
 
@@ -859,7 +909,6 @@ BuiltinImplementations::printTuple(const Token & token, const std::vector<Values
     printValue(token, tupleData.at(tupleData.size() - 1), collectionType);
     std::cout << ")" << std::endl;
 }
-
 
 void
 BuiltinImplementations::printValue(const Token & token, Values::ValuePtr value, const std::string & collectionType) {

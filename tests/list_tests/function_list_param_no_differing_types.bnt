@@ -1,0 +1,5 @@
+func f(l : List[int]) -> null = {
+    null
+};
+
+f(List { true })

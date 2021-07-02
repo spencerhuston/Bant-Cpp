@@ -1,0 +1,4 @@
+val l : List[Tuple[List[int], bool]] = List {
+    Tuple { List { 5 }, false },
+    Tuple { List { 6 }, true }
+}

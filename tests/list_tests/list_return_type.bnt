@@ -1,0 +1,5 @@
+func f(x: int) -> List[int] = {
+    List { x }
+};
+
+printList(f(5))

@@ -66,7 +66,7 @@ class BuiltinImplementations {
         static Values::ValuePtr readCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr printCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr readStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr printStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr printStringBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr haltBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
 
         static std::shared_ptr<Values::NullValue> nullValue;

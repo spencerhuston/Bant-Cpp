@@ -1,0 +1,8 @@
+func f(l: List[int]) -> bool = {
+    if (l[0] % 2 == 0)
+        true
+    else
+        false
+};
+
+printBool(f(List { 2, 3 }))

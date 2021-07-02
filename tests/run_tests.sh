@@ -5,58 +5,189 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NONE='\033[0m'
 
-echo -e "\n${YELLOW}RUNNING TEST SCRIPT...${NONE}\n"
+BANT_PATH="../build/bant"
+DEBUG=false
+
+RUN_ARITH=false
+RUN_BOOL=false
+RUN_STRING_CHAR=false
+RUN_LIST=false
+RUN_BUILTINS=false
+RUN_ALL=false
+
+NUM_SUCCESSES=0
+NUM_FAILURES=0
 
 function test {
 	sourcePath="$1/$2"
-	ret=`../build/bant $sourcePath`
-	if [ "$ret" = "$3" ] || [[ "$3" = "Error" && "$ret" = *"$3"* ]]; then
-		echo -e "${GREEN}\tPASSED ${NONE} $4"
+	ret=$(echo -e "$($BANT_PATH $sourcePath)")
+	exp=$(echo -e "$3")
+	if [[ "$ret" == "$exp" ]] || [[ "$3" = "Error" && "${ret,,}" = *"${3,,}"* ]]; then
+		echo -e "${GREEN}\tPASSED${NONE}  $4"
+		((NUM_SUCCESSES++))
 	else
-		echo -e "${RED}\tFAILED ${NONE} $4"
+		echo -e "${RED}\tFAILED${NONE}  $4"
+		((NUM_FAILURES++))
+	fi
+
+	if [[ "$DEBUG" = true ]]; then
+		echo -e "========================================"
+		echo -e "EXPECTED:\n$exp\n"
+		echo -e "RETURNED:\n$ret"
+		echo -e "========================================\n"
 	fi
 }
 
-echo -e "${YELLOW}ARITHMETIC${NONE}"
-arithPath="./arith_tests"
-test $arithPath "op_prec.bnt" "1" "Operator precedence"
-test $arithPath "op_prec_paren.bnt" "12" "Operator precedence with parentheses"
-test $arithPath "unary_neg.bnt" "0" "Unary negative"
-echo ""
+function arith_tests {
+	echo -e "${YELLOW}ARITHMETIC${NONE}"
+	arithPath="./arith_tests"
+	test $arithPath "op_prec.bnt" "1" "Operator precedence"
+	test $arithPath "op_prec_paren.bnt" "12" "Operator precedence with parentheses"
+	test $arithPath "unary_neg.bnt" "0" "Unary negative"
+	echo ""
+}
 
-echo -e "${YELLOW}BOOLEAN${NONE}"
-boolPath="./bool_tests"
-test $boolPath "eq_or.bnt" "2" "OR'ing equals"
-test $boolPath "unary_not.bnt" "1" "Unary NOT"
-test $boolPath "if_as_expr.bnt" "100" "If as expression"
-test $boolPath "or_eq_no_parens.bnt" "2" "OR'ing equals w/o parentheses"
-echo ""
+function bool_tests {
+	echo -e "${YELLOW}BOOLEAN${NONE}"
+	boolPath="./bool_tests"
+	test $boolPath "eq_or.bnt" "2" "OR'ing equals"
+	test $boolPath "unary_not.bnt" "1" "Unary NOT"
+	test $boolPath "if_as_expr.bnt" "100" "If as expression"
+	test $boolPath "or_eq_no_parens.bnt" "2" "OR'ing equals w/o parentheses"
+	echo ""
+}
 
-echo -e "${YELLOW}STRING & CHAR${NONE}"
-boolPath="./string_char_tests"
-test $boolPath "string.bnt" "test" "String variable"
-test $boolPath "string_with_space.bnt" "test space" "String variable with a space"
-test $boolPath "string_with_spaces.bnt" "test multi spaces" "String variable with multiple spaces"
-test $boolPath "string_literal.bnt" "stringliteral" "String literal"
-test $boolPath "string_literal_with_space.bnt" "string literal" "String literal with a space"
-test $boolPath "string_literal_with_spaces.bnt" "string literal spaces" "String literal with multiple spaces"
-echo ""
+function string_char_tests {
+	echo -e "${YELLOW}STRING & CHAR${NONE}"
+	stringCharPath="./string_char_tests"
+	test $stringCharPath "string.bnt" "test" "String variable"
+	test $stringCharPath "string_with_space.bnt" "test space" "String variable with a space"
+	test $stringCharPath "string_with_spaces.bnt" "test multi spaces" "String variable with multiple spaces"
+	test $stringCharPath "string_literal.bnt" "stringliteral" "String literal"
+	test $stringCharPath "string_literal_with_space.bnt" "string literal" "String literal with a space"
+	test $stringCharPath "string_literal_with_spaces.bnt" "string literal spaces" "String literal with multiple spaces"
+	test $stringCharPath "string_newline_escape.bnt" "newline\n\ntest" "String newline escape"
+	test $stringCharPath "string_return_carriage_escape.bnt" "return\rtest" "String return carriage escape"
+	test $stringCharPath "string_tab_escape.bnt" "tab\ttest" "String tab escape"
+	test $stringCharPath "string_space_escape.bnt" "space test" "String space escape"
+	test $stringCharPath "string_backspace_escape.bnt" "backspace\btest" "String backspace escape"
+	test $stringCharPath "string_question_escape.bnt" "question\?test" "String question escape"
+	test $stringCharPath "string_normally_excluded_character.bnt" "$^%&*@!" "Accept normally excluded characters"
+	echo ""
+}
 
-echo -e "${YELLOW}BUILTINS${NONE}"
-boolPath="./builtin_tests"
-echo -e "${YELLOW}\tprint2Tuple - correct${NONE}"
-test $boolPath "print2Tuple_int_bool_literals.bnt" "(0, true)" "Print 2 tuple - int and bool literals"
-test $boolPath "print2Tuple_int_char_literals.bnt" "(0, 'a')" "Print 2 tuple - int and char literals"
-test $boolPath "print2Tuple_int_string_literals.bnt" "(0, \"test\")" "Print 2 tuple - int and string literals"
-test $boolPath "print2Tuple_int_bool_variables.bnt" "(0, true)" "Print 2 tuple - int and bool variables"
-test $boolPath "print2Tuple_int_char_variables.bnt" "(0, 'a')" "Print 2 tuple - int and char variables"
-test $boolPath "print2Tuple_int_string_variables.bnt" "(0, \"test\")" "Print 2 tuple - int and string variables"
-echo ""
+function list_tests {
+	echo -e "${YELLOW}LIST${NONE}"
+	listPath="./list_tests"
+	echo -e "${YELLOW}\tcorrect${NONE}"
+	test $listPath "list_of_ints.bnt" "(5, 6)" "List of ints"
+	test $listPath "list_of_bool.bnt" "(true, false)" "List of bool"
+	test $listPath "list_of_char.bnt" "('a', 'b')" "List of char"
+	test $listPath "list_of_string.bnt" "(\"test\", \"test2\")" "List of string"
+	test $listPath "list_of_null.bnt" "" "List of null"
+	test $listPath "nested_list.bnt" "" "Nested list"
+	test $listPath "list_of_tuples.bnt" "" "List of tuples"
+	test $listPath "list_of_tuple_of_list.bnt" "" "List of tuple of list"
+	test $listPath "list_of_function.bnt" "" "List of functions"
+	test $listPath "function_list_param.bnt" "true" "Function with list parameter"
+	test $listPath "list_of_typeclass.bnt" "1" "List of typeclass"
+	test $listPath "list_return_type.bnt" "(5)" "List return type"
+	echo ""
+	echo -e "${YELLOW}\terror${NONE}"
+	test $listPath "nested_list_differing_types.bnt" "Error" "reject nested list of differing types"
+	test $listPath "nested_no_top_level_primitive.bnt" "Error" "reject nested list with top-level primitive value"
+	test $listPath "different_primitive_types.bnt" "Error" "reject different primitive types"
+	test $listPath "no_nested_list_for_primitives.bnt" "Error" "reject nested list of same type in place of actual primitive value"
+	test $listPath "function_list_param_no_differing_types.bnt" "Error" "reject differing list type passed to function"
+	echo ""
+}
 
-echo -e "${YELLOW}\tprint2Tuple - error${NONE}"
-test $boolPath "print2Tuple_no_typeclass.bnt" "Error" "Print 2 tuple - reject typeclass"
-test $boolPath "print2Tuple_no_function.bnt" "Error" "Print 2 tuple - reject function"
-test $boolPath "print2Tuple_no_null.bnt" "Error" "Print 2 tuple - reject null"
-test $boolPath "print2Tuple_no_nested_tuple.bnt" "Error" "Print 2 tuple - reject nested tuple"
-test $boolPath "print2Tuple_no_list.bnt" "Error" "Print 2 tuple - reject list"
-echo ""
+function builtins_tests {
+	echo -e "${YELLOW}BUILTINS${NONE}"
+	builtinsPath="./builtin_tests"
+	echo -e "${YELLOW}\tprint2Tuple - correct${NONE}"
+	test $builtinsPath "print2Tuple_int_bool_literals.bnt" "(0, true)" "int and bool literals"
+	test $builtinsPath "print2Tuple_int_char_literals.bnt" "(0, 'a')" "int and char literals"
+	test $builtinsPath "print2Tuple_int_string_literals.bnt" "(0, \"test\")" "int and string literals"
+	test $builtinsPath "print2Tuple_int_bool_variables.bnt" "(0, true)" "int and bool variables"
+	test $builtinsPath "print2Tuple_int_char_variables.bnt" "(0, 'a')" "int and char variables"
+	test $builtinsPath "print2Tuple_int_string_variables.bnt" "(0, \"test\")" "int and string variables"
+	echo ""
+	echo -e "${YELLOW}\tprint2Tuple - error${NONE}"
+	test $builtinsPath "print2Tuple_no_typeclass.bnt" "Error" "reject typeclass"
+	test $builtinsPath "print2Tuple_no_function.bnt" "Error" "reject function"
+	test $builtinsPath "print2Tuple_no_null.bnt" "Error" "reject null"
+	test $builtinsPath "print2Tuple_no_nested_tuple.bnt" "Error" "reject nested tuple"
+	test $builtinsPath "print2Tuple_no_list.bnt" "Error" "reject list"
+	echo ""
+}
+
+for var in "$@"
+do
+    if [[ "$var" == "-d" ]]; then
+		DEBUG=true
+	fi
+	
+	if [[ "$var" == "-a" ]]; then
+		RUN_ARITH=true
+	fi
+
+	if [[ "$var" == "-b" ]]; then
+		RUN_BOOL=true
+	fi
+	
+	if [[ "$var" == "-s" ]]; then
+		RUN_STRING_CHAR=true
+	fi
+
+	if [[ "$var" == "-l" ]]; then
+		RUN_LIST=true
+	fi
+	
+	if [[ "$var" == "-i" ]]; then
+		RUN_BUILTINS=true
+	fi
+done
+
+if [[ "$RUN_ARITH" = false && "$RUN_BOOL" = false && "$RUN_STRING_CHAR" = false && "$RUN_LIST" = false && "$RUN_BUILTINS" = false ]]; then
+	RUN_ALL=true
+fi
+
+echo -e "\n${YELLOW}RUNNING TEST SCRIPT...${NONE}\n"
+
+if [[ "$RUN_ALL" = true ]]; then
+	arith_tests
+	bool_tests
+	string_char_tests
+	list_tests
+	builtins_tests
+fi
+
+if [[ "$RUN_ARITH" = true ]]; then
+	arith_tests
+fi
+
+if [[ "$RUN_BOOL" = true ]]; then
+	bool_tests
+fi
+
+if [[ "$RUN_STRING_CHAR" = true ]]; then
+	string_char_tests
+fi
+
+if [[ "$RUN_LIST" = true ]]; then
+	list_tests
+fi
+
+if [[ "$RUN_BUILTINS" = true ]]; then
+	builtins_tests
+fi
+
+if [ "$NUM_FAILURES" -gt "0" ]; then
+	echo -e "${RED}ONE OR MORE TESTS FAILED${NONE}\n"
+fi
+
+echo -e "${YELLOW}NUMBER PASSED: $NUM_SUCCESSES${NONE}"
+echo -e "${YELLOW}NUMBER FAILED: $NUM_FAILURES${NONE}"
+PERCENTAGE_PASSED=$((100*$NUM_SUCCESSES/($NUM_SUCCESSES + $NUM_FAILURES)))
+echo -e "${YELLOW}PERCENTAGE PASSED: $PERCENTAGE_PASSED%${NONE}"

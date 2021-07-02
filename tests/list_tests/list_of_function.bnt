@@ -1,0 +1,4 @@
+val l : List[int -> int] = List {
+    func f(x: int) -> int = x; f,
+    func f(x: int) -> int = x + 1; f
+}
