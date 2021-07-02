@@ -326,9 +326,18 @@ Interpreter::doOperation(Operator::OperatorTypes op, const Values::ValuePtr & le
                                                   std::static_pointer_cast<Values::IntValue>(leftSide)->data *
                                                   std::static_pointer_cast<Values::IntValue>(rightSide)->data);
     } else if (op == Operator::OperatorTypes::DIV) {
-        return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
+        if (std::static_pointer_cast<Values::IntValue>(rightSide)->data == 0) {
+            error = true;
+
+            std::stringstream errorStream;
+            errorStream << "Error: Division by zero!" << std::endl;
+            Format::printError(errorStream.str());
+            return errorNullValue;
+        } else {
+            return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
                                                   std::static_pointer_cast<Values::IntValue>(leftSide)->data /
                                                   std::static_pointer_cast<Values::IntValue>(rightSide)->data);
+        }
     } else if (op == Operator::OperatorTypes::MOD) {
         return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
                                                   std::static_pointer_cast<Values::IntValue>(leftSide)->data %

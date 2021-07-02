@@ -41,9 +41,13 @@ function test {
 function arith_tests {
 	echo -e "${YELLOW}ARITHMETIC${NONE}"
 	arithPath="./arith_tests"
+	echo -e "${YELLOW}\tcorrect${NONE}"
 	test $arithPath "op_prec.bnt" "1" "Operator precedence"
 	test $arithPath "op_prec_paren.bnt" "12" "Operator precedence with parentheses"
 	test $arithPath "unary_neg.bnt" "0" "Unary negative"
+	echo ""
+	echo -e "${YELLOW}\terror${NONE}"
+	test $arithPath "div_by_zero.bnt" "Error" "reject division by zero"
 	echo ""
 }
 
