@@ -24,6 +24,7 @@ Simply clone and run ```make```. Run using ```[bant directory]/build/bant [sourc
 ### TODO:
 - Finish test suite (update as builtins and generics are finished)
 - Finish builtin functions
-- Implement better system for generics
+- Implement templates in place of generics
+- Fix type checking phase
 - Add builtins list to this md
 - Add documentation on language features
