@@ -95,7 +95,6 @@ namespace Expressions {
             : Expression(token, ExpressionTypes::PROG, body->returnType),
               functions(functions), 
               body(body) { }
-
     };
 
     class Typeclass : public Expression {
@@ -227,6 +226,7 @@ namespace Expressions {
         public:
             ExpPtr ident;
             std::vector<ExpPtr> arguments;
+            std::vector<Types::TypePtr> genericReplacementTypes;
 
             Application(const Token & token,
                         const ExpPtr & ident,

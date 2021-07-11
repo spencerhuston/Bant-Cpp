@@ -1,0 +1,7 @@
+func f<T>() -> (T) -> T = {
+    func f1<T>(x: T) -> T = x;
+    f1
+};
+
+val i : (int) -> int = f<int>();
+i(5)

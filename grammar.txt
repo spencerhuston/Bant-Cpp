@@ -17,16 +17,16 @@
 		| '('<simp>')'
 		| <ident>['.'<ident>]*
 
-<tight> ::= <atom>[ ['('[<simp>[','<simp>]*]')']* ] | ['['<simp>']']+
+<tight> ::= <atom>[ ['('[<simp>[','<simp>]*]')']* ] | [ '['<simp>']' ]+
 		| '{'<exp>'}'
 
 <utight> ::= [<op>]<tight>
 
 <arg> ::= <ident>':'<type>['='<atom>]
 
-<typeclass> ::= 'typeclass' <ident> '{' [<ident>':'<type> '=' <atom>[','<ident>':'<type> '=' <atom>]*] '}'
+<typeclass> ::= 'type' <ident> '{' [<ident>':'<type> '=' <atom>[','<ident>':'<type> '=' <atom>]*] '}'
 
-<prog> ::= ['func' <ident>'['<type> [',' <type> ]* ']' '('[<arg>[','<arg>]*]')'['->' <type>] '=' <simp>';' ]* 
+<prog> ::= ['func' <ident>'<'<type> [',' <type> ]* '>' '('[<arg>[','<arg>]*]')'['->' <type>] '=' <simp>';' ]* 
 
 <simp> ::= <utight>[<op><utight>]*
 		| 'if' '('<simp>')' <simp> ['else' <simp>]

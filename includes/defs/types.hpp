@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <map>
+
+namespace Expressions {
+    class Expression;
+}
 
 namespace Types {
     enum class DataTypes {
@@ -34,10 +39,6 @@ namespace Types {
 
                 auto dataTypeEnum = static_cast<int>(dataType);
                 auto otherTypeEnum = static_cast<int>(otherType->dataType);
-
-                if (dataTypeEnum == static_cast<int>(DataTypes::GEN) ||
-                    otherTypeEnum == static_cast<int>(DataTypes::GEN))
-                    return true;
                 
                 return (dataTypeEnum == otherTypeEnum);
             }
@@ -129,9 +130,6 @@ namespace Types {
                 auto dataTypeEnum = static_cast<int>(dataType);
                 auto otherTypeEnum = static_cast<int>(otherType->dataType);
 
-                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
-                    return true;
-
                 if (dataTypeEnum == otherTypeEnum &&
                     listType->dataType == DataTypes::UNKNOWN) {
                     listType = std::static_pointer_cast<ListType>(otherType)->listType;
@@ -187,9 +185,6 @@ namespace Types {
                 auto dataTypeEnum = static_cast<int>(dataType);
                 auto otherTypeEnum = static_cast<int>(otherType->dataType);
 
-                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
-                    return true;
-
                 if (dataTypeEnum != otherTypeEnum)
                     return false;
 
@@ -238,7 +233,11 @@ namespace Types {
         public:
             std::vector<GenTypePtr> genericTypes;
             std::vector<TypePtr> argumentTypes;
+            std::vector<std::string> argumentNames;
             TypePtr returnType;
+
+            std::shared_ptr<Expressions::Expression> functionBody;
+            std::map<std::string, TypePtr> functionInnerEnvironment;
 
             FuncType(const std::vector<GenTypePtr> & genericTypes,
                      const std::vector<TypePtr> & argumentTypes,
@@ -249,17 +248,17 @@ namespace Types {
               returnType(returnType) { }
             
             const std::string toString() const override {
-                std::string typeString("[");
+                std::string typeString("<");
 
                 if (genericTypes.empty()) {
-                    typeString += std::string("]");
+                    typeString += std::string(">");
                 } else if (genericTypes.size() == 1) {
-                    typeString += genericTypes.at(0)->toString() + std::string("]");
+                    typeString += genericTypes.at(0)->toString() + std::string(">");
                 } else {
                     for (unsigned int typesIndex = 0; typesIndex < genericTypes.size() - 1; ++typesIndex) {
                         typeString += genericTypes.at(typesIndex)->toString() + std::string(", ");
                     }
-                    typeString += genericTypes.at(genericTypes.size() - 1)->toString() + std::string("]");
+                    typeString += genericTypes.at(genericTypes.size() - 1)->toString() + std::string(">");
                 }
 
                 typeString += std::string("(");
@@ -289,24 +288,13 @@ namespace Types {
                     genericTypes = funcType->genericTypes;
                     argumentTypes = funcType->argumentTypes;
                     returnType = funcType->returnType;
+                    functionBody = funcType->functionBody;
+                    functionInnerEnvironment = funcType->functionInnerEnvironment;
                     dataType = DataTypes::FUNC;
                     return true;
                 } else if (dataType == DataTypes::FUNC &&
                            otherType->dataType == DataTypes::FUNC) {
-                    auto dataTypeEnum = static_cast<int>(dataType);
-                    auto otherTypeEnum = static_cast<int>(otherType->dataType);
-
-                    if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
-                        return true;
-
-                    if (dataTypeEnum != otherTypeEnum)
-                        return false;
-
                     auto otherFuncType = std::static_pointer_cast<FuncType>(otherType);
-                    
-                    if (genericTypes.size() != otherFuncType->genericTypes.size()) {
-                        return false;
-                    }
 
                     if (argumentTypes.size() != otherFuncType->argumentTypes.size()) {
                         return false;
@@ -322,12 +310,6 @@ namespace Types {
                         return false;
                     }
 
-                    return true;
-                } else if (dataType == DataTypes::FUNC &&
-                           otherType->dataType != DataTypes::GEN) {
-                    if (!returnType->compare(otherType)) {
-                        return false;
-                    }
                     return true;
                 }
 
@@ -364,9 +346,6 @@ namespace Types {
                 auto dataTypeEnum = static_cast<int>(dataType);
                 auto otherTypeEnum = static_cast<int>(otherType->dataType);
 
-                if (otherTypeEnum == static_cast<int>(DataTypes::GEN))
-                    return true;
-
                 return (dataTypeEnum == otherTypeEnum) &&
                        (ident == std::static_pointer_cast<TypeclassType>(otherType)->ident);
             }
@@ -384,7 +363,7 @@ namespace Types {
         }
     };
 
-    using UnknownTypePtr = std::shared_ptr<UnknownType>;\
+    using UnknownTypePtr = std::shared_ptr<UnknownType>;
 
     inline bool
     isPrimitiveType(const TypePtr type) {
@@ -398,3 +377,5 @@ namespace Types {
         return false;
     }
 }
+
+using Environment = std::map<std::string, Types::TypePtr>;

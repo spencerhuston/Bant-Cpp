@@ -13,6 +13,7 @@ RUN_BOOL=false
 RUN_STRING_CHAR=false
 RUN_LIST=false
 RUN_BUILTINS=false
+RUN_TEMPLATES=false
 RUN_ALL=false
 
 NUM_SUCCESSES=0
@@ -126,6 +127,20 @@ function builtins_tests {
 	echo ""
 }
 
+function template_tests {
+	echo -e "${YELLOW}BUILTINS${NONE}"
+	templatesPath="./template_tests"
+	echo -e "${YELLOW}\tcorrect${NONE}"
+	test $templatesPath "identity_template.bnt" "" "Template identity function"
+	test $templatesPath "nested_template_correct_return.bnt" "" "Nested template function, correct return from application"
+	test $templatesPath "return_template_function.bnt" "" "Return nested template function"
+	test $templatesPath "template_tuple.bnt" "" "Return tuples made from template"
+	echo ""
+	echo -e "${YELLOW}\terror${NONE}"
+	test $templatesPath "nested_template_incorrect_return.bnt" "Error" "Nested template function, incorrect return from application"
+	echo ""
+}
+
 for var in "$@"
 do
     if [[ "$var" == "-d" ]]; then
@@ -151,9 +166,13 @@ do
 	if [[ "$var" == "-i" ]]; then
 		RUN_BUILTINS=true
 	fi
+
+	if [[ "$var" == "-g" ]]; then
+		RUN_TEMPLATES=true
+	fi
 done
 
-if [[ "$RUN_ARITH" = false && "$RUN_BOOL" = false && "$RUN_STRING_CHAR" = false && "$RUN_LIST" = false && "$RUN_BUILTINS" = false ]]; then
+if [[ "$RUN_ARITH" = false && "$RUN_BOOL" = false && "$RUN_STRING_CHAR" = false && "$RUN_LIST" = false && "$RUN_BUILTINS" = false && "$RUN_TEMPLATES" = false ]]; then
 	RUN_ALL=true
 fi
 
@@ -165,6 +184,7 @@ if [[ "$RUN_ALL" = true ]]; then
 	string_char_tests
 	list_tests
 	builtins_tests
+	template_tests
 fi
 
 if [[ "$RUN_ARITH" = true ]]; then
@@ -185,6 +205,10 @@ fi
 
 if [[ "$RUN_BUILTINS" = true ]]; then
 	builtins_tests
+fi
+
+if [[ "$RUN_TEMPLATES" = true ]]; then
+	template_tests
 fi
 
 if [ "$NUM_FAILURES" -gt "0" ]; then

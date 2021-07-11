@@ -7,7 +7,7 @@ void
 TypeChecker::check() {
     Format::printDebugHeader("Type checking/inference");
     Environment environment{};
-    auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::GenType>("$"));
+    auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::UnknownType>());
     eval(rootExpression, environment, temp->returnType);
     Format::printDebugHeader("Type checking/inference Done");
 }
@@ -60,12 +60,19 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
         Environment functionInnerEnvironment = environment;
 
         for (auto & genericParameter : function->genericParameters) {
-            addName(functionInnerEnvironment, genericParameter->identifier, genericParameter);
+            if (functionInnerEnvironment.find(genericParameter->identifier) == functionInnerEnvironment.end()) {
+                addName(functionInnerEnvironment, genericParameter->identifier, genericParameter);
+            }
         }
 
         for (auto & parameter : function->parameters) {
-            //eval(parameter, functionInnerEnvironment, parameter->returnType); for default parameter values
-            addName(functionInnerEnvironment, parameter->name, parameter->returnType);
+            if (parameter->returnType->dataType == Types::DataTypes::GEN) {
+                auto genericType = std::static_pointer_cast<Types::GenType>(parameter->returnType);
+                auto realType = functionInnerEnvironment.find(genericType->identifier)->second;
+                addName(functionInnerEnvironment, parameter->name, realType);
+            } else {
+                addName(functionInnerEnvironment, parameter->name, parameter->returnType);
+            }
         }
 
         auto functionReturnType = std::static_pointer_cast<Types::FuncType>(function->returnType);
@@ -73,8 +80,6 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
         if (BuiltinDefinitions::isBuiltin(function->name)) {
             function->isBuiltin = true;
             function->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
-        } else {
-            eval(function->functionBody, functionInnerEnvironment, functionReturnType->returnType);
         }
     }
 
@@ -130,7 +135,7 @@ TypeChecker::evalPrimitive(ExpPtr expression, Environment & environment, Types::
             eval(primitive->rightSide, environment, temp->returnType);
             primitive->returnType = std::make_shared<Types::IntType>();
         } else { // is comparison operator
-            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::GenType>("$"));
+            auto temp = std::make_shared<Temp>(primitive->token, std::make_shared<Types::UnknownType>());
             eval(primitive->leftSide, environment, temp->returnType);
 
             if (!Types::isPrimitiveType(primitive->leftSide->returnType)) {
@@ -212,9 +217,17 @@ TypeChecker::evalReference(ExpPtr expression, Environment & environment, Types::
         }   
         
         reference->returnType = fieldType;
+    } else if (!reference->fieldIdent.empty()) {
+        printError(reference->token, "Field given for non-typeclass or tuple type");
     }
 
-    if (!compare(reference->returnType, expectedType)) {
+    auto resolvedReturnType = reference->returnType;
+    resolveType(resolvedReturnType, environment);
+
+    auto resolvedExpectedType = expectedType;
+    resolveType(resolvedExpectedType, environment);
+
+    if (!compare(resolvedReturnType, resolvedExpectedType)) {
         printMismatchError(reference->token, referenceType, expectedType);
     }
 
@@ -253,33 +266,86 @@ TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::
     }
 
     for (auto & field : typeclass->fields) {
-        auto temp = std::make_shared<Temp>(typeclass->token, std::make_shared<Types::GenType>("$"));
-        evalArgument(field, environment, temp->returnType); // deduce default values
+        auto temp = std::make_shared<Temp>(typeclass->token, std::make_shared<Types::UnknownType>());
+        evalArgument(field, environment, temp->returnType);
     }
 
     addName(environment, typeclass->ident, typeclass->returnType);
 
-    return typeclass;
+    return typeclass;       
 }
 
 ExpPtr
 TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto application = std::static_pointer_cast<Application>(expression);
 
-    auto ident = eval(application->ident, environment, expectedType);
+    auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::UnknownType>());
+    auto ident = eval(application->ident, environment, temp->returnType);
 
     if (ident->returnType->dataType == Types::DataTypes::FUNC) {
         auto functionType = std::static_pointer_cast<Types::FuncType>(ident->returnType);
-        application->returnType = functionType->returnType;
+        auto identGenerics = std::static_pointer_cast<Application>(ident)->genericReplacementTypes;
+        application->genericReplacementTypes.insert(application->genericReplacementTypes.end(), identGenerics.begin(), identGenerics.end());
         
         if (application->arguments.size() != functionType->argumentTypes.size()) {
             printError(application->token, "Function application does not match signature");
         }
 
-        for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
-            eval(application->arguments.at(argumentIndex), environment, functionType->argumentTypes.at(argumentIndex));
+        if (functionType->genericTypes.empty() && !(application->genericReplacementTypes.empty())) {
+            printError(application->token, "Types provided for non-templated function");
         }
 
+        if (!(functionType->genericTypes.empty()) && application->genericReplacementTypes.empty()) {
+            printError(application->token, "No types provided for templated function");
+        }
+
+        Environment functionInnerEnvironment = functionType->functionInnerEnvironment;
+        for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
+            auto argumentType = functionType->argumentTypes.at(argumentIndex);
+            auto argument = application->arguments.at(argumentIndex);
+
+            if (argumentType->dataType == Types::DataTypes::GEN) {
+                auto genericArgumentType = std::static_pointer_cast<Types::GenType>(argumentType);
+
+                int identifierIndex = -1;
+                for (unsigned int genericsIndex = 0; genericsIndex < functionType->genericTypes.size(); ++genericsIndex) {
+                    if (functionType->genericTypes.at(genericsIndex)->identifier == genericArgumentType->identifier) {
+                        identifierIndex = genericsIndex;
+                        break;
+                    }
+                }
+
+                if (identifierIndex == -1) {
+                    printError(application->token, "Template type " + genericArgumentType->identifier + " has not been defined");
+                    return application;
+                } else {
+                    argumentType = application->genericReplacementTypes.at(identifierIndex);
+                }
+            }
+
+            eval(argument, environment, argumentType);
+
+            if (!(functionType->argumentNames.empty())) {
+                addName(functionInnerEnvironment, functionType->argumentNames.at(argumentIndex), argumentType);
+            }
+        }
+
+        for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
+            addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
+        }
+
+        auto resolvedReturnType = functionType->returnType;
+        resolveType(resolvedReturnType, functionInnerEnvironment);
+
+        if (functionType->functionBody != nullptr) {
+            eval(functionType->functionBody, functionInnerEnvironment, resolvedReturnType);
+        }
+
+        if (!compare(resolvedReturnType, expectedType)) {
+            printMismatchError(application->token, functionType->returnType, expectedType); 
+        }
+
+        application->returnType = resolvedReturnType;
         return application;
     } else if (ident->returnType->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(ident->returnType);
@@ -295,6 +361,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
 
         return application;
     }
+
     printError(application->token, "Bad function or typeclass application");
     return application;
 }
@@ -362,6 +429,45 @@ TypeChecker::evalMatch(ExpPtr expression, Environment & environment, Types::Type
     return match;
 }
 
+void
+TypeChecker::resolveType(Types::TypePtr & returnType, Environment & environment) {
+    switch (returnType->dataType) {
+        case Types::DataTypes::GEN: {
+            std::string identifier = std::static_pointer_cast<Types::GenType>(returnType)->identifier;
+            auto envType = environment.find(identifier);
+
+            if (envType == environment.end()) {
+                break;
+            }
+
+            returnType = envType->second;
+        }
+            break;
+        case Types::DataTypes::LIST: {
+            auto listType = std::static_pointer_cast<Types::ListType>(returnType);
+            resolveType(listType->listType, environment);
+        }
+            break;
+        case Types::DataTypes::TUPLE: {
+            auto tupleType = std::static_pointer_cast<Types::TupleType>(returnType);
+            for (auto & tupleType : tupleType->tupleTypes) {
+                resolveType(tupleType, environment);
+            }
+        }
+            break;
+        case Types::DataTypes::FUNC: {
+            auto funcType = std::static_pointer_cast<Types::FuncType>(returnType);
+            for (auto & argumentType : funcType->argumentTypes) {
+                resolveType(argumentType, environment);
+            }
+            resolveType(funcType->returnType, environment);
+        }
+            break;
+        default:
+            break;
+    } 
+}
+
 bool 
 TypeChecker::compare(Types::TypePtr & leftType, Types::TypePtr & rightType) {
     if (leftType->dataType == Types::DataTypes::UNKNOWN) {
@@ -371,17 +477,6 @@ TypeChecker::compare(Types::TypePtr & leftType, Types::TypePtr & rightType) {
         rightType = leftType;
         return true;
     }
-
-    // generic type resolution
-    /*
-    if (leftType->dataType == Types::DataTypes::GEN) {
-        leftType = rightType;
-        return true;
-    } else if (rightType->dataType == Types::DataTypes::GEN) {
-        rightType = leftType;
-        return true;
-    }
-    */
 
     return leftType->compare(rightType);
 }

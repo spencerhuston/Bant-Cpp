@@ -1,0 +1,6 @@
+func f<T>(x: T) -> T = x;
+
+val i : int = f<int>(5);
+val b : bool = f<bool>(true);
+val c : char = f<char>('a');
+val s : string = f<string>("test")

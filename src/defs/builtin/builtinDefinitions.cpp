@@ -26,7 +26,7 @@ const std::vector<std::string> BuiltinDefinitions::builtinNames{
 
 int
 BuiltinDefinitions::builtinNumber() {
-    return static_cast<int>(BuiltinEnums::BUILTINNUM);
+    return 0;//static_cast<int>(BuiltinEnums::BUILTINNUM);
 }
 
 const std::string BuiltinDefinitions::builtinDefinitions = 

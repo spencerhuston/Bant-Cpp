@@ -103,7 +103,7 @@ Parser::parseSimpleExpression() {
         return parseTuple();
     } else if (match(Token::TokenType::KEYWORD, "match")) {
         return parseMatch();
-    } else if (match(Token::TokenType::KEYWORD, "typeclass")) {
+    } else if (match(Token::TokenType::KEYWORD, "type")) {
         return parseTypeclass();
     } else if (matchNoAdvance(Token::TokenType::KEYWORD, "func")) {
         return parseProgram();
@@ -337,6 +337,16 @@ Parser::parseApplication() {
     Token token = currentToken();
 
     ExpPtr ident = parseAtom();
+
+    std::vector<Types::TypePtr> genericReplacementTypes;
+    if (match(Token::TokenType::DELIM, "<")) {
+        genericReplacementTypes.push_back(parseType({}));
+        while (match(Token::TokenType::DELIM, ",")) {
+            genericReplacementTypes.push_back(parseType({}));
+        }
+        skip(">");
+    }
+
     if (match(Token::TokenType::DELIM, "(")) {
         std::vector<ExpPtr> arguments;
         if (inBounds() && currentToken().text != ")") {
@@ -348,6 +358,7 @@ Parser::parseApplication() {
         skip(")");
 
         std::shared_ptr<Application> app = std::make_shared<Application>(token, ident, arguments);
+        app->genericReplacementTypes = genericReplacementTypes;
 
         while (match(Token::TokenType::DELIM, "(")) {
             token = currentToken();
@@ -364,6 +375,7 @@ Parser::parseApplication() {
         }
         return app;
     }
+
     return std::static_pointer_cast<Application>(ident);
 }
 
@@ -374,7 +386,7 @@ Parser::parseFunc() {
     advance();
 
     std::vector<Types::GenTypePtr> genericTypes;
-    if (match(Token::TokenType::DELIM, "[")) {
+    if (match(Token::TokenType::DELIM, "<")) {
         Types::GenTypePtr genericType = std::make_shared<Types::GenType>(currentToken().text);
         advance();
         genericTypes.push_back(genericType);
@@ -383,7 +395,7 @@ Parser::parseFunc() {
             advance();
             genericTypes.push_back(genericType2);
         }
-        skip("]");
+        skip(">");
     }
 
     skip("(");
@@ -402,11 +414,16 @@ Parser::parseFunc() {
 
 	ExpPtr functionBody = parseSimpleExpression();
     std::vector<Types::TypePtr> functionTypeArgumentTypes;
+    std::vector<std::string> functionArgumentNames;
     for (const auto & argumentType : argumentTypes) {
         functionTypeArgumentTypes.push_back(argumentType->returnType);
+        functionArgumentNames.push_back(argumentType->name);
     }
 
     Types::FuncTypePtr functionType = std::make_shared<Types::FuncType>(genericTypes, functionTypeArgumentTypes, functionReturnType);
+
+    functionType->functionBody = functionBody;
+    functionType->argumentNames = functionArgumentNames;
 	
     skip(";");
     return std::make_shared<Function>(token, functionType, functionName, genericTypes, argumentTypes, functionBody);

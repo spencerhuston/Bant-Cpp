@@ -5,14 +5,10 @@
 
 #include "parser.hpp"
 
-#include <map>
-
 class TypeChecker {
     private:
         ExpPtr rootExpression;
         bool error = false;
-
-        using Environment = std::map<std::string, Types::TypePtr>;
 
         ExpPtr eval(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         
@@ -30,7 +26,7 @@ class TypeChecker {
         ExpPtr evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
 
-        ExpPtr makeTempRef(ExpPtr expression);
+        void resolveType(Types::TypePtr & returnType, Environment & environment);
 
         bool compare(Types::TypePtr & leftType, Types::TypePtr & rightType);
 
