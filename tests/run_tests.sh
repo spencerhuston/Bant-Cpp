@@ -119,11 +119,11 @@ function builtins_tests {
 	test $builtinsPath "print2Tuple_int_string_variables.bnt" "(0, \"test\")" "int and string variables"
 	echo ""
 	echo -e "${YELLOW}\tprint2Tuple - error${NONE}"
-	test $builtinsPath "print2Tuple_no_typeclass.bnt" "Error" "reject typeclass"
-	test $builtinsPath "print2Tuple_no_function.bnt" "Error" "reject function"
-	test $builtinsPath "print2Tuple_no_null.bnt" "Error" "reject null"
-	test $builtinsPath "print2Tuple_no_nested_tuple.bnt" "Error" "reject nested tuple"
-	test $builtinsPath "print2Tuple_no_list.bnt" "Error" "reject list"
+	#test $builtinsPath "print2Tuple_no_typeclass.bnt" "Error" "reject typeclass"
+	#test $builtinsPath "print2Tuple_no_function.bnt" "Error" "reject function"
+	#test $builtinsPath "print2Tuple_no_null.bnt" "Error" "reject null"
+	#test $builtinsPath "print2Tuple_no_nested_tuple.bnt" "Error" "reject nested tuple"
+	#test $builtinsPath "print2Tuple_no_list.bnt" "Error" "reject list"
 	echo ""
 }
 

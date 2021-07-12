@@ -54,6 +54,10 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return findBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MAP) { // TODO
         return mapBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FILL) {
+        return fillBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REVERSE) {
+        return reverseBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
         return printListBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT2TUPLE) {
@@ -544,9 +548,6 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
 
     if (listValue->listData.empty()) {
         return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-    } else if (!Types::isPrimitiveType(listType->listType) || listType->listType->dataType == Types::DataTypes::GEN) {
-        printError(token, "Error: find requires list of non-generic primitives: " + token.position.currentLineText);
-        return nullValue;
     }
     
     int typeEnum = static_cast<int>(listType->listType->dataType);
@@ -601,28 +602,41 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
     return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), -1);
 }
 
-// TODO - 
+// TODO 
 Values::ValuePtr
 BuiltinImplementations::mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullValue;
 }
 
-// TODO - 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::filterBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO - any
 Values::ValuePtr
 BuiltinImplementations::fillBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto fillValue = getArgumentValue<Values::Value>(0, functionValue, environment);
+    auto fillAmountValue = getArgumentValue<Values::IntValue>(1, functionValue, environment);
+
+    std::vector<Values::ValuePtr> listData;
+    for (int i = 0; i < fillAmountValue->data; ++i) {
+        listData.push_back(fillValue);
+    }
+
+    return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(fillValue->type), listData);
 }
 
-// TODO - any
 Values::ValuePtr
 BuiltinImplementations::reverseBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+
+    if (listValue->listData.empty()) {
+        return listValue;
+    }
+
+    std::reverse(listValue->listData.begin(), listValue->listData.end());
+    return listValue;
 }
 
 // TODO
@@ -631,31 +645,31 @@ BuiltinImplementations::foldlBuiltin(Values::FunctionValuePtr functionValue, Val
     return nullptr;
 }
 
-// TODO - 
+// TODO
 Values::ValuePtr
 BuiltinImplementations::foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO - Any type
+// TODO
 Values::ValuePtr
 BuiltinImplementations::zipBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO - Primitives
+// TODO
 Values::ValuePtr
 BuiltinImplementations::unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO - Primitives
+// TODO
 Values::ValuePtr
 BuiltinImplementations::intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
 }
 
-// TODO - Primitives
+// TODO
 Values::ValuePtr
 BuiltinImplementations::equalsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     return nullptr;
