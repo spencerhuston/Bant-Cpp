@@ -1,0 +1,7 @@
+func f<T, U>(x: T) -> (U) -> U = {
+    func f1<T, U>(y: U) -> U = if (x) y else y + y;
+    f1
+};
+
+val l : (int) -> int = f<bool, int>(false);
+l(5)

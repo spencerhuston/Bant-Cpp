@@ -75,11 +75,10 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
             }
         }
 
-        auto functionReturnType = std::static_pointer_cast<Types::FuncType>(function->returnType);
-
         if (BuiltinDefinitions::isBuiltin(function->name)) {
             function->isBuiltin = true;
             function->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
+            std::static_pointer_cast<Types::FuncType>(function->returnType)->isBuiltin = true;
         }
     }
 
@@ -300,29 +299,16 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         }
 
         Environment functionInnerEnvironment = functionType->functionInnerEnvironment;
+        
+        for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
+            addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
+        }
+
         for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
             auto argumentType = functionType->argumentTypes.at(argumentIndex);
             auto argument = application->arguments.at(argumentIndex);
 
-            if (argumentType->dataType == Types::DataTypes::GEN) {
-                auto genericArgumentType = std::static_pointer_cast<Types::GenType>(argumentType);
-
-                int identifierIndex = -1;
-                for (unsigned int genericsIndex = 0; genericsIndex < functionType->genericTypes.size(); ++genericsIndex) {
-                    if (functionType->genericTypes.at(genericsIndex)->identifier == genericArgumentType->identifier) {
-                        identifierIndex = genericsIndex;
-                        break;
-                    }
-                }
-
-                if (identifierIndex == -1) {
-                    printError(application->token, "Template type " + genericArgumentType->identifier + " has not been defined");
-                    return application;
-                } else {
-                    argumentType = application->genericReplacementTypes.at(identifierIndex);
-                }
-            }
-
+            resolveType(argumentType, functionInnerEnvironment);
             eval(argument, environment, argumentType);
 
             if (!(functionType->argumentNames.empty())) {
@@ -330,14 +316,10 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
             }
         }
 
-        for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
-            addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
-        }
-
         auto resolvedReturnType = functionType->returnType;
         resolveType(resolvedReturnType, functionInnerEnvironment);
 
-        if (functionType->functionBody != nullptr) {
+        if (!functionType->isBuiltin && functionType->functionBody != nullptr) {
             eval(functionType->functionBody, functionInnerEnvironment, resolvedReturnType);
         }
 

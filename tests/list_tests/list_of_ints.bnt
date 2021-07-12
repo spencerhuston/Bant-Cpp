@@ -1,2 +1,2 @@
 val l : List[int] = List { 5, 6 };
-printList(l)
+printList<int>(l)

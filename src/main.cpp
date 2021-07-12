@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
     //try {
         Format::printDebugHeader("Building...");
 
-        auto lexer = Lexer(/*BuiltinDefinitions::builtinDefinitions + */sourceStream);
+        auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
         auto tokenStream = lexer.makeTokenStream();
 
         if (lexer.errorOccurred()) {

@@ -1,2 +1,2 @@
 val l : List[char] = List { 'a', 'b' };
-printList(l)
+printList<char>(l)

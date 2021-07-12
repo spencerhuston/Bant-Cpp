@@ -4,4 +4,4 @@ typeclass X {
 
 val x : type X = X(1);
 
-print2Tuple(Tuple { x, 0 })
+print2Tuple<type X, int>(Tuple { x, 0 })

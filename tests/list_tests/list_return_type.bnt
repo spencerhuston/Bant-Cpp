@@ -2,4 +2,4 @@ func f(x: int) -> List[int] = {
     List { x }
 };
 
-printList(f(5))
+printList<int>(f(5))

@@ -1,1 +1,1 @@
-print2Tuple(Tuple { List { 5 }, 0 })
+print2Tuple<List[int], int>(Tuple { List { 5 }, 0 })

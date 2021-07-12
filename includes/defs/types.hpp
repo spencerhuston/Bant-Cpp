@@ -239,6 +239,8 @@ namespace Types {
             std::shared_ptr<Expressions::Expression> functionBody;
             std::map<std::string, TypePtr> functionInnerEnvironment;
 
+            bool isBuiltin = false;
+
             FuncType(const std::vector<GenTypePtr> & genericTypes,
                      const std::vector<TypePtr> & argumentTypes,
                      const TypePtr & returnType)

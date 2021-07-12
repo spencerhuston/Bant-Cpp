@@ -1,1 +1,1 @@
-print2Tuple(Tuple { 0, true })
+print2Tuple<int, bool>(Tuple { 0, true })

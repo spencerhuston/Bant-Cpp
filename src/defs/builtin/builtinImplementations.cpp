@@ -104,11 +104,6 @@ BuiltinImplementations::insertBuiltin(const Token & token, Values::FunctionValue
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     unsigned int index = getArgumentValue<Values::IntValue>(2, functionValue, environment)->data;
     
     if (!listValue->listData.empty() && index >= listValue->listData.size()) {
@@ -162,11 +157,6 @@ BuiltinImplementations::replaceBuiltin(const Token & token, Values::FunctionValu
 
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     auto listData = listValue->listData;
     listData.at(index) = elementValue;
 
@@ -177,11 +167,6 @@ Values::ValuePtr
 BuiltinImplementations::pushFrontBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-    
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
 
     auto listData = listValue->listData;
     listData.insert(listData.begin(), elementValue);
@@ -192,11 +177,6 @@ Values::ValuePtr
 BuiltinImplementations::pushBackBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-    
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
 
     auto listData = listValue->listData;
     listData.insert(listData.begin() + listData.size(), elementValue);
@@ -207,11 +187,6 @@ Values::ValuePtr
 BuiltinImplementations::insertInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
 
     unsigned int index = getArgumentValue<Values::IntValue>(2, functionValue, environment)->data;
     
@@ -264,11 +239,6 @@ BuiltinImplementations::replaceInPlaceBuiltin(const Token & token, Values::Funct
 
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     listValue->listData.at(index) = elementValue;
 
     return listValue;
@@ -278,11 +248,6 @@ Values::ValuePtr
 BuiltinImplementations::pushFrontInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-    
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
 
     listValue->listData.insert(listValue->listData.begin(), elementValue);
     return listValue;
@@ -292,11 +257,6 @@ Values::ValuePtr
 BuiltinImplementations::pushBackInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-    
-    if (!elementValue->type->compare(std::static_pointer_cast<Types::ListType>(listValue->type)->listType)) {
-        printError(token, "Error: Element type must match list type: " + token.position.currentLineText);
-        return nullValue;
-    }
 
     listValue->listData.insert(listValue->listData.begin() + listValue->listData.size(), elementValue);
     return listValue;
@@ -359,11 +319,6 @@ BuiltinImplementations::combineBuiltin(const Token & token, Values::FunctionValu
     auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
 
-    if (!listValue1->type->compare(listValue2->type)) {
-        printError(token, "Error: List types must match: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     auto combinedListData = listValue1->listData;
     combinedListData.insert(combinedListData.end(), listValue2->listData.begin(), listValue2->listData.end());
     return makeListType(listValue1, combinedListData);
@@ -373,11 +328,6 @@ Values::ValuePtr
 BuiltinImplementations::appendBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
-
-    if (!listValue1->type->compare(listValue2->type)) {
-        printError(token, "Error: List types must match: " + token.position.currentLineText);
-        return nullValue;
-    }
 
     listValue1->listData.insert(listValue1->listData.end(), listValue2->listData.begin(), listValue2->listData.end());
     return listValue1;
@@ -397,12 +347,6 @@ BuiltinImplementations::rangeBuiltin(const Token & token, Values::FunctionValueP
 
     if (listValue->listData.empty()) {
         printError(token, "Error: Cannot get sublist from empty list: " + token.position.currentLineText);
-        return nullValue;
-    } else if (!startValue->type->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: Start range index must be integer type: " + token.position.currentLineText);
-        return nullValue;
-    } else if (!endValue->type->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: End range index must be integer type: " + token.position.currentLineText);
         return nullValue;
     }
     
@@ -433,11 +377,6 @@ Values::ValuePtr
 BuiltinImplementations::sumBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
 
-    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: sum requires List[int]: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     int sum = 0;
     for (auto & value : listValue->listData) {
         sum += std::static_pointer_cast<Values::IntValue>(value)->data;
@@ -450,10 +389,7 @@ Values::ValuePtr
 BuiltinImplementations::productBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
 
-    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: product requires List[int]: " + token.position.currentLineText);
-        return nullValue;
-    } else if (listValue->listData.empty()) {
+    if (listValue->listData.empty()) {
         return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), 0);
     }
 
@@ -469,10 +405,7 @@ Values::ValuePtr
 BuiltinImplementations::maxBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
 
-    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: max requires List[int]: " + token.position.currentLineText);
-        return nullValue;
-    } else if (listValue->listData.empty()) {
+    if (listValue->listData.empty()) {
         printError(token, "Error: List[int] passed to max cannot be empty: " + token.position.currentLineText);
         return nullValue;
     }
@@ -493,10 +426,7 @@ Values::ValuePtr
 BuiltinImplementations::minBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
 
-    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: min requires List[int]: " + token.position.currentLineText);
-        return nullValue;
-    } else if (listValue->listData.empty()) {
+    if (listValue->listData.empty()) {
         printError(token, "Error: List[int] passed to min cannot be empty: " + token.position.currentLineText);
         return nullValue;
     }
@@ -517,10 +447,7 @@ Values::ValuePtr
 BuiltinImplementations::sortlhBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
 
-    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: sortlh requires List[int]: " + token.position.currentLineText);
-        return nullValue;
-    } else if (listValue->listData.empty()) {
+    if (listValue->listData.empty()) {
         return listValue;
     }
 
@@ -535,10 +462,7 @@ Values::ValuePtr
 BuiltinImplementations::sorthlBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
 
-    if (!std::static_pointer_cast<Types::ListType>(listValue->type)->listType->compare(std::make_shared<Types::IntType>())) {
-        printError(token, "Error: sorthl requires List[int]: " + token.position.currentLineText);
-        return nullValue;
-    } else if (listValue->listData.empty()) {
+    if (listValue->listData.empty()) {
         return listValue;
     }
 
@@ -912,11 +836,6 @@ BuiltinImplementations::printTuple(const Token & token, const std::vector<Values
 
 void
 BuiltinImplementations::printValue(const Token & token, Values::ValuePtr value, const std::string & collectionType) {
-    if (!Types::isPrimitiveType(value->type) || value->type->dataType == Types::DataTypes::GEN) {
-        printError(token, std::string("Error: ") + collectionType + 
-                          std::string(" only takes non-generic primitives"));
-    }
-
     if (value->type->dataType == Types::DataTypes::INT) {
         std::cout << std::static_pointer_cast<Values::IntValue>(value)->data;
     } else if (value->type->dataType == Types::DataTypes::CHAR) {
@@ -927,7 +846,14 @@ BuiltinImplementations::printValue(const Token & token, Values::ValuePtr value, 
                   << std::string("\"");
     } else if (value->type->dataType == Types::DataTypes::BOOL) {
         std::cout << ((std::static_pointer_cast<Values::BoolValue>(value)->data) ? std::string("true") : std::string("false"));
-    }
+    } else if (value->type->dataType == Types::DataTypes::NULLVAL) {
+        std::cout << "()";
+    } /*else if (value->type->dataType == Types::DataTypes::LIST) {
+        // TODO
+    } else if (value->type->dataType == Types::DataTypes::TUPLE) {
+        //auto tupleValue = std::static_pointer_cast<Values::TupleValue>(value);
+        // TODO
+    } */
 }
 
 void
