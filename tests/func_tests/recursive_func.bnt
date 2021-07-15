@@ -1,0 +1,8 @@
+func f(x: int) -> int = {
+    if (x > 0)
+        f(x - 1)
+    else
+        x
+};
+
+printInt(f(100))

@@ -189,8 +189,8 @@ namespace Expressions {
 
     class Reference : public Expression {
         public:
-            std::string ident;
-            std::string fieldIdent;
+            std::string ident = "";
+            std::string fieldIdent = "";
 
             Reference(const Token & token,
                       const Types::TypePtr & returnType,
@@ -226,7 +226,7 @@ namespace Expressions {
         public:
             ExpPtr ident;
             std::vector<ExpPtr> arguments;
-            std::vector<Types::TypePtr> genericReplacementTypes;
+            std::vector<Types::TypePtr> genericReplacementTypes{};
 
             Application(const Token & token,
                         const ExpPtr & ident,

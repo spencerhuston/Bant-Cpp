@@ -16,7 +16,7 @@ class Token {
             ERROR
         };
         
-        TokenType type;
+        TokenType type = static_cast<TokenType>(0);
         FilePosition position;
         std::string text{};
 

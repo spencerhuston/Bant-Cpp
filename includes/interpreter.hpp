@@ -36,7 +36,6 @@ class Interpreter {
         template<typename PrimitiveType>
         Values::ValuePtr doOperation(Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide);
 
-        void addName(Values::Environment & environment, std::string name, Values::ValuePtr value);
         Values::ValuePtr getName(const Token & token, Values::Environment & environment, std::string name);
 
         void printError(const Token & token, const std::string & errorMessage);
@@ -46,5 +45,7 @@ class Interpreter {
 
         void run();
         Values::ValuePtr interpret(const ExpPtr & expression, Values::Environment & environment);
+        
+        void addName(Values::Environment & environment, std::string name, Values::ValuePtr value);
         bool errorOccurred() { return error; }
 };

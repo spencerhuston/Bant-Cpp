@@ -6,6 +6,7 @@
 #include "../includes/parser.hpp"
 #include "../includes/typeChecker.hpp"
 #include "../includes/interpreter.hpp"
+#include "../includes/defs/builtin/builtinImplementations.hpp"
 
 int main(int argc, char ** argv) {
     std::string sourceStream;
@@ -33,7 +34,7 @@ int main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(2);
     
-    //try {
+    try {
         Format::printDebugHeader("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
@@ -63,14 +64,15 @@ int main(int argc, char ** argv) {
         Format::printDebugHeader("Successful Build, Running...");
         
         auto interpreter = Interpreter(tree);
+        BuiltinImplementations::interpreter = interpreter;
         interpreter.run();
 
         if (interpreter.errorOccurred()) {
             Format::printError("One or more errors occurred at runtime, exiting");
             exit(6);
         }
-    /*} catch (...) {
+    } catch (...) {
         Format::printError("Unexpected error occurred, exiting");
         exit(7);
-    }*/
+    }
 }

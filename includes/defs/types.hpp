@@ -26,7 +26,8 @@ namespace Types {
 
     class Type {
         public:
-            DataTypes dataType;
+            DataTypes dataType = DataTypes::UNKNOWN;
+            bool resolved = false;
 
             Type(const DataTypes dataType)
             : dataType(dataType) { }
@@ -237,7 +238,7 @@ namespace Types {
             TypePtr returnType;
 
             std::shared_ptr<Expressions::Expression> functionBody;
-            std::map<std::string, TypePtr> functionInnerEnvironment;
+            std::shared_ptr<std::map<std::string, TypePtr>> functionInnerEnvironment;
 
             bool isBuiltin = false;
 
@@ -380,4 +381,5 @@ namespace Types {
     }
 }
 
-using Environment = std::map<std::string, Types::TypePtr>;
+using EnvironmentRaw = std::map<std::string, Types::TypePtr>;
+using Environment = std::shared_ptr<EnvironmentRaw>;

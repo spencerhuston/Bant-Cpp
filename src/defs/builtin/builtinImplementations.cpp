@@ -1,5 +1,7 @@
 #include "../../../includes/defs/builtin/builtinImplementations.hpp"
 
+Interpreter BuiltinImplementations::interpreter{nullptr};
+
 Values::ValuePtr
 BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INSERT) {
@@ -52,8 +54,10 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return containsBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FIND) {
         return findBuiltin(token, functionValue, environment);
-    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MAP) { // TODO
-        return mapBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::MAP) {
+       return mapBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FILTER) {
+       return filterBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FILL) {
         return fillBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REVERSE) {
@@ -95,7 +99,7 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
 template<class ValueType>
 std::shared_ptr<ValueType>
 BuiltinImplementations::getArgumentValue(const int & index, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return std::static_pointer_cast<ValueType>(environment.at(functionValue->parameterNames.at(index)));
+    return std::static_pointer_cast<ValueType>(environment->at(functionValue->parameterNames.at(index)));
 }
 
 Values::ListValuePtr
@@ -553,11 +557,6 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
     int typeEnum = static_cast<int>(listType->listType->dataType);
     auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
-    if (typeEnum != static_cast<int>(searchValue->type->dataType)) {
-        printError(token, "Error: contains: mistmatched types: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     for (unsigned int index = 0; index < listValue->listData.size(); ++index) {
         switch (typeEnum) {
             case 0: { // INT
@@ -602,16 +601,37 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
     return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), -1);
 }
 
-// TODO 
 Values::ValuePtr
 BuiltinImplementations::mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullValue;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+
+    std::vector<Values::ValuePtr> listData;
+    for (const auto value : listValue->listData) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), value);
+        listData.push_back(interpreter.interpret(funcValue->functionBody, funcEnvironment));
+    }
+
+    return makeListType(listValue, listData);
 }
 
-// TODO
 Values::ValuePtr
 BuiltinImplementations::filterBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+    
+    std::vector<Values::ValuePtr> listData;
+    for (const auto value : listValue->listData) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), value);
+        auto result = std::static_pointer_cast<Values::BoolValue>(interpreter.interpret(funcValue->functionBody, funcEnvironment));
+        
+        if (result->data)
+            listData.push_back(value);
+    }
+
+    return makeListType(listValue, listData);
 }
 
 Values::ValuePtr
@@ -642,18 +662,40 @@ BuiltinImplementations::reverseBuiltin(Values::FunctionValuePtr functionValue, V
 // TODO
 Values::ValuePtr
 BuiltinImplementations::foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+
+    /*for (unsigned int foldIndex = 2; foldIndex < listValue->listData.size(); ++foldIndex) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), value);
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(1), value);
+
+        auto result = std::static_pointer_cast<Values::Value>(interpreter.interpret(funcValue->functionBody, funcEnvironment));
+    }*/
+
     return nullptr;
 }
 
 // TODO
 Values::ValuePtr
 BuiltinImplementations::foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+
     return nullptr;
 }
 
 // TODO
 Values::ValuePtr
-BuiltinImplementations::zipBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::zipBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
+
+    if (listValue1->listData.size() != listValue2->listData.size()) {
+        printError(token, "Error: zip: differing list sizes" + token.position.currentLineText);
+        return nullValue;
+    }
+
     return nullptr;
 }
 

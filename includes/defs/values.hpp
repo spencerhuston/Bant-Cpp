@@ -19,7 +19,7 @@ namespace Values {
 
     using ValuePtr = std::shared_ptr<Value>;
     
-    using Environment = std::map<std::string, Values::ValuePtr>;
+    using Environment = std::shared_ptr<std::map<std::string, Values::ValuePtr>>;
 
     class IntValue : public Value {
         public:
@@ -125,10 +125,10 @@ namespace Values {
 
     class TypeclassValue : public Value {
         public:
-            std::map<std::string, ValuePtr> fields;
+            Environment fields;
 
             TypeclassValue(const Types::TypePtr & type,
-                           const std::map<std::string, ValuePtr> & fields)
+                           const Environment & fields)
             : Value(type),
               fields(fields) { }
     };

@@ -12,7 +12,7 @@ namespace Operator {
 
     inline OperatorTypes
     getOperator(const std::string & text) {
-        OperatorTypes op;
+        OperatorTypes op = OperatorTypes::NONE;
         if (text == "+") op = OperatorTypes::PLUS;
         else if (text == "-") op = OperatorTypes::MINUS;
         else if (text == "*") op = OperatorTypes::TIMES;

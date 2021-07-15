@@ -6,7 +6,7 @@ TypeChecker::TypeChecker(const ExpPtr & rootExpression)
 void
 TypeChecker::check() {
     Format::printDebugHeader("Type checking/inference");
-    Environment environment{};
+    Environment environment = std::make_shared<std::map<std::string, Types::TypePtr>>();
     auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::UnknownType>());
     eval(rootExpression, environment, temp->returnType);
     Format::printDebugHeader("Type checking/inference Done");
@@ -57,10 +57,10 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
     }
 
     for (auto & function : program->functions) {
-        Environment functionInnerEnvironment = environment;
+        Environment functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*environment);
 
         for (auto & genericParameter : function->genericParameters) {
-            if (functionInnerEnvironment.find(genericParameter->identifier) == functionInnerEnvironment.end()) {
+            if (functionInnerEnvironment->find(genericParameter->identifier) == functionInnerEnvironment->end()) {
                 addName(functionInnerEnvironment, genericParameter->identifier, genericParameter);
             }
         }
@@ -68,7 +68,7 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
         for (auto & parameter : function->parameters) {
             if (parameter->returnType->dataType == Types::DataTypes::GEN) {
                 auto genericType = std::static_pointer_cast<Types::GenType>(parameter->returnType);
-                auto realType = functionInnerEnvironment.find(genericType->identifier)->second;
+                auto realType = functionInnerEnvironment->find(genericType->identifier)->second;
                 addName(functionInnerEnvironment, parameter->name, realType);
             } else {
                 addName(functionInnerEnvironment, parameter->name, parameter->returnType);
@@ -80,6 +80,7 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
             function->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
             std::static_pointer_cast<Types::FuncType>(function->returnType)->isBuiltin = true;
         }
+        std::static_pointer_cast<Types::FuncType>(function->returnType)->functionInnerEnvironment = functionInnerEnvironment;
     }
 
     return eval(program->body, environment, expectedType);
@@ -155,7 +156,7 @@ TypeChecker::evalLet(ExpPtr expression, Environment & environment, Types::TypePt
     
     eval(let->value, environment, let->valueType);
 
-    Environment afterLetEnvironment = environment;
+    Environment afterLetEnvironment = std::make_shared<EnvironmentRaw>(*environment);
     addName(afterLetEnvironment, let->ident, let->valueType);
 
     return eval(let->afterLet, afterLetEnvironment, expectedType);
@@ -298,7 +299,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
             printError(application->token, "No types provided for templated function");
         }
 
-        Environment functionInnerEnvironment = functionType->functionInnerEnvironment;
+        Environment functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*(functionType->functionInnerEnvironment));
         
         for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
             addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
@@ -319,7 +320,10 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         auto resolvedReturnType = functionType->returnType;
         resolveType(resolvedReturnType, functionInnerEnvironment);
 
-        if (!functionType->isBuiltin && functionType->functionBody != nullptr) {
+        if (application->returnType->resolved == false && 
+            !functionType->isBuiltin && 
+            !(functionType->genericTypes.empty()) && 
+            functionType->functionBody != nullptr) {
             eval(functionType->functionBody, functionInnerEnvironment, resolvedReturnType);
         }
 
@@ -328,6 +332,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         }
 
         application->returnType = resolvedReturnType;
+        application->returnType->resolved = true;
         return application;
     } else if (ident->returnType->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(ident->returnType);
@@ -416,9 +421,9 @@ TypeChecker::resolveType(Types::TypePtr & returnType, Environment & environment)
     switch (returnType->dataType) {
         case Types::DataTypes::GEN: {
             std::string identifier = std::static_pointer_cast<Types::GenType>(returnType)->identifier;
-            auto envType = environment.find(identifier);
+            auto envType = environment->find(identifier);
 
-            if (envType == environment.end()) {
+            if (envType == environment->end()) {
                 break;
             }
 
@@ -465,16 +470,16 @@ TypeChecker::compare(Types::TypePtr & leftType, Types::TypePtr & rightType) {
 
 void
 TypeChecker::addName(Environment & environment, std::string name, Types::TypePtr type) {
-    if (environment.count(name)) {
-		environment.erase(name);
+    if (environment->count(name)) {
+		environment->erase(name);
 	}
-	environment.insert(std::pair<std::string, Types::TypePtr>(name, type));
+	environment->insert(std::pair<std::string, Types::TypePtr>(name, type));
 }
 
 Types::TypePtr
 TypeChecker::getName(const Token & token, Environment & environment, std::string name) {
-    auto type = environment.find(name);
-    if (type == environment.end()) {
+    auto type = environment->find(name);
+    if (type == environment->end()) {
         printError(token, std::string("Error: ") + name + 
                           std::string(" does not exist in this scope"));
         return std::make_shared<Types::UnknownType>();

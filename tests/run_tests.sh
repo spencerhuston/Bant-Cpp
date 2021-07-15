@@ -13,6 +13,7 @@ RUN_BOOL=false
 RUN_STRING_CHAR=false
 RUN_LIST=false
 RUN_BUILTINS=false
+RUN_FUNCTIONS=false
 RUN_TEMPLATES=false
 RUN_ALL=false
 
@@ -118,23 +119,35 @@ function builtins_tests {
 	test $builtinsPath "print2Tuple_int_char_variables.bnt" "(0, 'a')" "int and char variables"
 	test $builtinsPath "print2Tuple_int_string_variables.bnt" "(0, \"test\")" "int and string variables"
 	echo ""
-	echo -e "${YELLOW}\tprint2Tuple - error${NONE}"
+	#echo -e "${YELLOW}\tprint2Tuple - error${NONE}"
 	#test $builtinsPath "print2Tuple_no_typeclass.bnt" "Error" "reject typeclass"
 	#test $builtinsPath "print2Tuple_no_function.bnt" "Error" "reject function"
 	#test $builtinsPath "print2Tuple_no_null.bnt" "Error" "reject null"
 	#test $builtinsPath "print2Tuple_no_nested_tuple.bnt" "Error" "reject nested tuple"
 	#test $builtinsPath "print2Tuple_no_list.bnt" "Error" "reject list"
+	#echo ""
+}
+
+function func_tests {
+	echo -e "${YELLOW}FUNCTIONS${NONE}"
+	functionPath="./func_tests"
+	echo -e "${YELLOW}\tcorrect${NONE}"
+	test $functionPath "recursive_func.bnt" "0" "Recursive function"
+	test $functionPath "mutually_recursive.bnt" "-1" "Mutually recursive functions"
 	echo ""
+	#echo -e "${YELLOW}\terror${NONE}"
+	#echo ""
 }
 
 function template_tests {
-	echo -e "${YELLOW}BUILTINS${NONE}"
+	echo -e "${YELLOW}TEMPLATES${NONE}"
 	templatesPath="./template_tests"
 	echo -e "${YELLOW}\tcorrect${NONE}"
 	test $templatesPath "identity_template.bnt" "" "Template identity function"
 	test $templatesPath "nested_template_correct_return.bnt" "" "Nested template function, correct return from application"
 	test $templatesPath "return_template_function.bnt" "" "Return nested template function"
 	test $templatesPath "template_tuple.bnt" "" "Return tuples made from template"
+	test $templatesPath "partial_function.bnt" "" "Return tuples made from template"
 	echo ""
 	echo -e "${YELLOW}\terror${NONE}"
 	test $templatesPath "nested_template_incorrect_return.bnt" "Error" "Nested template function, incorrect return from application"
@@ -167,12 +180,16 @@ do
 		RUN_BUILTINS=true
 	fi
 
+	if [[ "$var" == "-f" ]]; then
+		RUN_BUILTINS=true
+	fi
+
 	if [[ "$var" == "-g" ]]; then
 		RUN_TEMPLATES=true
 	fi
 done
 
-if [[ "$RUN_ARITH" = false && "$RUN_BOOL" = false && "$RUN_STRING_CHAR" = false && "$RUN_LIST" = false && "$RUN_BUILTINS" = false && "$RUN_TEMPLATES" = false ]]; then
+if [[ "$RUN_ARITH" = false && "$RUN_BOOL" = false && "$RUN_STRING_CHAR" = false && "$RUN_LIST" = false && "$RUN_BUILTINS" = false && "$RUN_TEMPLATES" = false && "$RUN_FUNCTIONS" = false ]]; then
 	RUN_ALL=true
 fi
 
@@ -184,6 +201,7 @@ if [[ "$RUN_ALL" = true ]]; then
 	string_char_tests
 	list_tests
 	builtins_tests
+	func_tests
 	template_tests
 fi
 
@@ -205,6 +223,10 @@ fi
 
 if [[ "$RUN_BUILTINS" = true ]]; then
 	builtins_tests
+fi
+
+if [[ "$RUN_FUNCTIONS" = true ]]; then
+	func_tests
 fi
 
 if [[ "$RUN_TEMPLATES" = true ]]; then

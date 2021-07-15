@@ -7,7 +7,7 @@ Interpreter::Interpreter(const ExpPtr & rootExpression)
 
 void
 Interpreter::run() {
-    Values::Environment environment{};
+    Values::Environment environment = std::make_shared<std::map<std::string, Values::ValuePtr>>();
     interpret(rootExpression, environment);
 }
 
@@ -54,13 +54,13 @@ Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & e
     Values::Environment programEnvironment = environment;
 
     for (auto & function : program->functions) {
-        Values::Environment functionInnerEnvironment = environment;
+        Values::Environment functionInnerEnvironment = programEnvironment;
 
         std::vector<std::string> parameterNames;
         for (auto & parameter : function->parameters) {
             parameterNames.push_back(parameter->name);
-            //auto defaultValue = interpret(parameter->defaultValue);
         }
+        
         auto functionValue = std::make_shared<Values::FunctionValue>(function->returnType, parameterNames, function->functionBody, functionInnerEnvironment);
 
         if (BuiltinDefinitions::isBuiltin(function->name)) {
@@ -138,8 +138,8 @@ Interpreter::interpretReference(const ExpPtr & expression, Values::Environment &
         return tupleValue->tupleData.at(tupleIndex);
     } else if (referenceValue->type->dataType == Types::DataTypes::TYPECLASS && !reference->fieldIdent.empty()) {
         auto typeclassValue = std::static_pointer_cast<Values::TypeclassValue>(referenceValue);
-        auto fieldValue = typeclassValue->fields.find(reference->fieldIdent);
-        if (fieldValue == environment.end()) {
+        auto fieldValue = typeclassValue->fields->find(reference->fieldIdent);
+        if (fieldValue == environment->end()) {
             printError(reference->token, std::string("Error: typeclass ") +
                        reference->ident + std::string(" has no field ") +
                        reference->fieldIdent);
@@ -176,7 +176,7 @@ Values::ValuePtr
 Interpreter::interpretTypeclass(const ExpPtr & expression, Values::Environment & environment) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
 
-    std::map<std::string, Values::ValuePtr> fields;
+    Values::Environment fields;
     for (unsigned int fieldIndex = 0; fieldIndex < typeclass->fields.size(); ++fieldIndex) {
         addName(fields, typeclass->fields.at(fieldIndex)->name, interpret(typeclass->fieldValues.at(fieldIndex), environment));
     }
@@ -209,7 +209,7 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
         addName(functionEnvironment, functionValue->parameterNames.at(argumentIndex), interpret(application->arguments.at(argumentIndex), environment));
     }
 
-    for (auto & environmentVariable : functionValue->functionBodyEnvironment) {
+    for (auto & environmentVariable : *(functionValue->functionBodyEnvironment)) {
         if (!BuiltinDefinitions::isBuiltin(environmentVariable.first)) {
             addName(functionEnvironment, environmentVariable.first, environmentVariable.second);
         }
@@ -293,16 +293,16 @@ Interpreter::interpretMatch(const ExpPtr & expression, Values::Environment & env
 
 void
 Interpreter::addName(Values::Environment & environment, std::string name, Values::ValuePtr value) {
-    if (environment.count(name)) {
-		environment.erase(name);
+    if (environment->count(name)) {
+		environment->erase(name);
 	}
-	environment.insert(std::pair<std::string, Values::ValuePtr>(name, value));
+	environment->insert(std::pair<std::string, Values::ValuePtr>(name, value));
 }
 
 Values::ValuePtr
 Interpreter::getName(const Token & token, Values::Environment & environment, std::string name) {
-    auto value = environment.find(name);
-    if (value == environment.end()) {
+    auto value = environment->find(name);
+    if (value == environment->end()) {
         printError(token, std::string("Error: ") + name + 
                           std::string(" does not exist in this scope"));
         return errorNullValue;

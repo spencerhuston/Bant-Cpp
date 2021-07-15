@@ -9,6 +9,8 @@
 #include <climits>
 #include <algorithm>
 
+class Interpreter;
+
 class BuiltinImplementations {
     private:
         template<class ValueType>
@@ -49,7 +51,7 @@ class BuiltinImplementations {
         static Values::ValuePtr reverseBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr zipBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr zipBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr equalsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
@@ -78,5 +80,6 @@ class BuiltinImplementations {
         static void printError(const Token & token, const std::string & errorMessage);
 
     public:
+        static Interpreter interpreter;
         static Values::ValuePtr runBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
 };
