@@ -85,7 +85,7 @@ Lexer::lexCharacter(const char character) {
         if (filterWhitespace(character)) {
             std::string tokenString;
             for (auto tokenIter = currentTokenBlock.begin(); tokenIter != currentTokenBlock.end(); ++tokenIter) {
-                if (isCharDelimiter(*tokenIter)) {
+                if ((isCharDelimiter(*tokenIter) && !inQuotes) || *tokenIter == '\"' || *tokenIter == '\'') {
                     if (!tokenString.empty()) {
                         tokenStream.push_back(makeToken(tokenString));
                         tokenString = "";
@@ -129,8 +129,8 @@ bool
 Lexer::filterComments(const char character) {
     switch (character) {
         case '#': {
-            inComment = true;
-            return false;
+            inComment = (!inQuotes);
+            return (inQuotes);
         }
             break;
         case '\n': {
@@ -196,7 +196,7 @@ Lexer::filterWhitespace(const char character) {
             return false;
         }
         default: {
-            if (isValidCharacter(character)) {
+            if (isValidCharacter(character) || inQuotes) {
                 currentPosition.fileColumn += 1;
                 currentPosition.currentLineText += character;
                 currentTokenBlock += character;

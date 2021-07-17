@@ -57,7 +57,13 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
     }
 
     for (auto & function : program->functions) {
-        Environment functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*environment);
+        Environment functionInnerEnvironment;
+        if (environment) {
+            functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*environment);        
+        } else {
+            printError(program->token, "Error: Bad environment");
+            return program->body;
+        }
 
         for (auto & genericParameter : function->genericParameters) {
             if (functionInnerEnvironment->find(genericParameter->identifier) == functionInnerEnvironment->end()) {
@@ -156,7 +162,14 @@ TypeChecker::evalLet(ExpPtr expression, Environment & environment, Types::TypePt
     
     eval(let->value, environment, let->valueType);
 
-    Environment afterLetEnvironment = std::make_shared<EnvironmentRaw>(*environment);
+    Environment afterLetEnvironment;
+    if (environment) {
+        afterLetEnvironment = std::make_shared<EnvironmentRaw>(*environment);        
+    } else {
+        printError(let->token, "Error: Bad environment");
+        return let->afterLet;
+    }
+
     addName(afterLetEnvironment, let->ident, let->valueType);
 
     return eval(let->afterLet, afterLetEnvironment, expectedType);
@@ -300,7 +313,13 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         }
 
         Environment functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*(functionType->functionInnerEnvironment));
-        
+        /*if (functionType->functionInnerEnvironment) {
+            functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*(functionType->functionInnerEnvironment));
+        } else {
+            printError(application->token, "Error: Bad environment");
+            return application;
+        }      */ 
+
         for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
             addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
         }

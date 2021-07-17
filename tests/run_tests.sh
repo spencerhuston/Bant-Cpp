@@ -77,8 +77,9 @@ function string_char_tests {
 	test $stringCharPath "string_tab_escape.bnt" "tab\ttest" "String tab escape"
 	test $stringCharPath "string_space_escape.bnt" "space test" "String space escape"
 	test $stringCharPath "string_backspace_escape.bnt" "backspace\btest" "String backspace escape"
-	test $stringCharPath "string_question_escape.bnt" "question\?test" "String question escape"
-	test $stringCharPath "string_normally_excluded_character.bnt" "$^%&*@!" "Accept normally excluded characters"
+	test $stringCharPath "string_question_escape.bnt" "question?test" "String question escape"
+	test $stringCharPath "string_normally_excluded_character.bnt" "~@$&|^," "Accept normally excluded characters"
+	test $stringCharPath "string_comment_char.bnt" "#test" "Comment delimiter in string"
 	echo ""
 }
 
