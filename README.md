@@ -5,13 +5,18 @@ Bant is an interpreted, statically typed, toy functional programming language ma
 Simply clone and run the ```makeBant.sh``` script. Run a Bant program using ```[bant directory]/build/bant source_file.bnt```
 
 ### Features:
+- Types:
+  * _int_
+  * _char_
+  * _string_
+  * _bool_
+  * _null_
+  * _List_
+  * _Tuple_
 - first-class functions
 - polymorphic functions
-- product types as _type_ **Name** (non-recursive)
-- _int_, _char_, _string_, _bool_, and _null_ primitive types
+- "product types" (non-recursive)
 - standard arithmetic and boolean operations
-- _List_ type
-- _Tuple_ type
 - built-in functions for: _List_ and _Tuple_ manipulation, basic I/O
 - control-flow statements
 - value case-switching
@@ -22,6 +27,4 @@ Simply clone and run the ```makeBant.sh``` script. Run a Bant program using ```[
 ### Features TODO:
 - Built-in _string_ functions
 - Type inference
-- Sum types
-- Recursive _type_'s
-- Dependent types
+- Typeclasses
