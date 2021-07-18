@@ -26,8 +26,6 @@ TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr &
         return evalReference(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::BRANCH)
         return evalBranch(expression, environment, expectedType);
-    else if (expression->expType == ExpressionTypes::ARG)
-        return evalArgument(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::TYPECLASS)
         return evalTypeclass(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::APP)
@@ -36,8 +34,6 @@ TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr &
         return evalListDefinition(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::TUPLE_DEF)
         return evalTupleDefinition(expression, environment, expectedType);
-    else if (expression->expType == ExpressionTypes::BLOCK_GET)
-        return evalBlockGet(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::MATCH)
         return evalMatch(expression, environment, expectedType);
     else if (expression->expType == ExpressionTypes::END)
@@ -259,28 +255,12 @@ TypeChecker::evalBranch(ExpPtr expression, Environment & environment, Types::Typ
 }
 
 ExpPtr
-TypeChecker::evalArgument(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
-    auto argument = std::static_pointer_cast<Argument>(expression);
-
-    if (argument->defaultValue) {
-        eval(argument->defaultValue, environment, argument->returnType);
-    }
-
-    return nullptr;
-}
-
-ExpPtr
 TypeChecker::evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
     
     if (!compare(typeclass->returnType, expectedType)) {
         printMismatchError(typeclass->token, typeclass->returnType, expectedType);
         return typeclass;
-    }
-
-    for (auto & field : typeclass->fields) {
-        auto temp = std::make_shared<Temp>(typeclass->token, std::make_shared<Types::UnknownType>());
-        evalArgument(field, environment, temp->returnType);
     }
 
     addName(environment, typeclass->ident, typeclass->returnType);
@@ -318,7 +298,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         } else {
             printError(application->token, "Error: Bad environment");
             return application;
-        }      */ 
+        }*/ 
 
         for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
             addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
@@ -391,6 +371,13 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
 ExpPtr
 TypeChecker::evalListDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
+    auto expType = std::static_pointer_cast<Types::ListType>(expectedType);
+
+    for (auto & listElementExpression : listDefinition->values) {
+        if (!compare(listElementExpression->returnType, expType->listType)) {
+            printMismatchError(listDefinition->token, listElementExpression->returnType, expType->listType);
+        }
+    }
 
     if (!compare(listDefinition->returnType, expectedType)) {
         printMismatchError(listDefinition->token, listDefinition->returnType, expectedType);
@@ -408,22 +395,6 @@ TypeChecker::evalTupleDefinition(ExpPtr expression, Environment & environment, T
     }
 
     return tupleDefinition;
-}
-
-ExpPtr
-TypeChecker::evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType) {
-    auto blockGet = std::static_pointer_cast<BlockGet>(expression);
-
-    auto temp = std::make_shared<Temp>(blockGet->token, std::make_shared<Types::IntType>());
-    eval(blockGet->index, environment, temp->returnType);
-    temp->returnType = std::make_shared<Types::ListType>(expectedType);
-    eval(blockGet->reference, environment, temp->returnType);
-
-    if (blockGet->reference->returnType->dataType == Types::DataTypes::LIST) {
-        blockGet->returnType = std::static_pointer_cast<Types::ListType>(blockGet->reference->returnType)->listType;
-    }
-
-    return blockGet;
 }
 
 ExpPtr

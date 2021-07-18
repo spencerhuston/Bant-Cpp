@@ -18,12 +18,10 @@ class TypeChecker {
         ExpPtr evalLet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalReference(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalBranch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
-        ExpPtr evalArgument(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalApplication(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalListDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalTupleDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
-        ExpPtr evalBlockGet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
 
         void resolveType(Types::TypePtr & returnType, Environment & environment);

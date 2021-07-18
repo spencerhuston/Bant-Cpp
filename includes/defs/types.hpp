@@ -332,7 +332,7 @@ namespace Types {
     class TypeclassType : public Type {
         public:
             const std::string ident;
-            std::vector<std::pair<std::string, TypePtr>> fieldTypes;
+            std::vector<std::pair<std::string, TypePtr>> fieldTypes{};
 
             TypeclassType(const std::string & ident,
                           const std::vector<std::pair<std::string, TypePtr>> & fieldTypes)

@@ -121,17 +121,12 @@ Parser::parseTypeclass() {
     std::vector<std::shared_ptr<Argument>> fields;
     if (inBounds() && currentToken().type != Token::TokenType::DELIM && currentToken().text != "}") {
         do {
-            auto field = parseArg({});
-            if (field->defaultValue == nullptr) {
-                printError(false, field->name + std::string(" in typeclass ") + ident +
-                            std::string(" requires initialization"));
-            }
-            fields.push_back(field);
+            fields.push_back(parseArg({}));
         } while (match(Token::TokenType::DELIM, ","));
     }
     skip("}");
 
-    std::vector<std::pair<std::string, Types::TypePtr>> fieldTypes;
+    std::vector<std::pair<std::string, Types::TypePtr>> fieldTypes{};
     auto fieldExists = [&fieldTypes](const std::string & fieldName) {
         for (const auto & field : fieldTypes) {
             if (fieldName == field.first)
@@ -307,29 +302,8 @@ Parser::parseTight() {
         ExpPtr exp = parseExpression();
         skip("}");
         return exp;
-    } /*else if (peek().type == Token::TokenType::DELIM && peek().text == "[") {
-        return parseBlockGet();
-    }*/
-    return parseApplication();
-}
-
-std::shared_ptr<BlockGet>
-Parser::parseBlockGet() {
-    Token token = currentToken();
-
-    ExpPtr reference = parseAtom();
-    skip("[");
-	ExpPtr index = parseSimpleExpression();
-	skip("]");
-    std::shared_ptr<BlockGet> blockGet = std::make_shared<BlockGet>(token, reference, index);
-    while (match(Token::TokenType::DELIM, "[")) {
-        std::shared_ptr<BlockGet> blockGetInner = std::make_shared<BlockGet>(currentToken(), blockGet->reference, blockGet->index);
-        blockGet->reference = blockGetInner;
-        blockGet->index = parseSimpleExpression();
-        skip("]");
     }
-
-	return blockGet;
+    return parseApplication();
 }
 
 std::shared_ptr<Application>
@@ -437,14 +411,7 @@ Parser::parseArg(const std::vector<Types::GenTypePtr> & genericParameterList) {
     skip(":");
     Types::TypePtr argumentType = parseType(genericParameterList);
 
-    ExpPtr defaultValue;
-    if (match(Token::TokenType::DELIM, "=")) {
-        defaultValue = parseAtom();
-    } else {
-        defaultValue = nullptr;
-    }
-
-    return std::make_shared<Argument>(token, argumentType, argumentName, defaultValue);
+    return std::make_shared<Argument>(token, argumentType, argumentName);
 }
 
 ExpPtr

@@ -38,7 +38,6 @@ class Parser {
         ExpPtr parseUtight(int min);
         ExpPtr parseUtight();
         ExpPtr parseTight();
-        std::shared_ptr<BlockGet> parseBlockGet();
         std::shared_ptr<Application> parseApplication();
         std::shared_ptr<Function> parseFunc();
         std::shared_ptr<Argument> parseArg(const std::vector<Types::GenTypePtr> & gens);

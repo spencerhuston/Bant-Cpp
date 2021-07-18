@@ -25,8 +25,6 @@ Interpreter::interpret(const ExpPtr & expression, Values::Environment & environm
         return interpretReference(expression, environment);
     else if (expression->expType == ExpressionTypes::BRANCH)
         return interpretBranch(expression, environment);
-    else if (expression->expType == ExpressionTypes::ARG)
-        return interpretArgument(expression, environment);
     else if (expression->expType == ExpressionTypes::TYPECLASS)
         return interpretTypeclass(expression, environment);
     else if (expression->expType == ExpressionTypes::APP)
@@ -35,8 +33,6 @@ Interpreter::interpret(const ExpPtr & expression, Values::Environment & environm
         return interpretListDefinition(expression, environment);
     else if (expression->expType == ExpressionTypes::TUPLE_DEF)
         return interpretTupleDefinition(expression, environment);
-    else if (expression->expType == ExpressionTypes::BLOCK_GET)
-        return interpretBlockGet(expression, environment);
     else if (expression->expType == ExpressionTypes::MATCH)
         return interpretMatch(expression, environment);
     else if (expression->expType == ExpressionTypes::END)
@@ -164,21 +160,13 @@ Interpreter::interpretBranch(const ExpPtr & expression, Values::Environment & en
 }
 
 Values::ValuePtr
-Interpreter::interpretArgument(const ExpPtr & expression, Values::Environment & environment) {
-    auto argument = std::static_pointer_cast<Argument>(expression);
-
-    // For default values, do later
-
-    return nullptr;
-}
-
-Values::ValuePtr
 Interpreter::interpretTypeclass(const ExpPtr & expression, Values::Environment & environment) {
     auto typeclass = std::static_pointer_cast<Typeclass>(expression);
 
-    Values::Environment fields;
+    Values::Environment fields = std::make_shared<std::map<std::string, Values::ValuePtr>>();
     for (unsigned int fieldIndex = 0; fieldIndex < typeclass->fields.size(); ++fieldIndex) {
-        addName(fields, typeclass->fields.at(fieldIndex)->name, interpret(typeclass->fieldValues.at(fieldIndex), environment));
+        auto initValue = std::make_shared<Values::Value>(std::make_shared<Types::UnknownType>());
+        addName(fields, typeclass->fields.at(fieldIndex)->name, initValue);
     }
 
     auto typeclassValue = std::make_shared<Values::TypeclassValue>(typeclass->returnType, fields);
@@ -194,13 +182,12 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
     auto ident = interpret(application->ident, environment);
     if (ident->type->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(application->returnType);
-        Values::Environment typeclassArguments;
+        Values::Environment typeclassArguments = std::make_shared<std::map<std::string, Values::ValuePtr>>();;
         for (unsigned int argumentIndex = 0; argumentIndex < typeclassType->fieldTypes.size(); ++argumentIndex) {
             addName(typeclassArguments, typeclassType->fieldTypes.at(argumentIndex).first, interpret(application->arguments.at(argumentIndex), environment));
         }
         return std::make_shared<Values::TypeclassValue>(typeclassType, typeclassArguments);
     } else if (ident->type->dataType == Types::DataTypes::LIST) {
-        // TODO
         unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(application->arguments.at(0), environment))->data;
         auto listValue = std::static_pointer_cast<Values::ListValue>(ident);
         if (index >= listValue->listData.size()) {
@@ -253,19 +240,6 @@ Interpreter::interpretTupleDefinition(const ExpPtr & expression, Values::Environ
     }
 
     return std::make_shared<Values::TupleValue>(tupleDefinition->returnType, tupleData);
-}
-
-Values::ValuePtr
-Interpreter::interpretBlockGet(const ExpPtr & expression, Values::Environment & environment) {
-    auto blockGet = std::static_pointer_cast<BlockGet>(expression);
-
-    unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(blockGet->index, environment))->data;
-    auto listValue = std::static_pointer_cast<Values::ListValue>(interpret(blockGet->reference, environment));
-    if (index >= listValue->listData.size()) {
-        printError(blockGet->token, "Error: Out of bounds list access: " + blockGet->token.position.currentLineText);
-        return errorNullValue;
-    }
-    return listValue->listData.at(index);
 }
 
 Values::ValuePtr

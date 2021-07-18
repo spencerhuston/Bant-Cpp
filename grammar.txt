@@ -31,7 +31,7 @@
 
 <arg> ::= 	<ident>':'<type>['='<atom>]
 
-<typeclass> ::= 'type' <ident> '{' [<ident>':'<type> '=' <atom>[','<ident>':'<type> '=' <atom>]*] '}'
+<typeclass> ::= 'type' <ident> '{' [<ident>':'<type>[','<ident>':'<type>]*]* '}'
 
 <prog> ::= 	['func' <ident>['['<type> [',' <type> ]* ']'] '('[<arg>[','<arg>]*]')'['->' <type>] '=' <simp>';' ]* 
 

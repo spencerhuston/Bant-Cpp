@@ -49,15 +49,12 @@ namespace Expressions {
     class Argument : public Expression {
         public:
             std::string name;
-            ExpPtr defaultValue;
 
             Argument(const Token & token,
                      const Types::TypePtr & returnType,
-                     const std::string & name,
-                     const ExpPtr & defaultValue)
+                     const std::string & name)
             : Expression(token, ExpressionTypes::ARG, returnType),
-              name(name),
-              defaultValue(defaultValue) { }
+              name(name) { }
     };
     
     class Function : public Expression {
@@ -101,7 +98,6 @@ namespace Expressions {
         public:
             const std::string ident;
             std::vector<std::shared_ptr<Argument>> fields{};
-            std::vector<ExpPtr> fieldValues{};
 
             Typeclass(const Token & token,
                       const std::string ident,
@@ -109,11 +105,7 @@ namespace Expressions {
                       const Types::TypePtr & typeclassType)
             : Expression(token, ExpressionTypes::TYPECLASS, typeclassType),
               ident(ident),
-              fields(fields) {
-                  for (auto & field : fields) {
-                      fieldValues.push_back(field->defaultValue);
-                  }
-              }
+              fields(fields) { }
     };
 
     class Literal : public Expression {
@@ -266,18 +258,6 @@ namespace Expressions {
                             const std::vector<ExpPtr> values)
             : Expression(token, ExpressionTypes::TUPLE_DEF, returnType),
               values(values) { }
-    };
-
-    class BlockGet : public Expression {
-        public:
-            ExpPtr reference, index;
-
-            BlockGet(const Token & token,
-                     const ExpPtr & reference,
-                     const ExpPtr & index)
-            : Expression(token, ExpressionTypes::BLOCK_GET, std::make_shared<Types::UnknownType>()),
-              reference(reference),
-              index(index) { }
     };
 
     class Case : public Expression {

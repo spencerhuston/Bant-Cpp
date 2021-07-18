@@ -25,12 +25,10 @@ class Interpreter {
         Values::ValuePtr interpretLet(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretReference(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretBranch(const ExpPtr & expression, Values::Environment & environment);
-        Values::ValuePtr interpretArgument(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretTypeclass(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretApplication(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretListDefinition(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretTupleDefinition(const ExpPtr & expression, Values::Environment & environment);
-        Values::ValuePtr interpretBlockGet(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretMatch(const ExpPtr & expression, Values::Environment & environment);
 
         template<typename PrimitiveType>

@@ -1,7 +1,7 @@
-typeclass X {
-    x: int = 0
+type X {
+    x: int
 };
 
 val l : List[type X] = List { X(1), X(2) };
-val i : type X = l[0];
+val i : type X = l(0);
 printInt(i.x)
