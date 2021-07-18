@@ -97,7 +97,7 @@ function list_tests {
 	test $listPath "list_of_tuple_of_list.bnt" "" "List of tuple of list"
 	test $listPath "list_of_function.bnt" "" "List of functions"
 	test $listPath "function_list_param.bnt" "true" "Function with list parameter"
-	test $listPath "list_of_typeclass.bnt" "1" "List of typeclass"
+	test $listPath "list_of_typeclass.bnt" "2" "List of typeclass"
 	test $listPath "list_return_type.bnt" "(5)" "List return type"
 	test $listPath "nested_list_access.bnt" "2" "Nested list access"
 	echo ""

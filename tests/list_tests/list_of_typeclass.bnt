@@ -2,6 +2,6 @@ type X {
     x: int
 };
 
-val l : List[type X] = List { X(1), X(2) };
-val i : type X = l(0);
+val l : List[type X] = List { X(1), X(2), X(3) };
+val i : type X = l(1);
 printInt(i.x)
