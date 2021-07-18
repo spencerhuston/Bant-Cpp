@@ -183,10 +183,11 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
     if (ident->type->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassValue = std::static_pointer_cast<Values::TypeclassValue>(ident);
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(typeclassValue->type);
+        auto typeclassFields = std::make_shared<std::map<std::string, Values::ValuePtr>>(*typeclassValue->fields);
         for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
-            addName(typeclassValue->fields, typeclassType->fieldTypes.at(argumentIndex).first, interpret(application->arguments.at(argumentIndex), environment));
+            addName(typeclassFields, typeclassType->fieldTypes.at(argumentIndex).first, interpret(application->arguments.at(argumentIndex), environment));
         }
-        return typeclassValue;
+        return std::make_shared<Values::TypeclassValue>(typeclassType, typeclassFields);
     } else if (ident->type->dataType == Types::DataTypes::LIST) {
         unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(application->arguments.at(0), environment))->data;
         auto listValue = std::static_pointer_cast<Values::ListValue>(ident);
