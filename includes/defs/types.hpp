@@ -37,6 +37,10 @@ namespace Types {
             virtual bool compare(const std::shared_ptr<Type> & otherType) {
                 if (otherType == nullptr)
                     return false;
+                else if (otherType->dataType == DataTypes::UNKNOWN) {
+                    otherType->dataType = dataType;
+                    return true;
+                }
 
                 auto dataTypeEnum = static_cast<int>(dataType);
                 auto otherTypeEnum = static_cast<int>(otherType->dataType);
@@ -121,6 +125,9 @@ namespace Types {
             bool compare(const std::shared_ptr<Type> & otherType) override {
                 if (otherType == nullptr) {
                     return false;
+                } else if (otherType->dataType == DataTypes::UNKNOWN) {
+                    otherType->dataType = dataType;
+                    return true;
                 } else if (dataType == DataTypes::UNKNOWN &&
                            otherType->dataType == DataTypes::LIST) {
                     listType = std::static_pointer_cast<ListType>(otherType)->listType;

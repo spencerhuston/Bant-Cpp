@@ -1,6 +1,6 @@
-func g<T, U>(b: U) -> (T) -> T = {
-	func f<T>(x: T) -> T = x + x;
+func g[T, U](b: U) -> (T) -> T = {
+	func f[T](x: T) -> T = x + x;
 	f
 };
 
-val l : int = g<int, bool>(false)(5)
+val l : int = g[int, bool](false)(5)

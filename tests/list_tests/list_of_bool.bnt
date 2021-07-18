@@ -1,2 +1,2 @@
 val l : List[bool] = List { true, false };
-printList<bool>(l)
+printList[bool](l)

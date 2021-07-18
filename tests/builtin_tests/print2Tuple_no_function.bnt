@@ -2,4 +2,4 @@ func f() -> int = {
     5
 };
 
-print2Tuple<int, () -> int>(Tuple { 0, f })
+print2Tuple[int, () -> int](Tuple { 0, f })

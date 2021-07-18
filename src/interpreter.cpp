@@ -199,7 +199,16 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
             addName(typeclassArguments, typeclassType->fieldTypes.at(argumentIndex).first, interpret(application->arguments.at(argumentIndex), environment));
         }
         return std::make_shared<Values::TypeclassValue>(typeclassType, typeclassArguments);
-    } 
+    } else if (ident->type->dataType == Types::DataTypes::LIST) {
+        // TODO
+        unsigned int index = std::static_pointer_cast<Values::IntValue>(interpret(application->arguments.at(0), environment))->data;
+        auto listValue = std::static_pointer_cast<Values::ListValue>(ident);
+        if (index >= listValue->listData.size()) {
+            printError(application->token, "Error: Out of bounds list access: " + application->token.position.currentLineText);
+            return errorNullValue;
+        }
+        return listValue->listData.at(index);
+    }
     
     // else has to be a function type
 

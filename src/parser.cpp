@@ -307,9 +307,9 @@ Parser::parseTight() {
         ExpPtr exp = parseExpression();
         skip("}");
         return exp;
-    } else if (peek().type == Token::TokenType::DELIM && peek().text == "[") {
+    } /*else if (peek().type == Token::TokenType::DELIM && peek().text == "[") {
         return parseBlockGet();
-    }
+    }*/
     return parseApplication();
 }
 
@@ -339,12 +339,12 @@ Parser::parseApplication() {
     ExpPtr ident = parseAtom();
 
     std::vector<Types::TypePtr> genericReplacementTypes;
-    if (match(Token::TokenType::DELIM, "<")) {
+    if (match(Token::TokenType::DELIM, "[")) {
         genericReplacementTypes.push_back(parseType({}));
         while (match(Token::TokenType::DELIM, ",")) {
             genericReplacementTypes.push_back(parseType({}));
         }
-        skip(">");
+        skip("]");
     }
 
     if (match(Token::TokenType::DELIM, "(")) {
@@ -386,7 +386,7 @@ Parser::parseFunc() {
     advance();
 
     std::vector<Types::GenTypePtr> genericTypes;
-    if (match(Token::TokenType::DELIM, "<")) {
+    if (match(Token::TokenType::DELIM, "[")) {
         Types::GenTypePtr genericType = std::make_shared<Types::GenType>(currentToken().text);
         advance();
         genericTypes.push_back(genericType);
@@ -395,7 +395,7 @@ Parser::parseFunc() {
             advance();
             genericTypes.push_back(genericType2);
         }
-        skip(">");
+        skip("]");
     }
 
     skip("(");

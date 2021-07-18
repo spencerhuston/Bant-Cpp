@@ -1,1 +1,1 @@
-print2Tuple<int, char>(Tuple { 0, 'a' })
+print2Tuple[int, char](Tuple { 0, 'a' })

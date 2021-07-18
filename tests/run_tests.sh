@@ -99,6 +99,7 @@ function list_tests {
 	test $listPath "function_list_param.bnt" "true" "Function with list parameter"
 	test $listPath "list_of_typeclass.bnt" "1" "List of typeclass"
 	test $listPath "list_return_type.bnt" "(5)" "List return type"
+	test $listPath "nested_list_access.bnt" "2" "Nested list access"
 	echo ""
 	echo -e "${YELLOW}\terror${NONE}"
 	test $listPath "nested_list_differing_types.bnt" "Error" "reject nested list of differing types"
@@ -106,6 +107,7 @@ function list_tests {
 	test $listPath "different_primitive_types.bnt" "Error" "reject different primitive types"
 	test $listPath "no_nested_list_for_primitives.bnt" "Error" "reject nested list of same type in place of actual primitive value"
 	test $listPath "function_list_param_no_differing_types.bnt" "Error" "reject differing list type passed to function"
+	test $listPath "nested_list_access_differing_types.bnt" "Error" "reject access to nested list of differing types"
 	echo ""
 }
 

@@ -366,6 +366,22 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         }
 
         return application;
+    } else if (ident->returnType->dataType == Types::DataTypes::LIST) {
+        auto listType = std::static_pointer_cast<Types::ListType>(ident->returnType);
+
+        if (application->arguments.empty()) {
+            printError(application->token, "List access needs integer argument");
+            return application;
+        }
+
+        auto temp = std::make_shared<Temp>(application->token, std::make_shared<Types::IntType>());
+        eval(application->arguments.at(0), environment, temp->returnType);
+        
+        temp->returnType = std::make_shared<Types::ListType>(expectedType);
+        eval(ident, environment, temp->returnType);
+
+        application->returnType = listType;
+        return application;
     }
 
     printError(application->token, "Bad function or typeclass application");

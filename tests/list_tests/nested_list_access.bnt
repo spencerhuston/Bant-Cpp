@@ -1,0 +1,2 @@
+val a : List[List[int]] = List { List { 1, 2 }, List { 3 } };
+printInt(a(0)(1))
