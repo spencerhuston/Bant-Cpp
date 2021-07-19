@@ -1,0 +1,5 @@
+val l : List[int] = List { 1, 2, 3 };
+val l2 : List[char] = List { 'a', 'b', 'c' };
+
+val t : List[Tuple[int, char]] = zip[int, char](l, l2);
+printList[Tuple[int, char]](t)

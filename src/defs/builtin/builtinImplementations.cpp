@@ -62,6 +62,10 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return fillBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REVERSE) {
         return reverseBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::ZIP) {
+        return zipBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::EQUALS) {
+        return equalsBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
         return printListBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT2TUPLE) {
@@ -685,18 +689,27 @@ BuiltinImplementations::foldrBuiltin(Values::FunctionValuePtr functionValue, Val
     return nullptr;
 }
 
-// TODO
 Values::ValuePtr
 BuiltinImplementations::zipBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
 
     if (listValue1->listData.size() != listValue2->listData.size()) {
-        printError(token, "Error: zip: differing list sizes" + token.position.currentLineText);
+        printError(token, "Error: zip: differing list sizes: " + token.position.currentLineText);
         return nullValue;
     }
 
-    return nullptr;
+    auto tupleType = std::make_shared<Types::TupleType>(std::vector<Types::TypePtr>{
+                                        std::static_pointer_cast<Types::ListType>(listValue1->type)->listType, 
+                                        std::static_pointer_cast<Types::ListType>(listValue2->type)->listType
+                                    });
+                            
+    std::vector<Values::ValuePtr> listData;
+    for (unsigned int zipIndex = 0; zipIndex < listValue1->listData.size(); ++zipIndex) {
+        listData.push_back(std::make_shared<Values::TupleValue>(tupleType, std::vector<Values::ValuePtr>{listValue1->listData.at(zipIndex), listValue2->listData.at(zipIndex)}));
+    }
+
+    return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(tupleType), listData);
 }
 
 // TODO
@@ -711,10 +724,57 @@ BuiltinImplementations::intersectBuiltin(Values::FunctionValuePtr functionValue,
     return nullptr;
 }
 
-// TODO
 Values::ValuePtr
-BuiltinImplementations::equalsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::equalsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {\
+    auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
+
+    auto typeEnum = static_cast<int>(std::static_pointer_cast<Types::ListType>(listValue1->type)->listType->dataType);
+    for (unsigned int equalsIndex = 0; equalsIndex < listValue1->listData.size(); ++equalsIndex) {
+        switch (typeEnum) {
+            case 0: { // INT
+                auto intValue1 = std::static_pointer_cast<Values::IntValue>(listValue1->listData.at(equalsIndex))->data;
+                auto intValue2 = std::static_pointer_cast<Values::IntValue>(listValue2->listData.at(equalsIndex))->data;
+
+                if (intValue1 != intValue2) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+                }
+            }
+                break;
+            case 1: { // CHAR
+                auto charValue1 = std::static_pointer_cast<Values::CharValue>(listValue1->listData.at(equalsIndex))->data;
+                auto charValue2 = std::static_pointer_cast<Values::CharValue>(listValue2->listData.at(equalsIndex))->data;
+
+                if (charValue1 != charValue2) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+                }
+            }
+                break;
+            case 2: { // STRING
+                auto stringValue1 = std::static_pointer_cast<Values::StringValue>(listValue1->listData.at(equalsIndex))->data;
+                auto stringValue2 = std::static_pointer_cast<Values::StringValue>(listValue2->listData.at(equalsIndex))->data;
+
+                if (stringValue1 != stringValue2) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+                }
+            }
+                break;
+            case 3: { // BOOL
+                auto boolValue1 = std::static_pointer_cast<Values::BoolValue>(listValue1->listData.at(equalsIndex))->data;
+                auto boolValue2 = std::static_pointer_cast<Values::BoolValue>(listValue2->listData.at(equalsIndex))->data;
+
+                if (boolValue1 != boolValue2) {
+                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+                }
+            }
+                break;
+            default:
+                return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
+                break;
+        }
+    }
+
+    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);;
 }
 
 Values::ValuePtr

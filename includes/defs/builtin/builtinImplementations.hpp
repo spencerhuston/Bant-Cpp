@@ -54,7 +54,7 @@ class BuiltinImplementations {
         static Values::ValuePtr zipBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
-        static Values::ValuePtr equalsBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr equalsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr intToCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr charToIntBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr stringToCharListBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
