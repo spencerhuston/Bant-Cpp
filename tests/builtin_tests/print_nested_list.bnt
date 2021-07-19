@@ -1,0 +1,11 @@
+val l : List[List[List[int]]] = List {
+	List {
+		List { 1, 2 },
+		List { 3, 4, 5 }
+	},
+	List {
+		List { 6 },
+		List { 7 }
+	}
+};
+printList[List[List[int]]](l)

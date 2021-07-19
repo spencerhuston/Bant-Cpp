@@ -1,0 +1,23 @@
+type Point {
+    x : int,
+    y : int
+};
+
+type Make {
+    year : int,
+    model : string,
+    manuf : string
+};
+
+type Car {
+    point : type Point,
+    make : type Make
+};
+
+func getMake(car : type Car) -> type Make = car.make;
+
+val c : type Car = Car(Point(0, 0), Make(2020, "Civic", "Honda"));
+val m : type Make = getMake(c);
+printInt(m.year);
+val l : List[char] = append[char](stringToCharList(m.manuf), stringToCharList(" "));
+printString(charListToString(append[char](l, stringToCharList(m.model))))

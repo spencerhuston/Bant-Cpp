@@ -765,41 +765,31 @@ BuiltinImplementations::printBoolBuiltin(Values::FunctionValuePtr functionValue,
 
 Values::ValuePtr
 BuiltinImplementations::printListBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto listData = getArgumentValue<Values::ListValue>(0, functionValue, environment)->listData;
-
-    const std::string collectionType = "printList";
-    
-    std::cout << "(";
-    if (listData.empty()) {
-        std::cout << ")" << std::endl;
-        return nullValue;
-    }
-
-    for (unsigned int listIndex = 0; listIndex < listData.size() - 1; ++listIndex) {
-        printValue(token, listData.at(listIndex), collectionType);
-        std::cout << ", ";
-    }
-    printValue(token, listData.at(listData.size() - 1), collectionType);
-    std::cout << ")" << std::endl;
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    printValue(token, listValue, "printList");
+    std::cout << std::endl;
 
     return nullValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::print2TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    printTuple(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment)->tupleData, "print2Tuple");
+    printValue(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment), "print2Tuple");
+    std::cout << std::endl;
     return nullValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::print3TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    printTuple(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment)->tupleData, "print3Tuple");
+    printValue(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment), "print3Tuple");
+    std::cout << std::endl;
     return nullValue;
 }
 
 Values::ValuePtr
 BuiltinImplementations::print4TupleBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    printTuple(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment)->tupleData, "print4Tuple");
+    printValue(token, getArgumentValue<Values::TupleValue>(0, functionValue, environment), "print4Tuple");
+    std::cout << std::endl;
     return nullValue;
 }
 
@@ -816,6 +806,7 @@ BuiltinImplementations::printCharBuiltin(Values::FunctionValuePtr functionValue,
     std::cout << charValue << std::endl;
     return nullValue;
 }
+
 Values::ValuePtr
 BuiltinImplementations::readStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     std::string stringValue;
@@ -904,10 +895,32 @@ BuiltinImplementations::printValue(const Token & token, Values::ValuePtr value, 
         std::cout << ((std::static_pointer_cast<Values::BoolValue>(value)->data) ? std::string("true") : std::string("false"));
     } else if (value->type->dataType == Types::DataTypes::NULLVAL) {
         std::cout << "()";
-    } /*else if (value->type->dataType == Types::DataTypes::LIST) {
-        // TODO
+    } else if (value->type->dataType == Types::DataTypes::LIST) {
+        auto listData = std::static_pointer_cast<Values::ListValue>(value)->listData;
+
+        std::cout << "(";
+        if (listData.empty()) {
+            std::cout << ")";
+        }
+
+        for (unsigned int listIndex = 0; listIndex < listData.size() - 1; ++listIndex) {
+            printValue(token, listData.at(listIndex), collectionType);
+            std::cout << ", ";
+        }
+        printValue(token, listData.at(listData.size() - 1), collectionType);
+        std::cout << ")";
     } else if (value->type->dataType == Types::DataTypes::TUPLE) {
-        //auto tupleValue = std::static_pointer_cast<Values::TupleValue>(value);
+        auto tupleData = std::static_pointer_cast<Values::TupleValue>(value)->tupleData;
+
+        std::cout << "(";
+        for (unsigned int tupleIndex = 0; tupleIndex < tupleData.size() - 1; ++tupleIndex) {
+            printValue(token, tupleData.at(tupleIndex), collectionType);
+            std::cout << ", ";
+        }
+        printValue(token, tupleData.at(tupleData.size() - 1), collectionType);
+        std::cout << ")";
+    } /* else if (value->type->dataType == Types::DataTypes::TYPECLASS) {
+        auto typeclassValue = std::static_pointer_cast<Values::TypeclassValue>(value);
         // TODO
     } */
 }

@@ -1,0 +1,9 @@
+type Point {
+    x : int,
+    y : int
+};
+
+val l : List[type Point] = List { Point(0, 0), Point(1, 1) };
+val l2 : List[type Point] = map[type Point, type Point](l, func inc(p : type Point) -> type Point = Point(p.x + 1, p.y + 1); inc);
+val p : type Point = l2(1);
+printInt(p.y)

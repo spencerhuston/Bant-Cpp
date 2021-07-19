@@ -15,6 +15,7 @@ RUN_LIST=false
 RUN_BUILTINS=false
 RUN_FUNCTIONS=false
 RUN_TEMPLATES=false
+RUN_TYPECLASS=false
 RUN_ALL=false
 
 NUM_SUCCESSES=0
@@ -121,6 +122,7 @@ function builtins_tests {
 	test $builtinsPath "print2Tuple_int_bool_variables.bnt" "(0, true)" "int and bool variables"
 	test $builtinsPath "print2Tuple_int_char_variables.bnt" "(0, 'a')" "int and char variables"
 	test $builtinsPath "print2Tuple_int_string_variables.bnt" "(0, \"test\")" "int and string variables"
+	test $builtinsPath "nested_2_tuple.bnt" "((5, 'a'), ((true, 6), (\"test\", \"test2\")))" "nested tuples"
 	echo ""
 	#echo -e "${YELLOW}\tprint2Tuple - error${NONE}"
 	#test $builtinsPath "print2Tuple_no_typeclass.bnt" "Error" "reject typeclass"
@@ -129,6 +131,10 @@ function builtins_tests {
 	#test $builtinsPath "print2Tuple_no_nested_tuple.bnt" "Error" "reject nested tuple"
 	#test $builtinsPath "print2Tuple_no_list.bnt" "Error" "reject list"
 	#echo ""
+	echo -e "${YELLOW}\tprintList - correct${NONE}"
+	test $builtinsPath "print_nested_list.bnt" "(((1, 2), (3, 4, 5)), ((6), (7)))" "Print nested list"
+	echo ""
+	
 }
 
 function func_tests {
@@ -150,11 +156,23 @@ function template_tests {
 	test $templatesPath "nested_template_correct_return.bnt" "" "Nested template function, correct return from application"
 	test $templatesPath "return_template_function.bnt" "" "Return nested template function"
 	test $templatesPath "template_tuple.bnt" "" "Return tuples made from template"
-	test $templatesPath "partial_function.bnt" "" "Return tuples made from template"
+	test $templatesPath "partial_function.bnt" "" "Partial function"
+	test $templatesPath "builtin_no_retain_type_info.bnt" "2\n1" "Builtin does not keep old generic replacement info"
 	echo ""
 	echo -e "${YELLOW}\terror${NONE}"
 	test $templatesPath "nested_template_incorrect_return.bnt" "Error" "Nested template function, incorrect return from application"
 	echo ""
+}
+
+function typeclass_tests {
+	echo -e "${YELLOW}TYPECLASS${NONE}"
+	typeclassPath="./typeclass_tests"
+	echo -e "${YELLOW}\tcorrect${NONE}"
+	test $typeclassPath "car.bnt" "2020\nHonda Civic" "Car"
+	test $typeclassPath "point.bnt" "2" "Point"
+	echo ""
+	#echo -e "${YELLOW}\terror${NONE}"
+	#echo ""
 }
 
 for var in "$@"
@@ -190,9 +208,20 @@ do
 	if [[ "$var" == "-g" ]]; then
 		RUN_TEMPLATES=true
 	fi
+
+	if [[ "$var" == "-c" ]]; then
+		RUN_TYPECLASS=true
+	fi
 done
 
-if [[ "$RUN_ARITH" = false && "$RUN_BOOL" = false && "$RUN_STRING_CHAR" = false && "$RUN_LIST" = false && "$RUN_BUILTINS" = false && "$RUN_TEMPLATES" = false && "$RUN_FUNCTIONS" = false ]]; then
+if [[ "$RUN_ARITH" = false && 
+		"$RUN_BOOL" = false && 
+		"$RUN_STRING_CHAR" = false && 
+		"$RUN_LIST" = false && 
+		"$RUN_BUILTINS" = false && 
+		"$RUN_TEMPLATES" = false && 
+		"$RUN_FUNCTIONS" = false && 
+		"$RUN_TYPECLASS" = false ]]; then
 	RUN_ALL=true
 fi
 
@@ -206,6 +235,7 @@ if [[ "$RUN_ALL" = true ]]; then
 	builtins_tests
 	func_tests
 	template_tests
+	typeclass_tests
 fi
 
 if [[ "$RUN_ARITH" = true ]]; then
@@ -234,6 +264,10 @@ fi
 
 if [[ "$RUN_TEMPLATES" = true ]]; then
 	template_tests
+fi
+
+if [[ "$RUN_TYPECLASS" = true ]]; then
+	typeclass_tests
 fi
 
 if [ "$NUM_FAILURES" -gt "0" ]; then

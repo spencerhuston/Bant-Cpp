@@ -1,0 +1,8 @@
+val t : Tuple[Tuple[int, char], Tuple[Tuple[bool, int], List[string]]] = Tuple {
+    Tuple { 5, 'a' },
+    Tuple {
+        Tuple { true, 6 },
+        List { "test", "test2" }
+    }
+};
+print2Tuple[Tuple[int, char], Tuple[Tuple[bool, int], List[string]]](t)

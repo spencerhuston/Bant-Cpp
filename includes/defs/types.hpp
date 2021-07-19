@@ -258,17 +258,17 @@ namespace Types {
               returnType(returnType) { }
             
             const std::string toString() const override {
-                std::string typeString("<");
+                std::string typeString("[");
 
                 if (genericTypes.empty()) {
-                    typeString += std::string(">");
+                    typeString += std::string("]");
                 } else if (genericTypes.size() == 1) {
-                    typeString += genericTypes.at(0)->toString() + std::string(">");
+                    typeString += genericTypes.at(0)->toString() + std::string("]");
                 } else {
                     for (unsigned int typesIndex = 0; typesIndex < genericTypes.size() - 1; ++typesIndex) {
                         typeString += genericTypes.at(typesIndex)->toString() + std::string(", ");
                     }
-                    typeString += genericTypes.at(genericTypes.size() - 1)->toString() + std::string(">");
+                    typeString += genericTypes.at(genericTypes.size() - 1)->toString() + std::string("]");
                 }
 
                 typeString += std::string("(");

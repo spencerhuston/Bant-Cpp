@@ -1,0 +1,5 @@
+val l : List[int] = List { 1, 2 };
+val l2 : List[char] = List { 'a' };
+
+size[int](l);
+size[char](l2)

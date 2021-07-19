@@ -292,13 +292,11 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
             printError(application->token, "No types provided for templated function");
         }
 
-        Environment functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*(functionType->functionInnerEnvironment));
-        /*if (functionType->functionInnerEnvironment) {
-            functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*(functionType->functionInnerEnvironment));
-        } else {
-            printError(application->token, "Error: Bad environment");
-            return application;
-        }*/ 
+        Environment functionInnerEnvironment;
+        if (!functionType->functionInnerEnvironment) {
+            functionType->functionInnerEnvironment = std::make_shared<EnvironmentRaw>();
+        }
+        functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*(functionType->functionInnerEnvironment));
 
         for (unsigned int genericIndex = 0; genericIndex < application->genericReplacementTypes.size(); ++genericIndex) {
             addName(functionInnerEnvironment, functionType->genericTypes.at(genericIndex)->identifier, application->genericReplacementTypes.at(genericIndex));
@@ -319,7 +317,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         auto resolvedReturnType = functionType->returnType;
         resolveType(resolvedReturnType, functionInnerEnvironment);
 
-        if (application->returnType->resolved == false && 
+        if (application->returnType->resolved == false &&
             !functionType->isBuiltin && 
             !(functionType->genericTypes.empty()) && 
             functionType->functionBody != nullptr) {
