@@ -1,6 +1,0 @@
-val a : List[int] = new List { 1, 2, 3, 4, 5 };
-val b : List[int] = reverse(a);
-if (front(b) == 5 && back(b) == 1)
-	2
-else
-	1

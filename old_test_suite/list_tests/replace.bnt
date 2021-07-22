@@ -1,8 +1,0 @@
-val arr : List[int] = new List { 1, 2, 3 };
-val arr2 : List[int] = replace(arr, 4, 2);
-
-if (size(arr2) == 3 && arr2[0] == 1 && arr2[1] == 2 && arr2[2] == 4 &&
-    size(arr) == 3 && arr[0] == 1 && arr[1] == 2 && arr[2] == 3)
-	2
-else
-	1

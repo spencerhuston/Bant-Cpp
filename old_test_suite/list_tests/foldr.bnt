@@ -1,9 +1,0 @@
-func f(x: int, y: int) -> int = {
-	if (x % 2 == 0)
-		x + y
-	else
-		x * y
-};
-
-val i : int = foldr(new List { 2, 3, 4 }, f);
-i

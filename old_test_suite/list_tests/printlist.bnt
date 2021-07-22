@@ -1,7 +1,0 @@
-val c : List[char] = new List { 't', 'e', 's', 't' };
-val i : List[int] = new List { 1, 2, 3, 4 };
-val b : List[bool] = new List { true, false, false };
-
-printList(c);
-printList(i);
-printList(b)
