@@ -724,58 +724,12 @@ BuiltinImplementations::intersectBuiltin(Values::FunctionValuePtr functionValue,
     return nullptr;
 }
 
-// EXTEND TO LISTS AND TUPLES
 Values::ValuePtr
-BuiltinImplementations::equalsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {\
+BuiltinImplementations::equalsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto listValue2 = getArgumentValue<Values::ListValue>(1, functionValue, environment);
 
-    auto typeEnum = static_cast<int>(std::static_pointer_cast<Types::ListType>(listValue1->type)->listType->dataType);
-    for (unsigned int equalsIndex = 0; equalsIndex < listValue1->listData.size(); ++equalsIndex) {
-        switch (typeEnum) {
-            case 0: { // INT
-                auto intValue1 = std::static_pointer_cast<Values::IntValue>(listValue1->listData.at(equalsIndex))->data;
-                auto intValue2 = std::static_pointer_cast<Values::IntValue>(listValue2->listData.at(equalsIndex))->data;
-
-                if (intValue1 != intValue2) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-                }
-            }
-                break;
-            case 1: { // CHAR
-                auto charValue1 = std::static_pointer_cast<Values::CharValue>(listValue1->listData.at(equalsIndex))->data;
-                auto charValue2 = std::static_pointer_cast<Values::CharValue>(listValue2->listData.at(equalsIndex))->data;
-
-                if (charValue1 != charValue2) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-                }
-            }
-                break;
-            case 2: { // STRING
-                auto stringValue1 = std::static_pointer_cast<Values::StringValue>(listValue1->listData.at(equalsIndex))->data;
-                auto stringValue2 = std::static_pointer_cast<Values::StringValue>(listValue2->listData.at(equalsIndex))->data;
-
-                if (stringValue1 != stringValue2) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-                }
-            }
-                break;
-            case 3: { // BOOL
-                auto boolValue1 = std::static_pointer_cast<Values::BoolValue>(listValue1->listData.at(equalsIndex))->data;
-                auto boolValue2 = std::static_pointer_cast<Values::BoolValue>(listValue2->listData.at(equalsIndex))->data;
-
-                if (boolValue1 != boolValue2) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-                }
-            }
-                break;
-            default:
-                return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-                break;
-        }
-    }
-
-    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);;
+    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), valuesEqual(listValue1, listValue2));
 }
 
 Values::ValuePtr
@@ -928,8 +882,87 @@ BuiltinImplementations::haltBuiltin(Values::FunctionValuePtr functionValue, Valu
     return nullValue;
 }
 
+// private
 std::shared_ptr<Values::NullValue> BuiltinImplementations::nullValue = std::make_shared<Values::NullValue>(std::make_shared<Types::NullType>());
 bool BuiltinImplementations::error = false;
+
+bool
+BuiltinImplementations::valuesEqual(Values::ValuePtr value1, Values::ValuePtr value2) {
+    auto typeEnum = static_cast<int>(value1->type->dataType);
+    switch (typeEnum) {
+        case 0: { // INT
+            auto intValue1 = std::static_pointer_cast<Values::IntValue>(value1)->data;
+            auto intValue2 = std::static_pointer_cast<Values::IntValue>(value2)->data;
+
+            return (intValue1 == intValue2);
+        }
+            break;
+        case 1: { // CHAR
+            auto charValue1 = std::static_pointer_cast<Values::CharValue>(value1)->data;
+            auto charValue2 = std::static_pointer_cast<Values::CharValue>(value2)->data;
+
+            return (charValue1 == charValue2);
+        }
+            break;
+        case 2: { // STRING
+            auto stringValue1 = std::static_pointer_cast<Values::StringValue>(value2)->data;
+            auto stringValue2 = std::static_pointer_cast<Values::StringValue>(value2)->data;
+
+            return (stringValue1 == stringValue2);
+        }
+            break;
+        case 3: { // BOOL
+            auto boolValue1 = std::static_pointer_cast<Values::BoolValue>(value2)->data;
+            auto boolValue2 = std::static_pointer_cast<Values::BoolValue>(value2)->data;
+
+            return (boolValue1 == boolValue2);
+        }
+            break;
+        case 4: { // NULLVAL
+            return true;
+        }
+            break;
+        case 5: { // LIST
+            auto listData1 = std::static_pointer_cast<Values::ListValue>(value1)->listData;
+            auto listData2 = std::static_pointer_cast<Values::ListValue>(value2)->listData;
+
+            if (listData1.size() != listData2.size()) {
+                return false;
+            }
+
+            for (unsigned int listIndex = 0; listIndex < listData1.size(); ++listIndex) {
+                if (!valuesEqual(listData1.at(listIndex), listData2.at(listIndex))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+            break;
+        case 6: { // TUPLE
+            auto tupleData1 = std::static_pointer_cast<Values::TupleValue>(value1)->tupleData;
+            auto tupleData2 = std::static_pointer_cast<Values::TupleValue>(value2)->tupleData;
+
+            if (tupleData1.size() != tupleData2.size()) {
+                return false;
+            }
+
+            for (unsigned int tupleIndex = 0; tupleIndex < tupleData1.size(); ++tupleIndex) {
+                if (!valuesEqual(tupleData1.at(tupleIndex), tupleData2.at(tupleIndex))) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+            break;
+        default: // function or typeclass equality support for now
+            return false;
+            break;
+    }
+
+    return false;
+}
 
 void
 BuiltinImplementations::printTuple(const Token & token, const std::vector<Values::ValuePtr> & tupleData, const std::string & collectionType) {
@@ -980,6 +1013,10 @@ BuiltinImplementations::printValue(const Token & token, Values::ValuePtr value, 
         }
         printValue(token, tupleData.at(tupleData.size() - 1), collectionType);
         std::cout << ")";
+    } else if (value->type->dataType == Types::DataTypes::FUNC) {
+        auto funcType = std::static_pointer_cast<Types::FuncType>(value->type);
+
+        std::cout << funcType->toString();
     } /* else if (value->type->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassValue = std::static_pointer_cast<Values::TypeclassValue>(value);
         // TODO

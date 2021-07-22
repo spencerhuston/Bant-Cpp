@@ -74,6 +74,8 @@ class BuiltinImplementations {
         static std::shared_ptr<Values::NullValue> nullValue;
         static bool error;
 
+        static bool valuesEqual(Values::ValuePtr value1, Values::ValuePtr value2);
+
         static void printTuple(const Token & token, const std::vector<Values::ValuePtr> & tupleData, const std::string & collectionType);
         static void printValue(const Token & token, Values::ValuePtr value, const std::string & collectionType);
         

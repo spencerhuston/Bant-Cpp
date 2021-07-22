@@ -1,0 +1,2 @@
+val a : int = 5 + 3;
+printInt(a)

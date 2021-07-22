@@ -1,0 +1,8 @@
+val t : Tuple[int, char] = Tuple { 5, 'a' };
+val t2 : Tuple[int, char] = Tuple { 6, 'b' };
+val t3 : Tuple[int, char] = Tuple { 5, 'b' };
+val t4 : Tuple[int, char] = t;
+
+printBool(equals[Tuple[int, char]](t, t2));
+printBool(equals[Tuple[int, char]](t, t3));
+printBool(equals[Tuple[int, char]](t, t4))

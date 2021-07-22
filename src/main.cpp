@@ -34,7 +34,9 @@ int main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(2);
     
-    //try {
+    int phase = 0;
+
+    try {
         Format::printDebugHeader("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
@@ -45,6 +47,8 @@ int main(int argc, char ** argv) {
             exit(3);
         }
 
+        phase++;
+
         auto parser = Parser(tokenStream);
         auto tree = parser.makeTree();
 
@@ -52,6 +56,8 @@ int main(int argc, char ** argv) {
             Format::printError("One or more errors occurred during parsing, exiting");
             exit(4);
         }
+
+        phase++;
 
         auto typeChecker = TypeChecker(tree);
         typeChecker.check();
@@ -62,6 +68,8 @@ int main(int argc, char ** argv) {
         }
 
         Format::printDebugHeader("Successful Build, Running...");
+
+        phase++;
         
         auto interpreter = Interpreter(tree);
         BuiltinImplementations::interpreter = interpreter;
@@ -71,8 +79,27 @@ int main(int argc, char ** argv) {
             Format::printError("One or more errors occurred at runtime, exiting");
             exit(6);
         }
-    //} catch (...) {
-    //    Format::printError("Unexpected error occurred, exiting");
-    //    exit(7);
-    //}
+    } catch (...) {
+        std::string errorExitMessage = "Unexpected error occurred";
+        switch (phase) {
+            case 0:
+                errorExitMessage += std::string(" during lexing");
+                break;
+            case 1:
+                errorExitMessage += std::string(" during parsing");
+                break;
+            case 2:
+                errorExitMessage += std::string(" during type checking");
+                break;
+            case 3:
+                errorExitMessage += std::string(" during interpretation");
+                break;
+            default:
+                break;
+        }
+        errorExitMessage += std::string(", exiting");
+
+        Format::printError(errorExitMessage);
+        exit(7);
+    }
 }

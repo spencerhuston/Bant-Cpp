@@ -140,8 +140,9 @@ function builtins_tests {
 	test $builtinsPath "zip_int_char.bnt" "((1, 'a'), (2, 'b'), (3, 'c'))" "int and char"
 	echo ""
 	echo -e "${YELLOW}\tequals - correct${NONE}"
-	test "${builtinsPath}/equals" "equals_int.bnt" "false\ntrue" "int lists"
-	test "${builtinsPath}/equals" "equals_bad_type.bnt" "false" "Bad type - function"
+	test "${builtinsPath}/equals" "equals_list_int.bnt" "false\ntrue" "int lists"
+	test "${builtinsPath}/equals" "equals_tuple.bnt" "false\nfalse\ntrue" "Tuples"
+	test "${builtinsPath}/equals" "equals_bad_type_func.bnt" "false" "Bad type - function"
 	echo ""
 }
 
@@ -151,6 +152,7 @@ function func_tests {
 	echo -e "${YELLOW}\tcorrect${NONE}"
 	test $functionPath "recursive_func.bnt" "0" "Recursive function"
 	test $functionPath "mutually_recursive.bnt" "-1" "Mutually recursive functions"
+	test $functionPath "mutually_recursive_separate_scope.bnt" "-1" "Mutually recursive functions, in separate program expression blocks"
 	echo ""
 	#echo -e "${YELLOW}\terror${NONE}"
 	#echo ""

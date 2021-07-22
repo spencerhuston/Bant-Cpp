@@ -2,5 +2,5 @@ val l : List[int] = List { 1, 2, 3 };
 val l2 : List[int] = List { 1, 2, 4 };
 val l3 : List[int] = l;
 
-printBool(equals[int](l, l2));
-printBool(equals[int](l, l3))
+printBool(equals[List[int]](l, l2));
+printBool(equals[List[int]](l, l3))
