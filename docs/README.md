@@ -60,6 +60,8 @@ printInt((1 + (2 - 3)) * 4 / 5)
 ``` 
 => ```0```
 
+---
+
 ### Boolean Operations
 Bant also supports boolean types, ```true``` and ```false```, with the following operations:
 - Less than ```<```
@@ -85,6 +87,8 @@ printBool(!true || !false && !(!true))
 printBool((5 > 4) != false || (3 + 4 < 5))
 ``` 
 => ```true```
+
+---
 
 ### Control Flow
 Bant supports the following conditional statements:
@@ -116,6 +120,8 @@ printInt(if (3 != 4) 3 else 4)
 printInt(if (3 != 4 && 4 == 5) 3 else if (3 != 4 && 4 != 5) 4 else 5)
 ``` 
 => ```4```
+
+---
 
 ### Declaring Variables
 A variable declaration requires the: name of the variable, type of the variable, and the expression to bind to the name.
@@ -149,6 +155,8 @@ false
 - Variable names can only contain alphanumeric characters and underscore, and must start with an alphabetic character
 - Being a functional language, all variables are immutable (minus _List_ types when used with _[function]InPlace_ builtin functions)
 
+---
+
 ### Bant Primitive Types
 #### int
 TODO
@@ -162,11 +170,17 @@ TODO
 #### string
 TODO
 
+---
+
 ### Lists
 TODO
 
+---
+
 ### Tuples
 TODO
+
+---
 
 ### Functions
 TODO
@@ -179,13 +193,19 @@ TODO
 #### Partial Application
 TODO
 
+---
+
 ### Product Types
 TODO
+
+---
 
 ### Case-switching
 TODO
 #### "any" case
 TODO
+
+---
 
 ### Builtin Functions
 Bant supports a wide array of builtin function types, from _List_ manipulation to I/O. The supported functions are defined below.
@@ -304,8 +324,12 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
 - halt: Exit program immediately<br>
   ````halt() -> null````
 
+---
+
 ### Comments
 TODO
+
+---
 
 ### File Importing
 TODO
