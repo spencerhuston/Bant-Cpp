@@ -2,11 +2,11 @@
 #include <iostream>
 #include <sstream>
 
-#include "../includes/lexer.hpp"
-#include "../includes/parser.hpp"
-#include "../includes/typeChecker.hpp"
-#include "../includes/interpreter.hpp"
-#include "../includes/defs/builtin/builtinImplementations.hpp"
+#include "core/lexer/lexer.hpp"
+#include "core/parser/parser.hpp"
+#include "core/typeChecker/typeChecker.hpp"
+#include "core/interpreter/interpreter.hpp"
+#include "core/builtin/builtinImplementations.hpp"
 
 int main(int argc, char ** argv) {
     std::string sourceStream;

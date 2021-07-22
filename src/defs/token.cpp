@@ -1,4 +1,4 @@
-#include "../../includes/defs/token.hpp"
+#include "token.hpp"
 
 Token::Token(const TokenType tokenType, const FilePosition & filePosition, const std::string & tokenText) 
 : type(tokenType), position(filePosition), text(tokenText) {

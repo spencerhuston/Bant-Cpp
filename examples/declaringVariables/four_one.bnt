@@ -1,0 +1,4 @@
+val eight : int = 5 + 3;
+val not_true : bool = !true;
+printInt(eight);
+printBool(not_true)

@@ -59,8 +59,10 @@ function bool_tests {
 	boolPath="./bool_tests"
 	test $boolPath "eq_or.bnt" "2" "OR'ing equals"
 	test $boolPath "unary_not.bnt" "1" "Unary NOT"
+	test $boolPath "not_literal_bool.bnt" "true" "Unary NOT on literal"
 	test $boolPath "if_as_expr.bnt" "100" "If as expression"
 	test $boolPath "or_eq_no_parens.bnt" "2" "OR'ing equals w/o parentheses"
+	test $boolPath "int_bool_literal_mix.bnt" "true" "Int & Bool literals mix"
 	echo ""
 }
 
