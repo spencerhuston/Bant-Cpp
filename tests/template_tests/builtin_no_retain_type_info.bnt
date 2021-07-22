@@ -1,5 +1,5 @@
 val l : List[int] = List { 1, 2 };
 val l2 : List[char] = List { 'a' };
 
-size[int](l);
-size[char](l2)
+printInt(size[int](l));
+printInt(size[char](l2))

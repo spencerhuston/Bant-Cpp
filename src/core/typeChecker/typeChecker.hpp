@@ -31,6 +31,8 @@ class TypeChecker {
         void addName(Environment & environment, std::string name, Types::TypePtr type);
         Types::TypePtr getName(const Token & token, Environment & environment, std::string name);
 
+        Types::TypePtr copyArgumentType(Types::TypePtr argumentType);
+
         void printMismatchError(const Token & token, const Types::TypePtr & type, const Types::TypePtr & expectedType);
         void printError(const Token & token, const std::string & errorMessage);
 

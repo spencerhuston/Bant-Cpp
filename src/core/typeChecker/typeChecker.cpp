@@ -303,7 +303,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         }
 
         for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
-            auto argumentType = functionType->argumentTypes.at(argumentIndex);
+            auto argumentType = copyArgumentType(functionType->argumentTypes.at(argumentIndex));
             auto argument = application->arguments.at(argumentIndex);
 
             resolveType(argumentType, functionInnerEnvironment);
@@ -489,6 +489,54 @@ TypeChecker::getName(const Token & token, Environment & environment, std::string
         return std::make_shared<Types::UnknownType>();
     }
     return type->second;
+}
+
+Types::TypePtr
+TypeChecker::copyArgumentType(Types::TypePtr argumentType) {
+    auto typeEnum = argumentType->dataType;
+    switch (typeEnum) {
+        case Types::DataTypes::INT:
+            return std::make_shared<Types::IntType>();
+            break;
+        case Types::DataTypes::BOOL:
+            return std::make_shared<Types::BoolType>();
+            break;
+        case Types::DataTypes::CHAR:
+            return std::make_shared<Types::CharType>();
+            break;
+        case Types::DataTypes::STRING:
+            return std::make_shared<Types::StringType>();
+            break;
+        case Types::DataTypes::NULLVAL:
+            return std::make_shared<Types::NullType>();
+            break;
+        case Types::DataTypes::LIST:
+            return std::make_shared<Types::ListType>(std::static_pointer_cast<Types::ListType>(argumentType)->listType);
+            break;
+        case Types::DataTypes::TUPLE:
+            return std::make_shared<Types::TupleType>(std::static_pointer_cast<Types::TupleType>(argumentType)->tupleTypes);
+            break;
+        case Types::DataTypes::FUNC: {
+            auto funcType = std::static_pointer_cast<Types::FuncType>(argumentType);
+            auto newFuncType = std::make_shared<Types::FuncType>(funcType->genericTypes, funcType->argumentTypes, funcType->returnType);
+            newFuncType->argumentNames = funcType->argumentNames;
+            newFuncType->functionBody = funcType->functionBody;
+            newFuncType->functionInnerEnvironment = funcType->functionInnerEnvironment;
+            return newFuncType;
+        }
+            break;
+        case Types::DataTypes::TYPECLASS: {
+            auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(argumentType);
+            return std::make_shared<Types::TypeclassType>(typeclassType->ident, typeclassType->fieldTypes);
+        }
+            break;
+        case Types::DataTypes::GEN:
+            return std::make_shared<Types::GenType>(std::static_pointer_cast<Types::GenType>(argumentType)->identifier);
+            break;
+        default:
+            break;
+    }
+    return std::make_shared<Types::UnknownType>();
 }
 
 void
