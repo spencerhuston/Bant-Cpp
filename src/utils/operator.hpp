@@ -2,6 +2,7 @@
 
 #include <string>
 #include <algorithm>
+#include <array>
 
 namespace Operator {
     enum class OperatorTypes {
