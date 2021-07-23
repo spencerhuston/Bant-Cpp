@@ -62,6 +62,10 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return fillBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REVERSE) {
         return reverseBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FOLDL) {
+        return foldlBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FOLDR) {
+        return foldrBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::ZIP) {
         return zipBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::UNION) {
@@ -585,22 +589,48 @@ BuiltinImplementations::reverseBuiltin(Values::FunctionValuePtr functionValue, V
     return listValue;
 }
 
-// TODO
 Values::ValuePtr
 BuiltinImplementations::foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
-    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+    auto listData = getArgumentValue<Values::ListValue>(0, functionValue, environment)->listData;
+    auto initialValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(2, functionValue, environment);
 
-    return nullptr;
+    Values::ValuePtr foldValue1 = initialValue;
+    Values::ValuePtr foldValue2;
+    for (unsigned int index = 0; index < listData.size(); ++index) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+
+        foldValue2 = listData.at(index);
+
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), foldValue1);
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(1), foldValue2);
+
+        foldValue1 = interpreter.interpret(funcValue->functionBody, funcEnvironment);
+    }
+
+    return foldValue1;
 }
 
-// TODO
 Values::ValuePtr
 BuiltinImplementations::foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
-    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+    auto listData = getArgumentValue<Values::ListValue>(0, functionValue, environment)->listData;
+    auto initialValue = getArgumentValue<Values::Value>(1, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(2, functionValue, environment);
 
-    return nullptr;
+    Values::ValuePtr foldValue1;
+    Values::ValuePtr foldValue2 = initialValue;
+    for (int index = listData.size() - 1; index >= 0; --index) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+
+        foldValue1 = listData.at(index);
+
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), foldValue1);
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(1), foldValue2);
+
+        foldValue2 = interpreter.interpret(funcValue->functionBody, funcEnvironment);
+    }
+
+    return foldValue2;
 }
 
 Values::ValuePtr

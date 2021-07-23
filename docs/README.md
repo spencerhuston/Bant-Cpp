@@ -242,7 +242,7 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
 - combine: Append second list to back of first list (returns new list)<br>
   ````combine[T](l1: List[T], l2: List[T]) -> List[T]````
 - append: Append second list to back of first list (returns first list)<br>
-  ````combine[T](l1: List[T], l2: List[T]) -> List[T]````
+  ````append[T](l1: List[T], l2: List[T]) -> List[T]````
 - size: Get size of list<br>
   ````size[T](l: List[T]) -> int````
 - range: Get sublist from [i, j]<br>
@@ -281,10 +281,10 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
   ````map[T, U](l: List[T], f: (T) -> U) -> List[U]````
 - filter: Return list where each element satisfies a boolean function _f_<br>
   ````filter[T, U](l: List[T], element: T, f: U -> bool) -> List[T]````
-- foldL: Left-associative linear fold<br>
-  ````foldl[T](l: List[T], f: (T, T) -> T) -> T````
-- foldR: Right-associative linear fold<br>
-  ````foldr[T](l: List[T], f: (T, T) -> T) -> T````
+- foldL: Left-associative linear fold on list _l_, initial value _i_, and function _f_<br>
+  ````foldl[T](l: List[T], i: T, f: (T, T) -> T) -> T````
+- foldR: Right-associative linear fold on list _l_, initial value _i_, and function _f_<br>
+  ````foldr[T](l: List[T], i: T, f: (T, T) -> T) -> T````
 - zip: Combine two lists into a list of 2 tuples of corresponding elements<br>
   ````zip[T, U](l1: List[T], l2: List[U]) -> List[Tuple[T, U]]````
 

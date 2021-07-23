@@ -36,7 +36,7 @@ int main(int argc, char ** argv) {
     
     int phase = 0;
 
-    try {
+    //try {
         Format::printDebugHeader("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
@@ -79,7 +79,7 @@ int main(int argc, char ** argv) {
             Format::printError("One or more errors occurred at runtime, exiting");
             exit(6);
         }
-    } catch (...) {
+    /*} catch (...) {
         std::string errorExitMessage = "Unexpected error occurred";
         switch (phase) {
             case 0:
@@ -101,5 +101,5 @@ int main(int argc, char ** argv) {
 
         Format::printError(errorExitMessage);
         exit(7);
-    }
+    }*/
 }

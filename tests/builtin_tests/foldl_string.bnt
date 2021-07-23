@@ -1,0 +1,6 @@
+func f(s: string, s2: string) -> string = {
+	charListToString(combine[char](stringToCharList(s), stringToCharList(s2)))
+};
+
+val l : List[string] = List { "A", "B", "C" };
+printString(foldl[string](l, "z", f))
