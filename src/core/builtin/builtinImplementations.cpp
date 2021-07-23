@@ -64,6 +64,10 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return reverseBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::ZIP) {
         return zipBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::UNION) {
+        return unionBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INTERSECT) {
+        return intersectBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::EQUALS) {
         return equalsBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTLIST) {
@@ -492,57 +496,12 @@ BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionVal
 
     if (listValue->listData.empty()) {
         return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
-    } else if (!Types::isPrimitiveType(listType->listType) || listType->listType->dataType == Types::DataTypes::GEN) {
-        printError(token, "Error: contains requires list of non-generic primitives: " + token.position.currentLineText);
-        return nullValue;
     }
     
-    int typeEnum = static_cast<int>(listType->listType->dataType);
     auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-
-    if (typeEnum != static_cast<int>(searchValue->type->dataType)) {
-        printError(token, "Error: contains: mistmatched types: " + token.position.currentLineText);
-        return nullValue;
-    }
-
     for (auto & value : listValue->listData) {
-        switch (typeEnum) {
-            case 0: { // INT
-                auto intValue = std::static_pointer_cast<Values::IntValue>(value)->data;
-                auto searchIntValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
-
-                if (intValue == searchIntValue) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
-                }
-            }
-                break;
-            case 1: { // CHAR
-                auto charValue = std::static_pointer_cast<Values::CharValue>(value)->data;
-                auto searchCharValue = std::static_pointer_cast<Values::CharValue>(searchValue)->data;
-
-                if (charValue == searchCharValue) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
-                }
-            }
-                break;
-            case 2: { // STRING
-                auto stringValue = std::static_pointer_cast<Values::StringValue>(value)->data;
-                auto searchStringValue = std::static_pointer_cast<Values::StringValue>(searchValue)->data;
-
-                if (stringValue == searchStringValue) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
-                }
-            }
-                break;
-            case 3: { // BOOL
-                auto boolValue = std::static_pointer_cast<Values::BoolValue>(value)->data;
-                auto searchBoolValue = std::static_pointer_cast<Values::BoolValue>(searchValue)->data;
-
-                if (boolValue == searchBoolValue) {
-                    return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
-                }
-            }
-                break;
+        if (valuesEqual(value, searchValue)) {
+            return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
         }
     }
 
@@ -558,47 +517,10 @@ BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePt
         return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
     }
     
-    int typeEnum = static_cast<int>(listType->listType->dataType);
     auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-
     for (unsigned int index = 0; index < listValue->listData.size(); ++index) {
-        switch (typeEnum) {
-            case 0: { // INT
-                auto intValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
-                auto searchIntValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
-
-                if (intValue == searchIntValue) {
-                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
-                }
-            }
-                break;
-            case 1: { // CHAR
-                auto charValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
-                auto searchCharValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
-
-                if (charValue == searchCharValue) {
-                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
-                }
-            }
-                break;
-            case 2: { // STRING
-                auto stringValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
-                auto searchStringValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
-
-                if (stringValue == searchStringValue) {
-                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
-                }
-            }
-                break;
-            case 3: { // BOOL
-                auto boolValue = std::static_pointer_cast<Values::IntValue>(listValue->listData.at(index))->data;
-                auto searchBoolValue = std::static_pointer_cast<Values::IntValue>(searchValue)->data;
-
-                if (boolValue == searchBoolValue) {
-                    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
-                }
-            }
-                break;
+        if (valuesEqual(listValue->listData.at(index), searchValue)) {
+            return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), index);
         }
     }
 
@@ -669,14 +591,6 @@ BuiltinImplementations::foldlBuiltin(Values::FunctionValuePtr functionValue, Val
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
 
-    /*for (unsigned int foldIndex = 2; foldIndex < listValue->listData.size(); ++foldIndex) {
-        auto funcEnvironment = funcValue->functionBodyEnvironment;
-        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), value);
-        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(1), value);
-
-        auto result = std::static_pointer_cast<Values::Value>(interpreter.interpret(funcValue->functionBody, funcEnvironment));
-    }*/
-
     return nullptr;
 }
 
@@ -712,16 +626,78 @@ BuiltinImplementations::zipBuiltin(const Token & token, Values::FunctionValuePtr
     return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(tupleType), listData);
 }
 
-// TODO
 Values::ValuePtr
-BuiltinImplementations::unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+BuiltinImplementations::setOperation(Values::FunctionValuePtr functionValue, Values::Environment & environment, bool unionFlag) {
+    auto listValue1 = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto listData1 = listValue1->listData;
+    auto listData2 = getArgumentValue<Values::ListValue>(1, functionValue, environment)->listData;
+
+    auto comparator = [](Values::ValuePtr value1, Values::ValuePtr value2) {
+                            auto typeEnum = static_cast<int>(value1->type->dataType);
+                            switch (typeEnum) {
+                                case 0: { // INT
+                                    auto intValue1 = std::static_pointer_cast<Values::IntValue>(value1)->data;
+                                    auto intValue2 = std::static_pointer_cast<Values::IntValue>(value2)->data;
+
+                                    return (intValue1 < intValue2);
+                                }
+                                    break;
+                                case 1: { // CHAR
+                                    auto charValue1 = std::static_pointer_cast<Values::CharValue>(value1)->data;
+                                    auto charValue2 = std::static_pointer_cast<Values::CharValue>(value2)->data;
+
+                                    return (charValue1 < charValue2);
+                                }
+                                    break;
+                                case 2: { // STRING
+                                    auto stringValue1 = std::static_pointer_cast<Values::StringValue>(value2)->data;
+                                    auto stringValue2 = std::static_pointer_cast<Values::StringValue>(value2)->data;
+
+                                    return (stringValue1 < stringValue2);
+                                }
+                                    break;
+                                case 3: { // BOOL
+                                    auto boolValue1 = std::static_pointer_cast<Values::BoolValue>(value2)->data;
+                                    auto boolValue2 = std::static_pointer_cast<Values::BoolValue>(value2)->data;
+
+                                    return (boolValue1 < boolValue2);
+                                }
+                                    break;
+                                default:
+                                    break;
+                            }
+                            return false;
+                        };
+
+    auto valueSet1 = std::set<Values::ValuePtr, decltype(comparator)>(comparator);
+    auto valueSet2 = std::set<Values::ValuePtr, decltype(comparator)>(comparator);
+
+    for (auto & value : listData1)
+        valueSet1.insert(value);
+
+    for (auto & value : listData2)
+        valueSet2.insert(value);
+
+    auto valueSetResult = std::set<Values::ValuePtr, decltype(comparator)>(comparator);
+
+    if (unionFlag)
+        std::set_union(valueSet1.begin(), valueSet1.end(), valueSet2.begin(), valueSet2.end(), std::inserter(valueSetResult, valueSetResult.begin()));
+    else
+        std::set_intersection(valueSet1.begin(), valueSet1.end(), valueSet2.begin(), valueSet2.end(), std::inserter(valueSetResult, valueSetResult.begin()), comparator);
+    
+    std::vector<Values::ValuePtr> valueVector;
+    std::copy(valueSetResult.begin(), valueSetResult.end(), std::back_inserter(valueVector));
+    return makeListType(listValue1, valueVector);
 }
 
-// TODO
+Values::ValuePtr
+BuiltinImplementations::unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    return setOperation(functionValue, environment, true);
+}
+
 Values::ValuePtr
 BuiltinImplementations::intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    return nullptr;
+    return setOperation(functionValue, environment, false);
 }
 
 Values::ValuePtr

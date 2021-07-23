@@ -1,0 +1,4 @@
+val l : List[int] = List { 1, 2, 3, 4, 5, 6 };
+val l2 : List[int] = List { 2, 3, 4, 6 };
+
+printList[int](intersect[int](l, l2))

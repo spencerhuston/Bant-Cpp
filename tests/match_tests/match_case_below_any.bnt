@@ -1,0 +1,7 @@
+val b : int = 2;
+val a : int = match(b) {
+	case any = { 5 };
+	case 2 = { 2 };
+};
+
+printInt(a)

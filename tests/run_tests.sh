@@ -12,6 +12,7 @@ RUN_ARITH=false
 RUN_BOOL=false
 RUN_STRING_CHAR=false
 RUN_LIST=false
+RUN_MATCH=false
 RUN_BUILTINS=false
 RUN_FUNCTIONS=false
 RUN_TEMPLATES=false
@@ -114,6 +115,16 @@ function list_tests {
 	echo ""
 }
 
+function match_tests {
+	echo -e "${YELLOW}MATCH${NONE}"
+	matchPath="./match_tests"
+	echo -e "${YELLOW}\tcorrect${NONE}"
+	test $matchPath "match_case_below_any.bnt" "Error" "Match case below any"
+	echo ""
+	#echo -e "${YELLOW}\terror${NONE}"
+	#echo ""
+}
+
 function builtins_tests {
 	echo -e "${YELLOW}BUILTINS${NONE}"
 	builtinsPath="./builtin_tests"
@@ -138,6 +149,12 @@ function builtins_tests {
 	echo ""
 	echo -e "${YELLOW}\tzip - correct${NONE}"
 	test $builtinsPath "zip_int_char.bnt" "((1, 'a'), (2, 'b'), (3, 'c'))" "int and char"
+	echo ""
+	echo -e "${YELLOW}\tunion - correct${NONE}"
+	test "${builtinsPath}" "union_int.bnt" "(1, 2, 3, 4, 5, 6)" "int"
+	echo ""
+	echo -e "${YELLOW}\tintersect - correct${NONE}"
+	test "${builtinsPath}" "intersection_int.bnt" "(2, 3, 4, 6)" "int"
 	echo ""
 	echo -e "${YELLOW}\tequals - correct${NONE}"
 	test "${builtinsPath}/equals" "equals_list_int.bnt" "false\ntrue" "int lists"
@@ -206,13 +223,17 @@ do
 	if [[ "$var" == "-l" ]]; then
 		RUN_LIST=true
 	fi
+
+	if [[ "$var" == "-m" ]]; then
+		RUN_MATCH=true
+	fi
 	
 	if [[ "$var" == "-i" ]]; then
 		RUN_BUILTINS=true
 	fi
 
 	if [[ "$var" == "-f" ]]; then
-		RUN_BUILTINS=true
+		RUN_FUNCTIONS=true
 	fi
 
 	if [[ "$var" == "-g" ]]; then
@@ -227,7 +248,8 @@ done
 if [[ "$RUN_ARITH" = false && 
 		"$RUN_BOOL" = false && 
 		"$RUN_STRING_CHAR" = false && 
-		"$RUN_LIST" = false && 
+		"$RUN_LIST" = false &&
+		"$RUN_MATCH" = false && 
 		"$RUN_BUILTINS" = false && 
 		"$RUN_TEMPLATES" = false && 
 		"$RUN_FUNCTIONS" = false && 
@@ -242,6 +264,7 @@ if [[ "$RUN_ALL" = true ]]; then
 	bool_tests
 	string_char_tests
 	list_tests
+	match_tests
 	builtins_tests
 	func_tests
 	template_tests
@@ -262,6 +285,10 @@ fi
 
 if [[ "$RUN_LIST" = true ]]; then
 	list_tests
+fi
+
+if [[ "$RUN_MATCH" = true ]]; then
+	match_tests
 fi
 
 if [[ "$RUN_BUILTINS" = true ]]; then

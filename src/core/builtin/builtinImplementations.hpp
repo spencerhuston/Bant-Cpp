@@ -52,6 +52,7 @@ class BuiltinImplementations {
         static Values::ValuePtr foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr foldrBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr zipBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr setOperation(Values::FunctionValuePtr functionValue, Values::Environment & environment, bool unionFlag);
         static Values::ValuePtr unionBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr intersectBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr equalsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
