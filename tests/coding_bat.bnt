@@ -1,0 +1,10 @@
+val l : List[int] = List { -3, -2, -1, 0, 1, 2, 3 };
+
+func noNeg(x: int) -> bool = {
+    (x % 2 != 0 && x < 0) || (x % 2 == 0 && x >= 0)
+};
+
+func double(x: int) -> int = x * 2;
+val l2 : List[int] = map[int, int](l, double);
+printList[int](l2);
+printList[int](filter[int](l2, noNeg))

@@ -102,6 +102,8 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return readStringBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTSTRING) {
         return printStringBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::RAND) {
+        return randBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::HALT) {
         return haltBuiltin(functionValue, environment);
     }
@@ -880,6 +882,18 @@ BuiltinImplementations::printStringBuiltin(const Token & token, Values::Function
     std::cout << std::endl;
 
     return nullValue;
+}
+
+Values::ValuePtr
+BuiltinImplementations::randBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto lowerBoundValue = getArgumentValue<Values::IntValue>(0, functionValue, environment)->data;
+    auto upperBoundValue = getArgumentValue<Values::IntValue>(1, functionValue, environment)->data;
+
+    std::random_device seed;
+    std::mt19937 generator(seed());
+    std::uniform_int_distribution<> distribution(lowerBoundValue, upperBoundValue);
+
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), distribution(generator));
 }
 
 Values::ValuePtr
