@@ -13,15 +13,15 @@ class TypeChecker {
         ExpPtr eval(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         
         ExpPtr evalProgram(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
-        ExpPtr evalLiteral(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
+        ExpPtr evalLiteral(ExpPtr expression, const Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalPrimitive(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalLet(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalReference(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalBranch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalTypeclass(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalApplication(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
-        ExpPtr evalListDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
-        ExpPtr evalTupleDefinition(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
+        ExpPtr evalListDefinition(ExpPtr expression, const Environment & environment, Types::TypePtr & expectedType);
+        ExpPtr evalTupleDefinition(ExpPtr expression, const Environment & environment, Types::TypePtr & expectedType);
         ExpPtr evalMatch(ExpPtr expression, Environment & environment, Types::TypePtr & expectedType);
 
         void resolveType(Types::TypePtr & returnType, Environment & environment);

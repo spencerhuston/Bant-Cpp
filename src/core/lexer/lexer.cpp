@@ -30,7 +30,7 @@ Lexer::IDENT_REGEX("^[a-zA-z_][a-zA-Z0-9_]*$");
 bool Lexer::inQuotes = false;
 
 std::string
-Lexer::readFile(const std::string sourceFileName) {
+Lexer::readFile(const std::string & sourceFileName) {
     const std::string extension(".bnt");
     if (sourceFileName.size() <= extension.size() ||
         sourceFileName.compare(sourceFileName.size() - extension.size(), extension.size(), extension) != 0) {
@@ -84,7 +84,7 @@ Lexer::lexCharacter(const char character) {
     if (filterComments(character)) {
         if (filterWhitespace(character)) {
             std::string tokenString;
-            for (auto tokenIter = currentTokenBlock.begin(); tokenIter != currentTokenBlock.end(); ++tokenIter) {
+            for (auto tokenIter = currentTokenBlock.begin(); tokenIter < currentTokenBlock.end(); ++tokenIter) {
                 if ((isCharDelimiter(*tokenIter) && !inQuotes) || *tokenIter == '\"' || *tokenIter == '\'') {
                     if (!tokenString.empty()) {
                         tokenStream.push_back(makeToken(tokenString));
@@ -270,7 +270,7 @@ Lexer::isIdentity(const std::string & tokenString) {
 }
 
 void
-Lexer::printError(const std::string culprit) {
+Lexer::printError(const std::string & culprit) {
     error = true;
     std::stringstream errorStream;
     errorStream << "Line: " << currentPosition.fileLine - BuiltinDefinitions::builtinNumber()

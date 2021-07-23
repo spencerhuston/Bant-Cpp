@@ -11,15 +11,19 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REPLACE) {
         return replaceBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PUSHFRONT) {
-        return pushFrontBuiltin(token, functionValue, environment);
+        return pushFrontBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PUSHBACK) {
-        return pushBackBuiltin(token, functionValue, environment);
+        return pushBackBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INSERTINPLACE) {
         return insertInPlaceBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REMOVEINPLACE) {
         return removeInPlaceBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REPLACEINPLACE) {
         return replaceInPlaceBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PUSHFRONTINPLACE) {
+        return pushFrontInPlaceBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PUSHBACKINPLACE) {
+        return pushBackInPlaceBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FRONT) {
         return frontBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::BACK) {
@@ -95,17 +99,17 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTBOOL) {
         return printBoolBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::READCHAR) {
-        return readCharBuiltin(functionValue, environment);
+        return readCharBuiltin(functionValue);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTCHAR) {
         return printCharBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::READSTRING) {
-        return readStringBuiltin(functionValue, environment);
+        return readStringBuiltin(functionValue);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTSTRING) {
         return printStringBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::RAND) {
         return randBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::HALT) {
-        return haltBuiltin(functionValue, environment);
+        return haltBuiltin(functionValue);
     }
     return nullValue;
 }
@@ -186,7 +190,7 @@ BuiltinImplementations::replaceBuiltin(const Token & token, Values::FunctionValu
 }
 
 Values::ValuePtr
-BuiltinImplementations::pushFrontBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::pushFrontBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
@@ -196,7 +200,7 @@ BuiltinImplementations::pushFrontBuiltin(const Token & token, Values::FunctionVa
 }
 
 Values::ValuePtr
-BuiltinImplementations::pushBackBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::pushBackBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
@@ -267,7 +271,7 @@ BuiltinImplementations::replaceInPlaceBuiltin(const Token & token, Values::Funct
 }
 
 Values::ValuePtr
-BuiltinImplementations::pushFrontInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::pushFrontInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
@@ -276,7 +280,7 @@ BuiltinImplementations::pushFrontInPlaceBuiltin(const Token & token, Values::Fun
 }
 
 Values::ValuePtr
-BuiltinImplementations::pushBackInPlaceBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::pushBackInPlaceBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
     auto elementValue = getArgumentValue<Values::Value>(1, functionValue, environment);
 
@@ -372,18 +376,18 @@ BuiltinImplementations::rangeBuiltin(const Token & token, Values::FunctionValueP
         return nullValue;
     }
     
-    unsigned int startIndex = std::static_pointer_cast<Values::IntValue>(startValue)->data;
-    unsigned int endIndex = std::static_pointer_cast<Values::IntValue>(endValue)->data;
+    int startIndex = std::static_pointer_cast<Values::IntValue>(startValue)->data;
+    int endIndex = std::static_pointer_cast<Values::IntValue>(endValue)->data;
 
     if (startIndex > endIndex || 
-        startIndex >= listValue->listData.size() || endIndex >= listValue->listData.size() ||
+        startIndex >= (int)listValue->listData.size() || endIndex >= (int)listValue->listData.size() ||
         startIndex < 0 || endIndex < 0) {
         printError(token, "Error: Invalid range: " + token.position.currentLineText);
         return nullValue;
     }
 
     std::vector<Values::ValuePtr> listData;
-    for (unsigned int index = startIndex; index <= endIndex; ++index) {
+    for (auto index = startIndex; index <= endIndex; ++index) {
         listData.push_back(listValue->listData.at(index));
     }
     return makeListType(listValue, listData);
@@ -497,18 +501,15 @@ BuiltinImplementations::sorthlBuiltin(const Token & token, Values::FunctionValue
 
 Values::ValuePtr
 BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
-    auto listType = std::static_pointer_cast<Types::ListType>(listValue->type);
+    auto listData = getArgumentValue<Values::ListValue>(0, functionValue, environment)->listData;
 
-    if (listValue->listData.empty()) {
+    if (listData.empty()) {
         return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
     }
     
     auto searchValue = getArgumentValue<Values::Value>(1, functionValue, environment);
-    for (auto & value : listValue->listData) {
-        if (valuesEqual(value, searchValue)) {
-            return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
-        }
+    if (std::any_of(listData.begin(), listData.end(), [&searchValue](Values::ValuePtr value) { return valuesEqual(value, searchValue); })) {
+        return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), true);
     }
 
     return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
@@ -517,7 +518,6 @@ BuiltinImplementations::containsBuiltin(const Token & token, Values::FunctionVal
 Values::ValuePtr
 BuiltinImplementations::findBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
     auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
-    auto listType = std::static_pointer_cast<Types::ListType>(listValue->type);
 
     if (listValue->listData.empty()) {
         return std::make_shared<Values::BoolValue>(std::make_shared<Types::BoolType>(), false);
@@ -754,11 +754,14 @@ BuiltinImplementations::charToIntBuiltin(Values::FunctionValuePtr functionValue,
 
 Values::ValuePtr
 BuiltinImplementations::stringToCharListBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto stringValue = getArgumentValue<Values::StringValue>(0, functionValue, environment)->data;
-    std::vector<Values::ValuePtr> listData;
-    for (auto & character : stringValue) {
-        listData.push_back(std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), character));
-    }
+    auto stringData = getArgumentValue<Values::StringValue>(0, functionValue, environment)->data;
+    std::vector<Values::ValuePtr> listData{};
+
+    std::transform(stringData.begin(), stringData.end(), std::back_inserter(listData),
+                   [](char character) -> Values::ValuePtr { 
+                       return std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), character); 
+                    });
+
     return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(std::make_shared<Types::CharType>()), listData);
 }
 
@@ -817,7 +820,7 @@ BuiltinImplementations::print4TupleBuiltin(const Token & token, Values::Function
 }
 
 Values::ValuePtr
-BuiltinImplementations::readCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::readCharBuiltin(Values::FunctionValuePtr functionValue) {
     char charValue;
     std::cin >> charValue;
     return std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), charValue);
@@ -831,7 +834,7 @@ BuiltinImplementations::printCharBuiltin(Values::FunctionValuePtr functionValue,
 }
 
 Values::ValuePtr
-BuiltinImplementations::readStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::readStringBuiltin(Values::FunctionValuePtr functionValue) {
     std::string stringValue;
     std::cin >> stringValue;
     return std::make_shared<Values::StringValue>(std::make_shared<Types::StringType>(), stringValue);
@@ -897,7 +900,7 @@ BuiltinImplementations::randBuiltin(Values::FunctionValuePtr functionValue, Valu
 }
 
 Values::ValuePtr
-BuiltinImplementations::haltBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+BuiltinImplementations::haltBuiltin(Values::FunctionValuePtr functionValue) {
     exit(0);
     return nullValue;
 }
@@ -925,14 +928,14 @@ BuiltinImplementations::valuesEqual(Values::ValuePtr value1, Values::ValuePtr va
         }
             break;
         case 2: { // STRING
-            auto stringValue1 = std::static_pointer_cast<Values::StringValue>(value2)->data;
+            auto stringValue1 = std::static_pointer_cast<Values::StringValue>(value1)->data;
             auto stringValue2 = std::static_pointer_cast<Values::StringValue>(value2)->data;
 
             return (stringValue1 == stringValue2);
         }
             break;
         case 3: { // BOOL
-            auto boolValue1 = std::static_pointer_cast<Values::BoolValue>(value2)->data;
+            auto boolValue1 = std::static_pointer_cast<Values::BoolValue>(value1)->data;
             auto boolValue2 = std::static_pointer_cast<Values::BoolValue>(value2)->data;
 
             return (boolValue1 == boolValue2);
@@ -982,17 +985,6 @@ BuiltinImplementations::valuesEqual(Values::ValuePtr value1, Values::ValuePtr va
     }
 
     return false;
-}
-
-void
-BuiltinImplementations::printTuple(const Token & token, const std::vector<Values::ValuePtr> & tupleData, const std::string & collectionType) {
-    std::cout << "(";
-    for (unsigned int tupleIndex = 0; tupleIndex < tupleData.size() - 1; ++tupleIndex) {
-        printValue(token, tupleData.at(tupleIndex), collectionType);
-        std::cout << ", ";
-    }
-    printValue(token, tupleData.at(tupleData.size() - 1), collectionType);
-    std::cout << ")" << std::endl;
 }
 
 void

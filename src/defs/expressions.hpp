@@ -66,11 +66,11 @@ namespace Expressions {
             ExpPtr functionBody;
 
             bool isBuiltin = false;
-            BuiltinDefinitions::BuiltinEnums builtinEnum;
+            BuiltinDefinitions::BuiltinEnums builtinEnum = BuiltinDefinitions::BuiltinEnums::BUILTINNUM;
 
             Function(const Token & token, 
                      const Types::TypePtr & returnType,
-                     const std::string name, 
+                     const std::string & name, 
                      const std::vector<Types::GenTypePtr> & genericParameters,
                      const std::vector<std::shared_ptr<Argument>> & parameters,
                      const ExpPtr & functionBody)
@@ -100,8 +100,8 @@ namespace Expressions {
             std::vector<std::shared_ptr<Argument>> fields{};
 
             Typeclass(const Token & token,
-                      const std::string ident,
-                      std::vector<std::shared_ptr<Argument>> fields,
+                      const std::string & ident,
+                      const std::vector<std::shared_ptr<Argument>> & fields,
                       const Types::TypePtr & typeclassType)
             : Expression(token, ExpressionTypes::TYPECLASS, typeclassType),
               ident(ident),
@@ -132,11 +132,11 @@ namespace Expressions {
 
               Literal(const Token & token,
                       const Types::TypePtr & returnType,
-                      const std::string data)
+                      const std::string & data)
             : Expression(token, ExpressionTypes::LIT, returnType),
               data(std::variant<int, bool, char, std::string>(data)) { }
             
-            Literal(const Token & token)
+            explicit Literal(const Token & token)
             : Expression(token, ExpressionTypes::LIT, std::make_shared<Types::NullType>()) { }
 
             template<typename T>
@@ -222,7 +222,7 @@ namespace Expressions {
 
             Application(const Token & token,
                         const ExpPtr & ident,
-                        const std::vector<ExpPtr> arguments)
+                        const std::vector<ExpPtr> & arguments)
             : Expression(token, ExpressionTypes::APP, std::make_shared<Types::UnknownType>()),
               ident(ident),
               arguments(arguments) { }
@@ -233,12 +233,12 @@ namespace Expressions {
             std::vector<ExpPtr> values;
 
             ListDefinition(const Token & token,
-                           const std::vector<ExpPtr> values)
+                           const std::vector<ExpPtr> & values)
             : Expression(token, ExpressionTypes::LIST_DEF, std::make_shared<Types::ListType>()),
               values(values) { }
 
             ListDefinition(const Token & token,
-                           const std::vector<ExpPtr> values,
+                           const std::vector<ExpPtr> & values,
                            const Types::TypePtr returnType)
             : Expression(token, ExpressionTypes::LIST_DEF, returnType),
               values(values) { }
@@ -249,13 +249,13 @@ namespace Expressions {
             std::vector<ExpPtr> values;
 
             TupleDefinition(const Token & token,
-                            const std::vector<ExpPtr> values)
+                            const std::vector<ExpPtr> & values)
             : Expression(token, ExpressionTypes::TUPLE_DEF, std::make_shared<Types::TupleType>()),
               values(values) { }
             
             TupleDefinition(const Token & token,
                             const Types::TypePtr & returnType,
-                            const std::vector<ExpPtr> values)
+                            const std::vector<ExpPtr> & values)
             : Expression(token, ExpressionTypes::TUPLE_DEF, returnType),
               values(values) { }
     };
@@ -279,7 +279,7 @@ namespace Expressions {
 
             Match(const Token & token,
                   const std::string & ident,
-                  const std::vector<std::shared_ptr<Case>> cases)
+                  const std::vector<std::shared_ptr<Case>> & cases)
             : Expression(token, ExpressionTypes::MATCH, std::make_shared<Types::UnknownType>()),
               ident(ident),
               cases(cases) { }

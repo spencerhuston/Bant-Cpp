@@ -110,7 +110,7 @@ namespace Types {
         public:
             TypePtr listType;
 
-            ListType(const TypePtr & listType)
+            explicit ListType(const TypePtr & listType)
             : Type(DataTypes::LIST),
               listType(listType) { }
 
@@ -155,7 +155,7 @@ namespace Types {
         public:
             std::vector<TypePtr> tupleTypes;
 
-            TupleType(const std::vector<TypePtr> & tupleTypes)
+            explicit TupleType(const std::vector<TypePtr> & tupleTypes)
             : Type(DataTypes::TUPLE),
               tupleTypes(tupleTypes) { }
 
@@ -204,14 +204,14 @@ namespace Types {
 
                 for (unsigned int typeIndex = 0; typeIndex < tupleTypes.size(); ++typeIndex) {
                     auto type = tupleTypes.at(typeIndex);
-                    auto otherType = otherTupleType->tupleTypes.at(typeIndex);
+                    auto otherTupleElementType = otherTupleType->tupleTypes.at(typeIndex);
 
                     if (type->dataType == DataTypes::UNKNOWN) {
                         tupleTypes.at(typeIndex) = otherTupleType->tupleTypes.at(typeIndex);
                         continue;
                     }
 
-                    if (!type->compare(otherType)) {
+                    if (!type->compare(otherTupleElementType)) {
                         return false;
                     }
                 }
@@ -226,7 +226,7 @@ namespace Types {
         public:
             const std::string identifier;
             
-            GenType(const std::string & identifier)
+            explicit GenType(const std::string & identifier)
             : Type(DataTypes::GEN),
               identifier(identifier) { }
             
@@ -334,13 +334,13 @@ namespace Types {
             const std::string ident;
             std::vector<std::pair<std::string, TypePtr>> fieldTypes{};
 
-            TypeclassType(const std::string & ident,
+            explicit TypeclassType(const std::string & ident,
                           const std::vector<std::pair<std::string, TypePtr>> & fieldTypes)
             : Type(DataTypes::TYPECLASS),
               ident(ident),
               fieldTypes(fieldTypes) { }
 
-            TypeclassType(const std::string & ident)
+            explicit TypeclassType(const std::string & ident)
             : Type(DataTypes::TYPECLASS),
               ident(ident),
               fieldTypes({}) { }

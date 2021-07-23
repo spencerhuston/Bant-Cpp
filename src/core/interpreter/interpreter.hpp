@@ -19,8 +19,8 @@ class Interpreter {
 
         std::shared_ptr<Values::NullValue> errorNullValue;
 
-        Values::ValuePtr interpretProgram(const ExpPtr & expression, Values::Environment & environment);
-        Values::ValuePtr interpretLiteral(const ExpPtr & expression, Values::Environment & environment);
+        Values::ValuePtr interpretProgram(const ExpPtr & expression, const Values::Environment & environment);
+        Values::ValuePtr interpretLiteral(const ExpPtr & expression, const Values::Environment & environment);
         Values::ValuePtr interpretPrimitive(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretLet(const ExpPtr & expression, Values::Environment & environment);
         Values::ValuePtr interpretReference(const ExpPtr & expression, Values::Environment & environment);

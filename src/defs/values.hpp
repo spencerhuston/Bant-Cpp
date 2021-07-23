@@ -13,7 +13,7 @@ namespace Values {
         public:
             Types::TypePtr type;
 
-            Value(const Types::TypePtr & type)
+            explicit Value(const Types::TypePtr & type)
             : type(type) { }
     };
 
@@ -71,7 +71,7 @@ namespace Values {
 
     class NullValue : public Value {
         public:
-            NullValue(const Types::TypePtr & type)
+            explicit NullValue(const Types::TypePtr & type)
             : Value(type) { }
     };
 
@@ -108,7 +108,7 @@ namespace Values {
             Environment functionBodyEnvironment;
 
             bool isBuiltin = false;
-            BuiltinDefinitions::BuiltinEnums builtinEnum;
+            BuiltinDefinitions::BuiltinEnums builtinEnum = BuiltinDefinitions::BuiltinEnums::BUILTINNUM;
 
             FunctionValue(const Types::TypePtr & type,
                           const std::vector<std::string> & parameterNames,

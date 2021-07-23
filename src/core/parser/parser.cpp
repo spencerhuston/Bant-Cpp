@@ -128,10 +128,11 @@ Parser::parseTypeclass() {
 
     std::vector<std::pair<std::string, Types::TypePtr>> fieldTypes{};
     auto fieldExists = [&fieldTypes](const std::string & fieldName) {
-        for (const auto & field : fieldTypes) {
-            if (fieldName == field.first)
-                return true;
+        if (std::any_of(fieldTypes.begin(), fieldTypes.end(), 
+                        [&fieldName](const std::pair<std::string, Types::TypePtr> & field) { return (fieldName == field.first); })) {
+            return true;
         }
+
         return false;
     };
     
@@ -212,9 +213,10 @@ Parser::parseTuple() {
         tupleDefinition = std::make_shared<TupleDefinition>(token, tupleValues);
     } else {
         std::vector<Types::TypePtr> tupleTypes;
-        for (auto & value : tupleValues) {
-            tupleTypes.push_back(value->returnType);
-        }
+        std::transform(tupleValues.begin(), tupleValues.end(), std::back_inserter(tupleTypes),
+                    [](const ExpPtr & value) -> Types::TypePtr { 
+                       return value->returnType; 
+                    });
         auto tupleType = std::make_shared<Types::TupleType>(tupleTypes);
         tupleDefinition = std::make_shared<TupleDefinition>(token, tupleType, tupleValues);
     }
@@ -518,14 +520,12 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
 		bool genericNameMatches = false;
 
 		Types::TypePtr type;
-		for (const auto genericParameterType : genericParameterList) {
-			if (genericParameterType->identifier == parameterName) {
-				type = std::make_shared<Types::GenType>(parameterName);
-				genericNameMatches = true;
-				advance();
-				break;
-			}
-		}
+        if (std::any_of(genericParameterList.begin(), genericParameterList.end(), 
+                        [&parameterName](const Types::GenTypePtr & genType) { return (genType->identifier == parameterName); })) {
+            type = std::make_shared<Types::GenType>(parameterName);
+			genericNameMatches = true;
+			advance();
+        }
 
 		if (!genericNameMatches) {
             Format::printError(std::string("Undefined generic type: ") + parameterName);
@@ -537,7 +537,7 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
 }
 
 bool
-Parser::match(const Token::TokenType tokenType, const std::string text) {
+Parser::match(const Token::TokenType tokenType, const std::string & text) {
     if (inBounds() && currentToken().type == tokenType && currentToken().text == text) {
         advance();
         return true;
@@ -546,22 +546,11 @@ Parser::match(const Token::TokenType tokenType, const std::string text) {
 }
 
 bool
-Parser::matchNoAdvance(const Token::TokenType tokenType, const std::string text) {
+Parser::matchNoAdvance(const Token::TokenType tokenType, const std::string & text) {
     if (inBounds() && currentToken().type == tokenType && currentToken().text == text) {
         return true;
     }
     return false;
-}
-
-Token
-Parser::peek() {
-    if (currentTokenIndex == tokenStream.size() - 1) {
-        return Token(Token::TokenType::DELIM,
-                     FilePosition(-1, -1, "END"),
-                     std::string({}));
-    }
-
-    return tokenStream.at(currentTokenIndex + 1);
 }
 
 void
@@ -622,7 +611,7 @@ Parser::getEscapedCharacter(const std::string & escapeSequence) {
 }
 
 void
-Parser::printError(bool useUnexpected, const std::string & errorString, const std::string expected) {
+Parser::printError(bool useUnexpected, const std::string & errorString, const std::string & expected) {
     error = true;
     
     FilePosition position = currentToken().position;

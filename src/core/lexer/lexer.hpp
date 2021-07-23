@@ -44,10 +44,10 @@ class Lexer {
         static bool isValue(const std::string & tokenString);
         static bool isIdentity(const std::string & tokenString);
 
-        void printError(const std::string culprit);
+        void printError(const std::string & culprit);
 
     public:
-        static std::string readFile(const std::string sourceFileName);
+        static std::string readFile(const std::string & sourceFileName);
         
         explicit Lexer(const std::string & sourceStream);
         

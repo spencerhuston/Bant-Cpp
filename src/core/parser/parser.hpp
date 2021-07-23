@@ -50,16 +50,15 @@ class Parser {
         Token currentToken() { return tokenStream.at(currentTokenIndex); }
         bool inBounds() { return currentTokenIndex < tokenStream.size(); }
 
-        bool match(const Token::TokenType tokenType, const std::string text);
-        bool matchNoAdvance(const Token::TokenType tokenType, const std::string text);
-        Token peek();
+        bool match(const Token::TokenType tokenType, const std::string & text);
+        bool matchNoAdvance(const Token::TokenType tokenType, const std::string & text);
         void skip(const std::string & text);
 
         std::string dummy();
         bool isValue(const std::string & valueString);
         char getEscapedCharacter(const std::string & escapeSequence);
 
-        void printError(bool useUnexpected, const std::string & errorString, const std::string expected = "$");
+        void printError(bool useUnexpected, const std::string & errorString, const std::string & expected = "$");
 
     public:
         explicit Parser(const std::vector<Token> & tokenStream);

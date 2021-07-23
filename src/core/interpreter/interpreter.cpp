@@ -44,7 +44,7 @@ Interpreter::interpret(const ExpPtr & expression, Values::Environment & environm
 }
 
 Values::ValuePtr
-Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & environment) {
+Interpreter::interpretProgram(const ExpPtr & expression, const Values::Environment & environment) {
     auto program = std::static_pointer_cast<Program>(expression);
 
     Values::Environment programEnvironment = environment;
@@ -52,10 +52,9 @@ Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & e
     for (auto & function : program->functions) {
         Values::Environment functionInnerEnvironment = programEnvironment;
 
-        std::vector<std::string> parameterNames;
-        for (auto & parameter : function->parameters) {
-            parameterNames.push_back(parameter->name);
-        }
+        std::vector<std::string> parameterNames{};
+        std::transform(function->parameters.begin(), function->parameters.end(), std::back_inserter(parameterNames),
+                        [](const std::shared_ptr<Argument> & parameter) -> std::string { return parameter->name; });
         
         auto functionValue = std::make_shared<Values::FunctionValue>(function->returnType, parameterNames, function->functionBody, functionInnerEnvironment);
 
@@ -72,7 +71,7 @@ Interpreter::interpretProgram(const ExpPtr & expression, Values::Environment & e
 }
 
 Values::ValuePtr
-Interpreter::interpretLiteral(const ExpPtr & expression, Values::Environment & environment) {
+Interpreter::interpretLiteral(const ExpPtr & expression, const Values::Environment & environment) {
     auto literal = std::static_pointer_cast<Literal>(expression);
 
     if (literal->returnType->dataType == Types::DataTypes::INT) {
@@ -224,9 +223,8 @@ Interpreter::interpretListDefinition(const ExpPtr & expression, Values::Environm
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
 
     std::vector<Values::ValuePtr> listData;
-    for (auto & element : listDefinition->values) {
-        listData.push_back(interpret(element, environment));
-    }
+    std::transform(listDefinition->values.begin(), listDefinition->values.end(), std::back_inserter(listData),
+                    [this, &environment](const ExpPtr & element) -> Values::ValuePtr { return interpret(element, environment); });
 
     return std::make_shared<Values::ListValue>(listDefinition->returnType, listData);
 }
@@ -236,9 +234,8 @@ Interpreter::interpretTupleDefinition(const ExpPtr & expression, Values::Environ
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
 
     std::vector<Values::ValuePtr> tupleData;
-    for (auto & element : tupleDefinition->values) {
-        tupleData.push_back(interpret(element, environment));
-    }
+    std::transform(tupleDefinition->values.begin(), tupleDefinition->values.end(), std::back_inserter(tupleData),
+                    [this, &environment](const ExpPtr & element) -> Values::ValuePtr { return interpret(element, environment); });
 
     return std::make_shared<Values::TupleValue>(tupleDefinition->returnType, tupleData);
 }

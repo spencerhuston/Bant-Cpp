@@ -81,7 +81,7 @@ func readChar() -> char = { 0 };
 func printChar(c: char) -> null = { 0 };
 func readString() -> string = { 0 };
 func printString(s: string) -> null = { 0 };
-func rand(lower: int, upper: int) -> int = { 0 };
+func rand(l: int, u: int) -> int = { 0 };
 func halt() -> null = { 0 };
 )";
 

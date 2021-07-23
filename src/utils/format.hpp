@@ -25,7 +25,7 @@ namespace Format {
     }
 
     inline void
-    printError(const std::string errorString) {
+    printError(const std::string & errorString) {
         std::cout << "\033[1;31m" << errorString << "\033[0m" << std::endl;
     }
 }
