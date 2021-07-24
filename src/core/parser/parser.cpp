@@ -8,7 +8,6 @@ Parser::makeTree() {
     Format::printDebugHeader("Parsing");
     preprocessImports();
     ExpPtr tree = parseProgram();
-    // err if anything leftover
     Format::printDebugHeader("Parsing Done");
     return tree;
 }
