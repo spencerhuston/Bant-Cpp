@@ -119,6 +119,12 @@ namespace Values {
               parameterNames(parameterNames),
               functionBody(functionBody),
               functionBodyEnvironment(functionBodyEnvironment) { }
+            
+            ~FunctionValue() {
+                if (type->dataType == Types::DataTypes::FUNC) {
+                    std::static_pointer_cast<Types::FuncType>(type)->functionInnerEnvironment->clear();
+                }
+            }
     };
 
     using FunctionValuePtr = std::shared_ptr<FunctionValue>;

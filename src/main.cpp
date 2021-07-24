@@ -40,7 +40,7 @@ void runBant(const std::string & sourceStream) {
             Format::printError("One or more errors occurred during type checking, exiting");
             return;
         }
-/*
+
         Format::printDebugHeader("Successful Build, Running...");
 
         phase++;
@@ -52,7 +52,7 @@ void runBant(const std::string & sourceStream) {
         if (interpreter.errorOccurred()) {
             Format::printError("One or more errors occurred at runtime, exiting");
             return;
-        }*/
+        }
     } catch (...) {
         std::string errorExitMessage = "Unexpected error occurred";
         switch (phase) {

@@ -9,6 +9,7 @@ void
 Interpreter::run() {
     Values::Environment environment = std::make_shared<std::map<std::string, Values::ValuePtr>>();
     interpret(rootExpression, environment);
+    environment->clear();
 }
 
 Values::ValuePtr
@@ -50,20 +51,23 @@ Interpreter::interpretProgram(const ExpPtr & expression, const Values::Environme
     Values::Environment programEnvironment = environment;
 
     for (auto & function : program->functions) {
-        Values::Environment functionInnerEnvironment = programEnvironment;
-
         std::vector<std::string> parameterNames{};
         std::transform(function->parameters.begin(), function->parameters.end(), std::back_inserter(parameterNames),
                         [](const std::shared_ptr<Argument> & parameter) -> std::string { return parameter->name; });
         
-        auto functionValue = std::make_shared<Values::FunctionValue>(function->returnType, parameterNames, function->functionBody, functionInnerEnvironment);
+        auto functionValue = std::make_shared<Values::FunctionValue>(function->returnType, 
+                                                                    parameterNames, 
+                                                                    function->functionBody, 
+                                                                    std::make_shared<std::map<std::string, Values::ValuePtr>>());
 
         if (BuiltinDefinitions::isBuiltin(function->name)) {
             functionValue->isBuiltin = true;
             functionValue->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
+        } else {
+            functionValue->functionBodyEnvironment = std::make_shared<std::map<std::string, Values::ValuePtr>>(*programEnvironment);
+            functionValue->functionBodyEnvironment->erase(function->name);
         }
 
-        addName(functionValue->functionBodyEnvironment, function->name, functionValue);
         addName(programEnvironment, function->name, functionValue);
     }
 
@@ -205,7 +209,7 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
         addName(functionEnvironment, functionValue->parameterNames.at(argumentIndex), interpret(application->arguments.at(argumentIndex), environment));
     }
 
-    for (auto & environmentVariable : *(functionValue->functionBodyEnvironment)) {
+    for (auto & environmentVariable : *(functionValue->functionBodyEnvironment)) { // STILL REACHABLE LEAK
         if (!BuiltinDefinitions::isBuiltin(environmentVariable.first)) {
             addName(functionEnvironment, environmentVariable.first, environmentVariable.second);
         }
@@ -275,9 +279,9 @@ Interpreter::interpretMatch(const ExpPtr & expression, Values::Environment & env
 void
 Interpreter::addName(Values::Environment & environment, std::string name, Values::ValuePtr value) {
     if (environment->count(name)) {
-		environment->erase(name);
+		environment->erase(name); // STILL REACHABLE LEAK
 	}
-	environment->insert(std::pair<std::string, Values::ValuePtr>(name, value));
+	environment->insert(std::pair<std::string, Values::ValuePtr>(name, value)); // STILL REACHABLE LEAK
 }
 
 Values::ValuePtr
