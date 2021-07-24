@@ -62,6 +62,7 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
         Environment functionInnerEnvironment;
         if (environment && !function->isBuiltin) {
             functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*environment);
+            functionInnerEnvironment->erase(function->name);
         } else {
             functionInnerEnvironment = std::make_shared<EnvironmentRaw>();
         }

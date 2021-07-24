@@ -4,4 +4,4 @@ valgrind --verbose \
 	--error-limit=no \
 	--leak-check=full \
 	--track-origins=yes \
-	$1 $2
+	./build/bant $1
