@@ -8,6 +8,75 @@
 #include "core/interpreter/interpreter.hpp"
 #include "core/builtin/builtinImplementations.hpp"
 
+void runBant(const std::string & sourceStream) {
+    int phase = 0;
+    try {
+        Format::printDebugHeader("Building...");
+
+        auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
+        auto tokenStream = lexer.makeTokenStream();
+
+        if (lexer.errorOccurred()) {
+            Format::printError("One or more errors occurred during lexing, exiting");
+            return;
+        }
+
+        phase++;
+
+        auto parser = Parser(tokenStream);
+        auto tree = parser.makeTree();
+
+        if (parser.errorOccurred()) {
+            Format::printError("One or more errors occurred during parsing, exiting");
+            return;
+        }
+
+        phase++;
+
+        auto typeChecker = TypeChecker(tree);
+        typeChecker.check();
+
+        if (typeChecker.errorOccurred()) {
+            Format::printError("One or more errors occurred during type checking, exiting");
+            return;
+        }
+
+        Format::printDebugHeader("Successful Build, Running...");
+
+        phase++;
+        
+        auto interpreter = Interpreter(tree);
+        BuiltinImplementations::interpreter = interpreter;
+        interpreter.run();
+
+        if (interpreter.errorOccurred()) {
+            Format::printError("One or more errors occurred at runtime, exiting");
+            return;
+        }
+    } catch (...) {
+        std::string errorExitMessage = "Unexpected error occurred";
+        switch (phase) {
+            case 0:
+                errorExitMessage += std::string(" during lexing");
+                break;
+            case 1:
+                errorExitMessage += std::string(" during parsing");
+                break;
+            case 2:
+                errorExitMessage += std::string(" during type checking");
+                break;
+            case 3:
+                errorExitMessage += std::string(" during interpretation");
+                break;
+            default:
+                break;
+        }
+        errorExitMessage += std::string(", exiting");
+
+        Format::printError(errorExitMessage);
+    }
+}
+
 int main(int argc, char ** argv) {
     std::string sourceStream;
 
@@ -34,72 +103,5 @@ int main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(2);
     
-    int phase = 0;
-
-    try {
-        Format::printDebugHeader("Building...");
-
-        auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
-        auto tokenStream = lexer.makeTokenStream();
-
-        if (lexer.errorOccurred()) {
-            Format::printError("One or more errors occurred during lexing, exiting");
-            exit(3);
-        }
-
-        phase++;
-
-        auto parser = Parser(tokenStream);
-        auto tree = parser.makeTree();
-
-        if (parser.errorOccurred()) {
-            Format::printError("One or more errors occurred during parsing, exiting");
-            exit(4);
-        }
-
-        phase++;
-
-        auto typeChecker = TypeChecker(tree);
-        typeChecker.check();
-
-        if (typeChecker.errorOccurred()) {
-            Format::printError("One or more errors occurred during type checking, exiting");
-            exit(5);
-        }
-
-        Format::printDebugHeader("Successful Build, Running...");
-
-        phase++;
-        
-        auto interpreter = Interpreter(tree);
-        BuiltinImplementations::interpreter = interpreter;
-        interpreter.run();
-
-        if (interpreter.errorOccurred()) {
-            Format::printError("One or more errors occurred at runtime, exiting");
-            exit(6);
-        }
-    } catch (...) {
-        std::string errorExitMessage = "Unexpected error occurred";
-        switch (phase) {
-            case 0:
-                errorExitMessage += std::string(" during lexing");
-                break;
-            case 1:
-                errorExitMessage += std::string(" during parsing");
-                break;
-            case 2:
-                errorExitMessage += std::string(" during type checking");
-                break;
-            case 3:
-                errorExitMessage += std::string(" during interpretation");
-                break;
-            default:
-                break;
-        }
-        errorExitMessage += std::string(", exiting");
-
-        Format::printError(errorExitMessage);
-        exit(7);
-    }
+    runBant(sourceStream);
 }

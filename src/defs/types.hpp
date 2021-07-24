@@ -256,6 +256,11 @@ namespace Types {
               genericTypes(genericTypes),
               argumentTypes(argumentTypes),
               returnType(returnType) { }
+
+            ~FuncType() {
+                if (functionInnerEnvironment)
+                    functionInnerEnvironment->clear();
+            }
             
             const std::string toString() const override {
                 std::string typeString("[");
@@ -335,7 +340,7 @@ namespace Types {
             std::vector<std::pair<std::string, TypePtr>> fieldTypes{};
 
             explicit TypeclassType(const std::string & ident,
-                          const std::vector<std::pair<std::string, TypePtr>> & fieldTypes)
+                                   const std::vector<std::pair<std::string, TypePtr>> & fieldTypes)
             : Type(DataTypes::TYPECLASS),
               ident(ident),
               fieldTypes(fieldTypes) { }

@@ -6,7 +6,7 @@ TypeChecker::TypeChecker(const ExpPtr & rootExpression)
 void
 TypeChecker::check() {
     Format::printDebugHeader("Type checking/inference");
-    Environment environment = std::make_shared<std::map<std::string, Types::TypePtr>>();
+    Environment environment = std::make_shared<EnvironmentRaw>();
     auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::UnknownType>());
     eval(rootExpression, environment, temp->returnType);
     Format::printDebugHeader("Type checking/inference Done");
@@ -53,12 +53,17 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
     }
 
     for (auto & function : program->functions) {
+        if (BuiltinDefinitions::isBuiltin(function->name)) {
+            function->isBuiltin = true;
+            function->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
+            std::static_pointer_cast<Types::FuncType>(function->returnType)->isBuiltin = true;
+        }
+
         Environment functionInnerEnvironment;
-        if (environment) {
-            functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*environment);        
+        if (environment && !function->isBuiltin) {
+            functionInnerEnvironment = std::make_shared<EnvironmentRaw>(*environment);
         } else {
-            printError(program->token, "Error: Bad environment");
-            return program->body;
+            functionInnerEnvironment = std::make_shared<EnvironmentRaw>();
         }
 
         for (auto & genericParameter : function->genericParameters) {
@@ -77,11 +82,6 @@ TypeChecker::evalProgram(ExpPtr expression, Environment & environment, Types::Ty
             }
         }
 
-        if (BuiltinDefinitions::isBuiltin(function->name)) {
-            function->isBuiltin = true;
-            function->builtinEnum = BuiltinDefinitions::getBuiltin(function->name);
-            std::static_pointer_cast<Types::FuncType>(function->returnType)->isBuiltin = true;
-        }
         std::static_pointer_cast<Types::FuncType>(function->returnType)->functionInnerEnvironment = functionInnerEnvironment;
     }
 
@@ -277,6 +277,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
 
     if (ident->returnType->dataType == Types::DataTypes::FUNC) {
         auto functionType = std::static_pointer_cast<Types::FuncType>(ident->returnType);
+        
         if (ident->expType == Expressions::ExpressionTypes::APP) {
             auto identGenerics = std::static_pointer_cast<Application>(ident)->genericReplacementTypes;
             application->genericReplacementTypes.insert(application->genericReplacementTypes.end(), identGenerics.begin(), identGenerics.end());
