@@ -61,6 +61,9 @@ Parser::parseImport(int tokenIndex) {
     if (stream.empty())
         return std::vector<Token>{};
 
+    if (stream.back() != ';')
+        stream += std::string(";");
+
     auto lexer = Lexer(std::move(stream));
     return lexer.makeTokenStream();
 }

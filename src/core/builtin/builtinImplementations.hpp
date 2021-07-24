@@ -71,6 +71,9 @@ class BuiltinImplementations {
         static Values::ValuePtr printCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr readStringBuiltin(Values::FunctionValuePtr functionValue);
         static Values::ValuePtr printStringBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr concatBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr substrBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr charAtBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr randBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr haltBuiltin(Values::FunctionValuePtr functionValue);
 

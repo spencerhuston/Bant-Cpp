@@ -9,8 +9,8 @@
 #include "core/builtin/builtinImplementations.hpp"
 
 void runBant(const std::string & sourceStream) {
-    int phase = 0;
-    try {
+    //int phase = 0;
+    //try {
         Format::printDebugHeader("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
@@ -21,7 +21,7 @@ void runBant(const std::string & sourceStream) {
             return;
         }
 
-        phase++;
+        //phase++;
 
         auto parser = Parser(tokenStream);
         auto tree = parser.makeTree();
@@ -31,7 +31,7 @@ void runBant(const std::string & sourceStream) {
             return;
         }
 
-        phase++;
+        //phase++;
 
         auto typeChecker = TypeChecker(tree);
         typeChecker.check();
@@ -43,7 +43,7 @@ void runBant(const std::string & sourceStream) {
 
         Format::printDebugHeader("Successful Build, Running...");
 
-        phase++;
+        //phase++;
         
         auto interpreter = Interpreter(tree);
         BuiltinImplementations::interpreter = interpreter;
@@ -53,7 +53,7 @@ void runBant(const std::string & sourceStream) {
             Format::printError("One or more errors occurred at runtime, exiting");
             return;
         }
-    } catch (...) {
+    /*} catch (...) {
         std::string errorExitMessage = "Unexpected error occurred";
         switch (phase) {
             case 0:
@@ -74,7 +74,7 @@ void runBant(const std::string & sourceStream) {
         errorExitMessage += std::string(", exiting");
 
         Format::printError(errorExitMessage);
-    }
+    }*/
 }
 
 int main(int argc, char ** argv) {

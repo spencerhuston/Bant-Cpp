@@ -106,6 +106,12 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return readStringBuiltin(functionValue);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTSTRING) {
         return printStringBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CONCAT) {
+        return concatBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::SUBSTR) {
+        return substrBuiltin(token, functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CHARAT) {
+        return charAtBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::RAND) {
         return randBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::HALT) {
@@ -885,6 +891,51 @@ BuiltinImplementations::printStringBuiltin(const Token & token, Values::Function
     std::cout << std::endl;
 
     return nullValue;
+}
+
+Values::ValuePtr
+BuiltinImplementations::concatBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto stringValue1 = getArgumentValue<Values::StringValue>(0, functionValue, environment);
+    auto stringValue2 = getArgumentValue<Values::StringValue>(1, functionValue, environment);
+
+    return std::make_shared<Values::StringValue>(std::make_shared<Types::StringType>(), stringValue1->data + stringValue2->data);
+}
+
+Values::ValuePtr
+BuiltinImplementations::substrBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto stringValue = getArgumentValue<Values::StringValue>(0, functionValue, environment);
+    auto startValue = getArgumentValue<Values::IntValue>(1, functionValue, environment);
+    auto endValue = getArgumentValue<Values::IntValue>(2, functionValue, environment);
+
+    if (stringValue->data == "") {
+        printError(token, "Error: Cannot get substring from empty string: " + token.position.currentLineText);
+        return nullValue;
+    }
+    
+    int startIndex = std::static_pointer_cast<Values::IntValue>(startValue)->data;
+    int endIndex = std::static_pointer_cast<Values::IntValue>(endValue)->data;
+
+    if (startIndex > endIndex || 
+        startIndex >= (int)stringValue->data.length() || endIndex >= (int)stringValue->data.length() ||
+        startIndex < 0 || endIndex < 0) {
+        printError(token, "Error: Invalid range: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    return std::make_shared<Values::StringValue>(std::make_shared<Types::StringType>(), stringValue->data.substr(startIndex, endIndex - startIndex));
+}
+
+Values::ValuePtr
+BuiltinImplementations::charAtBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto stringValue = getArgumentValue<Values::StringValue>(0, functionValue, environment);
+    auto index = getArgumentValue<Values::IntValue>(1, functionValue, environment)->data;
+
+    if (index < 0 || index >= (int)stringValue->data.length()) {
+        printError(token, "Error: Invalid string access: " + token.position.currentLineText);
+        return nullValue;
+    }
+
+    return std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), stringValue->data.at(index));
 }
 
 Values::ValuePtr

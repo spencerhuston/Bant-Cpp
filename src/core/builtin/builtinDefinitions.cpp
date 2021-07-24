@@ -21,6 +21,7 @@ const std::vector<std::string> BuiltinDefinitions::builtinNames{
     "printList", "print2Tuple", "print3Tuple", "print4Tuple",
     "readChar", "printChar",
     "readString", "printString",
+    "concat", "substr", "charAt",
     "rand", "halt"
 };
 
@@ -81,6 +82,9 @@ func readChar() -> char = { 0 };
 func printChar(c: char) -> null = { 0 };
 func readString() -> string = { 0 };
 func printString(s: string) -> null = { 0 };
+func concat(s1: string, s2: string) -> string = { 0 };
+func substr(s: string, start: int, end: int) -> string = { 0 };
+func charAt(s: string, i: int) -> char = { 0 };
 func rand(l: int, u: int) -> int = { 0 };
 func halt() -> null = { 0 };
 )";

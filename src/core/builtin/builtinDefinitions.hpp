@@ -30,6 +30,7 @@ class BuiltinDefinitions {
             PRINTLIST, PRINT2TUPLE, PRINT3TUPLE, PRINT4TUPLE,
             READCHAR, PRINTCHAR,
             READSTRING, PRINTSTRING,
+            CONCAT, SUBSTR, CHARAT,
             RAND, HALT,
             BUILTINNUM = HALT + 1
         };
