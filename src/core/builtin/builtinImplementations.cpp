@@ -86,10 +86,10 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return print3TupleBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINT4TUPLE) {
         return print4TupleBuiltin(token, functionValue, environment);
-    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INTTOCHAR) {
-        return intToCharBuiltin(functionValue, environment);
-    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CHARTOINT) {
-        return charToIntBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::INTTOSTRING) {
+        return intToStringBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::STRINGTOINT) {
+        return stringToIntBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::STRINGTOCHARLIST) {
         return stringToCharListBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::CHARLISTTOSTRING) {
@@ -747,15 +747,23 @@ BuiltinImplementations::equalsBuiltin(const Token & token, Values::FunctionValue
 }
 
 Values::ValuePtr
-BuiltinImplementations::intToCharBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto intValue = getArgumentValue<Values::IntValue>(0, functionValue, environment)->data;
-    return std::make_shared<Values::CharValue>(std::make_shared<Types::CharType>(), (char)intValue);
+BuiltinImplementations::intToStringBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto intData = getArgumentValue<Values::IntValue>(0, functionValue, environment)->data;
+    return std::make_shared<Values::StringValue>(std::make_shared<Types::StringType>(), std::to_string(intData));
 }
 
 Values::ValuePtr
-BuiltinImplementations::charToIntBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
-    auto charValue = getArgumentValue<Values::CharValue>(0, functionValue, environment)->data;
-    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), (int)charValue);
+BuiltinImplementations::stringToIntBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto stringData = getArgumentValue<Values::StringValue>(0, functionValue, environment)->data;
+
+    int intData = 0;
+    try {
+        intData = std::stoi(stringData);
+    } catch (...) {
+        printError(token, "Error: stringToInt: Given string is not an integer: " + token.position.currentLineText);
+        return nullValue;
+    }
+    return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), intData);
 }
 
 Values::ValuePtr

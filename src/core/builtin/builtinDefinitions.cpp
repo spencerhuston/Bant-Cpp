@@ -15,7 +15,7 @@ const std::vector<std::string> BuiltinDefinitions::builtinNames{
     "fill", "reverse",
     "foldl", "foldr",
     "zip", "union", "intersect", "equals",
-    "intToChar", "charToInt", "stringToCharList", "charListToString",
+    "intToString", "stringToInt", "stringToCharList", "charListToString",
     "printInt",
     "printBool",
     "printList", "print2Tuple", "print3Tuple", "print4Tuple",
@@ -68,8 +68,8 @@ func zip[T, U](l1: List[T], l2: List[U]) -> List[Tuple[T, U]] = { 0 };
 func union[T](l1: List[T], l2: List[T]) -> List[T] = { 0 };
 func intersect[T](l1: List[T], l2: List[T]) -> List[T] = { 0 };
 func equals[T](v1: T, v2: T) -> bool = { 0 };
-func intToChar(i: int) -> char = { 0 };
-func charToInt(c: char) -> int = { 0 };
+func intToString(i: int) -> string = { 0 };
+func stringToInt(s: string) -> int = { 0 };
 func stringToCharList(s: string) -> List[char] = { 0 };
 func charListToString(l: List[char]) -> string = { 0 };
 func printInt(i: int) -> null = { 0 };

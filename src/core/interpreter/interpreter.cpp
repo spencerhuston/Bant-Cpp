@@ -10,6 +10,10 @@ Interpreter::run() {
     Values::Environment environment = std::make_shared<std::map<std::string, Values::ValuePtr>>();
     interpret(rootExpression, environment);
     environment->clear();
+   /* for (auto value : *environment) {
+        if (value.second)
+            environment->erase(value.first);
+    }*/
 }
 
 Values::ValuePtr
@@ -37,7 +41,7 @@ Interpreter::interpret(const ExpPtr & expression, Values::Environment & environm
     else if (expression->expType == ExpressionTypes::MATCH)
         return interpretMatch(expression, environment);
     else if (expression->expType == ExpressionTypes::END)
-        return nullptr;
+        return errorNullValue;
 
     printError(expression->token, std::string("Unknown expression type: ") + expression->token.text);
 

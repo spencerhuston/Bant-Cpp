@@ -311,10 +311,10 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
   ````printString(s: string) -> null````
 
 #### Conversion
-- intToChar: Convert integer to char<br>
-  ````intToChar(i: int) -> char````
-- charToInt: Convert char to integer<br>
-  ````charToInt(c: char) -> int````
+- intToChar: Convert integer to string representation<br>
+  ````intToString(i: int) -> string````
+- charToInt: Convert numeric string to integer<br>
+  ````stringToInt(s: string) -> int````
 - stringToCharList: Convert string to char list<br>
   ````stringToCharList(s: string) -> List[char]````
 - charListToString: Convert char list to string<br>

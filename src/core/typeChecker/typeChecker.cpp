@@ -41,7 +41,7 @@ TypeChecker::eval(ExpPtr expression, Environment & environment, Types::TypePtr &
 
     printError(expression->token, std::string("Unknown expression type: ") + expression->token.text);
 
-    return nullptr;
+    return expression;
 }
 
 ExpPtr
@@ -213,9 +213,9 @@ TypeChecker::evalReference(ExpPtr expression, Environment & environment, Types::
                                                 return (fieldIdent == fieldType.first);
                                             });
 
-        Types::TypePtr fieldType = (fieldTypeIterator != typeclassType->fieldTypes.end()) ? (*fieldTypeIterator).second : nullptr;
+        Types::TypePtr fieldType = (fieldTypeIterator != typeclassType->fieldTypes.end()) ? (*fieldTypeIterator).second : std::make_shared<Types::UnknownType>();
 
-        if (fieldType == nullptr) {
+        if (fieldType->dataType == Types::DataTypes::UNKNOWN) {
             printError(reference->token, std::string("Error: typeclass ") +
                        typeclassType->ident + std::string(" has no field ") +
                        reference->fieldIdent);
@@ -373,11 +373,17 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
 ExpPtr
 TypeChecker::evalListDefinition(ExpPtr expression, const Environment & environment, Types::TypePtr & expectedType) {
     auto listDefinition = std::static_pointer_cast<ListDefinition>(expression);
-    auto expType = std::static_pointer_cast<Types::ListType>(expectedType);
-
+    
+    Types::TypePtr expType;
+    if (expectedType->dataType == Types::DataTypes::LIST) {
+        expType = std::static_pointer_cast<Types::ListType>(expectedType)->listType;
+    } else {
+        expType = expectedType;
+    }
+    
     for (auto & listElementExpression : listDefinition->values) {
-        if (!compare(listElementExpression->returnType, expType->listType)) {
-            printMismatchError(listDefinition->token, listElementExpression->returnType, expType->listType);
+        if (!compare(listElementExpression->returnType, expType)) {
+            printMismatchError(listDefinition->token, listElementExpression->returnType, expType);
         }
     }
 
