@@ -1,12 +1,10 @@
 # Bant (WORK IN PROGRESS)
-Bant is an interpreted, statically typed, toy functional programming language made purely for my own entertainment
 
-**REQUIRES C++17**
+### Build: **REQUIRES C++17**
+Simply clone and run the ```./scripts/makeBant.sh``` script. Run a Bant program using ```[bant directory]/build/bant [source file].bnt```
 
-### Build:
-Simply clone and run the ```makeBant.sh``` script. Run a Bant program using ```[bant directory]/build/bant source_file.bnt```
-
-### Features:
+# Crash Course
+_Bant_ is a strongly, statically typed, interpreted, pure functional programming language that supports the following features:
 - Types:
   * _int_
   * _char_
@@ -15,26 +13,20 @@ Simply clone and run the ```makeBant.sh``` script. Run a Bant program using ```[
   * _null_
   * _List_
   * _Tuple_
-- first-class functions
-- polymorphic functions
+- first-class, polymorphic functions
 - "product types" (non-recursive)
 - standard arithmetic and boolean operations
-- built-in functions for: _List_ and _Tuple_ manipulation, basic I/O
+- built-in functions for: _List_ and _Tuple_ manipulation, basic I/O, conversions, etc.
 - control-flow statements
 - value case-switching
-- static type-checking
 - comments
 - external file importing
 
-### Features TODO:
-- Built-in _string_ functions
-- Type inference
-- Typeclasses
+---
 
-# Crash Course
 **NOTE**: the examples in this guide will use the following format: ```code example``` => ```console output```
 
-TODO
+---
 
 ### Arithmetic Operations
 Bant supports primitive integer types, with the following operations:
@@ -189,7 +181,7 @@ When listed as a type, it is denoted ```List[type]``` such as:
 - _List_ of list of _char_: ```List[List[char]]```
 - _List_ of function type that returns an integer, with an integer argument: ```List[(int) -> int]```
 
-_List_ access looks like function application, being ```listName(index)```
+_List_ access looks like function application, being ```listName(index)```. Nested access would be successive applications, like ```listName(index1)(index2)```.
 
 ---
 
@@ -216,14 +208,60 @@ printChar(t.1)
 ---
 
 ### Functions
-TODO
+Bant supports polymorphic first-class functions, allowing for: functions as values, nested functions, closures, currying, and partial application.
+
+You can declare one as: 
+
+```func functionName(parameter1: parameter1Type, ..., parameterN: parameterNType) -> returnType = { function body };```
+
+Function application works like any other language, being ```functionName(argument1, ..., argumentN)```
+
+Examples:
+
+6.0) Simple function that accepts an integer and returns it added with the value 2
+```
+func addTwo(i: int) -> int = x + 2;
+printInt(addTwo(3))
+```
+=> ```5```
+
+6.1) Function that takes an _int_ and a _char_ and returns a _Tuple_ made of the two values
+```
+func makeTuple(i: int, c: char) -> Tuple[int, char] = {
+    Tuple { i, c }
+};
+
+print2Tuple[int, char](makeTuple(5, 'a'))
+```
+=> ```(5, 'a')```
+
+6.2) Recursive function (fibonacci)
+```
+func fib(n: int) -> int = {
+	if (n <= 1)
+		n
+	else 
+		fib(n - 1) + fib(n - 2)
+};
+
+printInt(fib(9))
+```
+=> ```34```
+
+**NOTES**:
+- All arguments are passed by value
+- Mutual recursion is supported
+
 #### Functions as values
-TODO
+
 
 #### Closures
 TODO
 
 #### Partial Application
+TODO
+
+#### Polymorphic Functions
 TODO
 
 ---
