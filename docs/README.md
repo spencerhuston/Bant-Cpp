@@ -37,7 +37,7 @@ Simply clone and run the ```makeBant.sh``` script. Run a Bant program using ```[
 TODO
 
 ### Arithmetic Operations
-Bant supports primitive integer types (no floating point), with the following operations:
+Bant supports primitive integer types, with the following operations:
 - Addition ```+```
 - Subtraction ```-```
 - Multiplication ```*```
@@ -159,26 +159,59 @@ false
 
 ### Bant Primitive Types
 #### int
-TODO
+Signed 32-bit integers, range of -2147483648 to 2147483647.
 
 #### bool
-TODO
+As shown, Bant's _bool_ type can be either _true_ or _false_
 
 #### char
-TODO
+ASCII code characters denoted with single quotation marks.
+
+Supported escape characters are:
+- ```?``` = Single question mark
+- ```\``` = Backslash
+- ```b``` = Backspace
+- ```n``` = Newline
+- ```r``` = Return carriage
+- ```t``` = Tab
+- ```s``` = Space
 
 #### string
-TODO
+Denoted with double quotes and, like _char_ types, supports ASCII characters and the previously listed escape characters 
 
 ---
 
 ### Lists
-TODO
+Bant's _List_ types can be declared as ```List { value1, value2, ..., valueN }```
+
+When listed as a type, it is denoted ```List[type]``` such as:
+- _List_ of _int_: ```List[int]```
+- _List_ of list of _char_: ```List[List[char]]```
+- _List_ of function type that returns an integer, with an integer argument: ```List[(int) -> int]```
+
+_List_ access looks like function application, being ```listName(index)```
 
 ---
 
 ### Tuples
-TODO
+While _List_ types can only hold a single type, _Tuple_ types can hold multiple types
+
+_Tuple_ declaration is very similar to _List_ declaration, being: ```Tuple { value1, value2, ... valueN }```
+
+_Tuple_ type definitions must list the type of each element by order of occurrence:
+- _Tuple_ of _int_ and _char_: ```Tuple[int, char]```
+- _Tuple_ of _Tuple_ of _int_ and _char_, and of _string_: ```Tuple[Tuple[int, char], string]```
+
+_Tuple_ access is done by using the dot operator followed by the index of the element you wish to access:
+
+5.0)
+```
+val t : Tuple[int, char, string] = Tuple { 5, 'a', "hello" };
+printChar(t.1)
+```
+=> ```a```
+
+**NOTE**: There is currently no support for directly accessing a nested _Tuple_, such as ```t.0.0```. Instead one should create a function to extract the nested _Tuple_ and then access the element from that value
 
 ---
 
@@ -311,9 +344,9 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
   ````printString(s: string) -> null````
 
 #### Conversion
-- intToChar: Convert integer to string representation<br>
+- intToString: Convert integer to string representation<br>
   ````intToString(i: int) -> string````
-- charToInt: Convert numeric string to integer<br>
+- stringToInt: Convert numeric string to integer<br>
   ````stringToInt(s: string) -> int````
 - stringToCharList: Convert string to char list<br>
   ````stringToCharList(s: string) -> List[char]````
