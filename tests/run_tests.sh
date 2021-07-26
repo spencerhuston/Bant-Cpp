@@ -174,6 +174,8 @@ function func_tests {
 	test $functionPath "recursive_func.bnt" "0" "Recursive function"
 	test $functionPath "mutually_recursive.bnt" "-1" "Mutually recursive functions"
 	test $functionPath "mutually_recursive_separate_scope.bnt" "-1" "Mutually recursive functions, in separate program expression blocks"
+	test $functionPath "func_list_return.bnt" "3" "List of func - call"
+	test $functionPath "fib.bnt" "34" "Fibonacci, check that arguments are passed by value (copy)"
 	echo ""
 	#echo -e "${YELLOW}\terror${NONE}"
 	#echo ""

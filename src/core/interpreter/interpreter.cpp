@@ -10,10 +10,6 @@ Interpreter::run() {
     Values::Environment environment = std::make_shared<std::map<std::string, Values::ValuePtr>>();
     interpret(rootExpression, environment);
     environment->clear();
-   /* for (auto value : *environment) {
-        if (value.second)
-            environment->erase(value.first);
-    }*/
 }
 
 Values::ValuePtr
@@ -208,7 +204,7 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
     // else has to be a function type
 
     auto functionValue = std::static_pointer_cast<Values::FunctionValue>(ident);
-    Values::Environment functionEnvironment = environment;
+    Values::Environment functionEnvironment = std::make_shared<std::map<std::string, Values::ValuePtr>>(*environment);
     for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
         addName(functionEnvironment, functionValue->parameterNames.at(argumentIndex), interpret(application->arguments.at(argumentIndex), environment));
     }
