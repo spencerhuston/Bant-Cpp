@@ -212,7 +212,7 @@ Bant supports polymorphic first-class functions, allowing for: functions as valu
 
 You can declare one as: 
 
-```func functionName(parameter1: parameter1Type, ..., parameterN: parameterNType) -> returnType = { function body };```
+```func functionName(parameter1: type, ..., parameterN: type) -> returnType = { function body };```
 
 Function application works like any other language, being ```functionName(argument1, ..., argumentN)```
 
@@ -253,20 +253,66 @@ printInt(fib(9))
 - Mutual recursion is supported
 
 #### Functions as values
+Being first-class citizens, functions can be stored in variables, passed to other functions, and returned from functions
 
+Examples:
+6.2) (**NOTE**: Here we encapsulate the function declaration inside of curly brackets. This is because we must first construct it for it to exist in that local scope's environment, then we can return it as a value through the single _f_ expression below the definition. The grammar would not allow this without the brackets.)
+```
+val h : (int) -> int = {
+    func f(x: int) -> int = x + 2;
+    f
+};
+printInt(h(3)) 
+```
+=> ```5```
 
-#### Closures
-TODO
+#### Closures, Currying, and Partial Application
+Functions can be returned from other functions with certain variables permanently set to a value from outside the function scope that is deduced during their construction.
+ 
+6.3) In this example, we construct an instance of the function _g_ inside of _f_ where _x_ will always be equal to the value 2. This instance is then stored in _h_
+```
+func f(x: int) -> (int) -> int = {
+    func g(y: int) -> int = {
+        x + y
+    };
+    g
+};
+val h : (int) -> int = f(2);
+printInt(h(3))
+```
+=> ```5```
 
-#### Partial Application
-TODO
+6.4) Here we directly call the instance of _g_ that is returned from _f_ with _x_ set to 2.
+```
+func f(x: int) -> (int) -> int = {
+    func g(y: int) -> int = {
+        x + y
+    };
+    g
+};
+printInt(f(2)(3))
+```
+=> ```5```
 
 #### Polymorphic Functions
-TODO
+One of Bant's most powerful tools is polymorphic, or generic, functions. Most of the builtin functions rely on this and it makes code far more reusable and composable.
+
+To define a polymorphic function, simply denote the generic type names in square brackets after the function name:
+```
+func functionName[genericTypeName1, ..., genericTypeNameN](parameter1: type, ..., parameterN: type) -> returnType = { 
+    function body 
+};
+```
+
+A function application to a polymorphic function must include the types to use for that call:
+
+```functionName[type1, ..., typeN](...)```
+
+Examples:
 
 ---
 
-### Product Types
+### "Product Types"
 TODO
 
 ---
@@ -410,7 +456,7 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
 ---
 
 ### Comments
-TODO
+Comments are single-line only, denoted by # at the beginning of the line
 
 ---
 
