@@ -31,7 +31,7 @@ class BuiltinDefinitions {
             READCHAR, PRINTCHAR,
             READSTRING, PRINTSTRING,
             CONCAT, SUBSTR, CHARAT,
-            RAND, HALT,
+            RAND, PRINTTYPE, HALT,
             BUILTINNUM = HALT + 1
         };
 

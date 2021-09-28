@@ -318,7 +318,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
             }
         }
 
-        auto resolvedReturnType = functionType->returnType;
+        auto resolvedReturnType = copyArgumentType(functionType->returnType);
         resolveType(resolvedReturnType, functionInnerEnvironment);
 
         if (application->returnType->resolved == false &&
@@ -334,6 +334,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
 
         application->returnType = resolvedReturnType;
         application->returnType->resolved = true;
+
         return application;
     } else if (ident->returnType->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(ident->returnType);
@@ -397,8 +398,9 @@ TypeChecker::evalListDefinition(ExpPtr expression, const Environment & environme
 ExpPtr
 TypeChecker::evalTupleDefinition(ExpPtr expression, const Environment & environment, Types::TypePtr & expectedType) {
     auto tupleDefinition = std::static_pointer_cast<TupleDefinition>(expression);
+    auto tupleTypeCopy = copyArgumentType(tupleDefinition->returnType);
 
-    if (!compare(tupleDefinition->returnType, expectedType)) {
+    if (!compare(tupleTypeCopy, expectedType)) {
         printMismatchError(tupleDefinition->token, tupleDefinition->returnType, expectedType);
     }
 

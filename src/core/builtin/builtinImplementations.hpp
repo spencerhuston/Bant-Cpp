@@ -75,6 +75,7 @@ class BuiltinImplementations {
         static Values::ValuePtr substrBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr charAtBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr randBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr printTypeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr haltBuiltin(Values::FunctionValuePtr functionValue);
 
         static std::shared_ptr<Values::NullValue> nullValue;

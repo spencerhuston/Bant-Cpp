@@ -16,13 +16,12 @@ const std::vector<std::string> BuiltinDefinitions::builtinNames{
     "foldl", "foldr",
     "zip", "union", "intersect", "equals",
     "intToString", "stringToInt", "stringToCharList", "charListToString",
-    "printInt",
-    "printBool",
+    "printInt", "printBool",
     "printList", "print2Tuple", "print3Tuple", "print4Tuple",
     "readChar", "printChar",
     "readString", "printString",
     "concat", "substr", "charAt",
-    "rand", "halt"
+    "rand", "printType", "halt"
 };
 
 int
@@ -86,6 +85,7 @@ func concat(s1: string, s2: string) -> string = { 0 };
 func substr(s: string, start: int, end: int) -> string = { 0 };
 func charAt(s: string, i: int) -> char = { 0 };
 func rand(l: int, u: int) -> int = { 0 };
+func printType[T](exp: T) -> null = { 0 };
 func halt() -> null = { 0 };
 )";
 

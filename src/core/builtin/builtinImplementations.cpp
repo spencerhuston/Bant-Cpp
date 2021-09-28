@@ -114,6 +114,8 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
         return charAtBuiltin(token, functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::RAND) {
         return randBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::PRINTTYPE) {
+        return printTypeBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::HALT) {
         return haltBuiltin(functionValue);
     }
@@ -956,6 +958,13 @@ BuiltinImplementations::randBuiltin(Values::FunctionValuePtr functionValue, Valu
     std::uniform_int_distribution<> distribution(lowerBoundValue, upperBoundValue);
 
     return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), distribution(generator));
+}
+
+Values::ValuePtr
+BuiltinImplementations::printTypeBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto value = getArgumentValue<Values::Value>(0, functionValue, environment);
+    std::cout << value->type->toString() << std::endl;
+    return nullValue;
 }
 
 Values::ValuePtr

@@ -3,4 +3,4 @@ func f[T, U](x: T, y: U) -> Tuple[T, U] = {
 };
 
 f[int, bool](5, true);
-f[bool, string](true, "test")
+val t : Tuple[bool, string] = f[bool, string](true, "test")
