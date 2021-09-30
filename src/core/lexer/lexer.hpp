@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../utils/format.hpp"
+#include "../../utils/logger.hpp"
 #include "../../utils/filePosition.hpp"
 #include "../builtin/builtinDefinitions.hpp"
 #include "../../defs/token.hpp"

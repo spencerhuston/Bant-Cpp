@@ -2,7 +2,7 @@
 
 #include "../../defs/values.hpp"
 #include "../../defs/token.hpp"
-#include "../../utils/format.hpp"
+#include "../../utils/logger.hpp"
 #include "builtinDefinitions.hpp"
 #include "../interpreter/interpreter.hpp"
 
@@ -48,6 +48,7 @@ class BuiltinImplementations {
         static Values::ValuePtr findBuiltin(const Token & token, Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr filterBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr foreachBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr fillBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr reverseBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);

@@ -5,10 +5,10 @@ Parser::Parser(const std::vector<Token> & tokenStream)
 
 ExpPtr
 Parser::makeTree() {
-    Format::printDebugHeader("Parsing");
+    HEADER("Parsing");
     preprocessImports();
     ExpPtr tree = parseProgram();
-    Format::printDebugHeader("Parsing Done");
+    HEADER("Parsing Done");
     return tree;
 }
 
@@ -186,7 +186,7 @@ Parser::parseList() {
         auto listType = listValues.at(0)->returnType;
         for (auto & value : listValues) {
             if (!listType->compare(value->returnType)) {
-                Format::printError(std::string("Error: List types must match: ") + currentToken().position.currentLineText);
+                ERROR(std::string("Error: List types must match: ") + currentToken().position.currentLineText);
 	            return listDefinition = std::make_shared<ListDefinition>(token, listValues);
             }
         }
@@ -485,7 +485,7 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
             typeString = currentToken().text;
             type = std::make_shared<Types::TypeclassType>(typeString);
         } else {
-			Format::printError(std::string("Unexpected type: ") + typeString);
+			ERROR(std::string("Unexpected type: ") + typeString);
 			return std::make_shared<Types::UnknownType>();
 		}
 		advance();
@@ -530,7 +530,7 @@ Parser::parseType(const std::vector<Types::GenTypePtr> & genericParameterList) {
         }
 
 		if (!genericNameMatches) {
-            Format::printError(std::string("Undefined generic type: ") + parameterName);
+            ERROR(std::string("Undefined generic type: ") + parameterName);
 			return std::make_shared<Types::UnknownType>();
 		}
 
@@ -605,7 +605,7 @@ Parser::getEscapedCharacter(const std::string & escapeSequence) {
 				break;
 		}
 
-        Format::printError(std::string("Bad escape sequence: ") + escapeSequence);
+        ERROR(std::string("Bad escape sequence: ") + escapeSequence);
 		return 0;
 	}
 
@@ -628,5 +628,5 @@ Parser::printError(bool useUnexpected, const std::string & errorString, const st
                 << std::endl << std::endl
                 << position.currentLineText << std::endl
                 << characterArrow;
-    Format::printError(errorStream.str());
+    ERROR(errorStream.str());
 }

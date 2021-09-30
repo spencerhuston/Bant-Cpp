@@ -316,7 +316,7 @@ Interpreter::doOperation(Operator::OperatorTypes op, const Values::ValuePtr & le
 
             std::stringstream errorStream;
             errorStream << "Error: Division by zero!" << std::endl;
-            Format::printError(errorStream.str());
+            ERROR(errorStream.str());
             return errorNullValue;
         } else {
             return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
@@ -377,5 +377,5 @@ Interpreter::printError(const Token & token, const std::string & errorMessage) {
                 << ", Column: " << token.position.fileColumn << std::endl
                 << errorMessage << std::endl 
                 << token.position.currentLineText << std::endl;
-    Format::printError(errorStream.str());
+    ERROR(errorStream.str());
 }

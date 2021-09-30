@@ -62,6 +62,8 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
        return mapBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FILTER) {
        return filterBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FOREACH) {
+       return foreachBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FILL) {
         return fillBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REVERSE) {
@@ -572,6 +574,21 @@ BuiltinImplementations::filterBuiltin(Values::FunctionValuePtr functionValue, Va
     }
 
     return makeListType(listValue, listData);
+}
+
+Values::ValuePtr
+BuiltinImplementations::foreachBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto listValue = getArgumentValue<Values::ListValue>(0, functionValue, environment);
+    auto funcValue = getArgumentValue<Values::FunctionValue>(1, functionValue, environment);
+    
+    std::vector<Values::ValuePtr> listData;
+    for (const auto value : listValue->listData) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), value);
+        interpreter.interpret(funcValue->functionBody, funcEnvironment);
+    }
+
+    return nullValue;
 }
 
 Values::ValuePtr
@@ -1112,5 +1129,5 @@ BuiltinImplementations::printError(const Token & token, const std::string & erro
                 << ", Column: " << token.position.fileColumn << std::endl
                 << errorMessage << std::endl 
                 << token.position.currentLineText << std::endl;
-    Format::printError(errorStream.str());
+    ERROR(errorStream.str());
 }

@@ -20,7 +20,7 @@ class BuiltinDefinitions {
             RANGE, ISEMPTY,
             SUM, PRODUCT, MAX, MIN, SORTLH, SORTHL,
             CONTAINS, FIND,
-            MAP, FILTER,
+            MAP, FILTER, FOREACH,
             FILL, REVERSE,
             FOLDL, FOLDR,
             ZIP, UNION, INTERSECT, EQUALS,

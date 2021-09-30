@@ -34,7 +34,7 @@ Lexer::readFile(const std::string & sourceFileName) {
     const std::string extension(".bnt");
     if (sourceFileName.size() <= extension.size() ||
         sourceFileName.compare(sourceFileName.size() - extension.size(), extension.size(), extension) != 0) {
-        Format::printError(std::string("Error: Files require .bnt extension: ") + sourceFileName);
+        ERROR(std::string("Error: Files require .bnt extension: ") + sourceFileName);
         return std::string("");
     }
 
@@ -46,7 +46,7 @@ Lexer::readFile(const std::string & sourceFileName) {
         sourceFileStream << sourceFile.rdbuf();
         sourceStream = sourceFileStream.str();
     } else
-        Format::printError(std::string("Error: Could not open file: ") + sourceFileName);
+        ERROR(std::string("Error: Could not open file: ") + sourceFileName);
 
     return sourceStream;
 }
@@ -54,9 +54,9 @@ Lexer::readFile(const std::string & sourceFileName) {
 Lexer::Lexer(const std::string & sourceStream) 
 : sourceStream(sourceStream),
   currentPosition(1, 1, "") {
-    Format::printDebugHeader("Source text");
-    Format::printDebugHeader(sourceStream);
-    Format::printDebugHeader("Lexing Errors");
+    HEADER("Source text");
+    HEADER(sourceStream);
+    HEADER("Lexing Errors");
 }
 
 const std::vector<Token>
@@ -67,14 +67,14 @@ Lexer::makeTokenStream() {
     if (!currentTokenBlock.empty())
         lexCharacter('\n');
 
-    Format::printDebugHeader("Tokens");
+    HEADER("Tokens");
     
     std::stringstream tokenStringStream;
     for (const auto & token : tokenStream) {
         tokenStringStream << token.toString() << std::endl;
     }
 
-    Format::printDebugHeader(tokenStringStream.str());
+    HEADER(tokenStringStream.str());
 
     return tokenStream;
 }
@@ -278,5 +278,5 @@ Lexer::printError(const std::string & culprit) {
                 << "Unexpected character: " << culprit << std::endl << std::endl
                 << currentPosition.currentLineText << std::endl
                 << std::string(currentPosition.fileColumn - culprit.length() - 1, ' ') << "^";
-    Format::printError(errorStream.str());
+    ERROR(errorStream.str());
 }

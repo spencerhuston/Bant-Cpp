@@ -5,11 +5,11 @@ TypeChecker::TypeChecker(const ExpPtr & rootExpression)
 
 void
 TypeChecker::check() {
-    Format::printDebugHeader("Type checking/inference");
+    HEADER("Type checking/inference");
     Environment environment = std::make_shared<EnvironmentRaw>();
     auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::UnknownType>());
     eval(rootExpression, environment, temp->returnType);
-    Format::printDebugHeader("Type checking/inference Done");
+    HEADER("Type checking/inference Done");
 }
 
 ExpPtr
@@ -569,7 +569,7 @@ TypeChecker::printMismatchError(const Token & token, const Types::TypePtr & type
                 << "Mismatched type: " << type->toString()
                 << ", Expected: " << expectedType->toString()
                 << std::endl << token.position.currentLineText << std::endl;
-    Format::printError(errorStream.str());
+    ERROR(errorStream.str());
 }
 
 void
@@ -581,5 +581,5 @@ TypeChecker::printError(const Token & token, const std::string & errorMessage) {
                 << ", Column: " << token.position.fileColumn << std::endl
                 << errorMessage << std::endl 
                 << token.position.currentLineText << std::endl;
-    Format::printError(errorStream.str());
+    ERROR(errorStream.str());
 }

@@ -8,16 +8,18 @@
 #include "core/interpreter/interpreter.hpp"
 #include "core/builtin/builtinImplementations.hpp"
 
+#include "utils/logger.hpp"
+
 void runBant(const std::string & sourceStream) {
     int phase = 0;
     try {
-        Format::printDebugHeader("Building...");
+        HEADER("Building...");
 
         auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
         auto tokenStream = lexer.makeTokenStream();
 
         if (lexer.errorOccurred()) {
-            Format::printError("One or more errors occurred during lexing, exiting");
+            ERROR("One or more errors occurred during lexing, exiting");
             return;
         }
 
@@ -27,7 +29,7 @@ void runBant(const std::string & sourceStream) {
         auto tree = parser.makeTree();
 
         if (parser.errorOccurred()) {
-            Format::printError("One or more errors occurred during parsing, exiting");
+            ERROR("One or more errors occurred during parsing, exiting");
             return;
         }
 
@@ -37,11 +39,11 @@ void runBant(const std::string & sourceStream) {
         typeChecker.check();
 
         if (typeChecker.errorOccurred()) {
-            Format::printError("One or more errors occurred during type checking, exiting");
+            ERROR("One or more errors occurred during type checking, exiting");
             return;
         }
 
-        Format::printDebugHeader("Successful Build, Running...");
+        HEADER("Successful Build, Running...");
 
         phase++;
         
@@ -50,7 +52,7 @@ void runBant(const std::string & sourceStream) {
         interpreter.run();
 
         if (interpreter.errorOccurred()) {
-            Format::printError("One or more errors occurred at runtime, exiting");
+            ERROR("One or more errors occurred at runtime, exiting");
             return;
         }
     } catch (...) {
@@ -73,28 +75,30 @@ void runBant(const std::string & sourceStream) {
         }
         errorExitMessage += std::string(", exiting");
 
-        Format::printError(errorExitMessage);
+        ERROR(errorExitMessage);
     }
 }
 
 int main(int argc, char ** argv) {
     std::string sourceStream;
 
+    Logger::getInstance();
+
     if (argc == 1) {
-        Format::printError("Error: Source file required");
+        ERROR("Error: Source file required");
         exit(1);
     } else if (argc == 2) {
         sourceStream = Lexer::readFile(std::string(argv[1]));
     } else if (argc == 3) {
         if (std::string(argv[1]) == "-d") {
-            Format::debug = true;
+            Logger::getInstance().setLevel(DEBUG);
             sourceStream = Lexer::readFile(std::string(argv[2]));
         } else {
             sourceStream = Lexer::readFile(std::string(argv[1]));
             if (std::string(argv[1]) == "-d") {
-                Format::debug = true;
+                Logger::getInstance().setLevel(DEBUG);
             } else {
-                Format::printError(std::string("Unknown argument: ") + std::string(argv[1]));
+                ERROR(std::string("Unknown argument: ") + std::string(argv[1]));
                 exit(1);
             }
         }
