@@ -191,6 +191,7 @@ function template_tests {
 	test $templatesPath "template_tuple.bnt" "" "Return tuples made from template"
 	test $templatesPath "partial_function.bnt" "" "Partial function"
 	test $templatesPath "builtin_no_retain_type_info.bnt" "2\n1" "Builtin does not keep old generic replacement info"
+	test $templatesPath "template_tuple.bnt" "" "Tuple template"
 	echo ""
 	echo -e "${YELLOW}\terror${NONE}"
 	test $templatesPath "nested_template_incorrect_return.bnt" "Error" "Nested template function, incorrect return from application"
@@ -204,8 +205,9 @@ function typeclass_tests {
 	test $typeclassPath "car.bnt" "2020\nHonda Civic" "Car"
 	test $typeclassPath "point.bnt" "2" "Point"
 	echo ""
-	#echo -e "${YELLOW}\terror${NONE}"
-	#echo ""
+	echo -e "${YELLOW}\terror${NONE}"
+	test $typeclassPath "typeclass_match_generic_type.bnt" "Error" "Reject mismatch typeclass for generic parameter"
+	echo ""
 }
 
 for var in "$@"

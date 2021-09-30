@@ -329,7 +329,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         }
 
         if (!compare(resolvedReturnType, expectedType)) {
-            printMismatchError(application->token, functionType->returnType, expectedType); 
+            printMismatchError(application->token, functionType->returnType, expectedType);
         }
 
         application->returnType = resolvedReturnType;
@@ -338,7 +338,14 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
         return application;
     } else if (ident->returnType->dataType == Types::DataTypes::TYPECLASS) {
         auto typeclassType = std::static_pointer_cast<Types::TypeclassType>(ident->returnType);
-        application->returnType = typeclassType;
+
+        if (expectedType->dataType != Types::DataTypes::TYPECLASS) {
+            printMismatchError(application->token, typeclassType, expectedType);
+        }
+
+        if (typeclassType->ident != std::static_pointer_cast<Types::TypeclassType>(expectedType)->ident) {
+            printMismatchError(application->token, typeclassType, expectedType);
+        }
         
         if (application->arguments.size() != typeclassType->fieldTypes.size()) {
             printError(application->token, "Typeclass construction does not match signature");
@@ -348,6 +355,7 @@ TypeChecker::evalApplication(ExpPtr expression, Environment & environment, Types
             eval(application->arguments.at(argumentIndex), environment, typeclassType->fieldTypes.at(argumentIndex).second);
         }
 
+        application->returnType = typeclassType;
         return application;
     } else if (ident->returnType->dataType == Types::DataTypes::LIST) {
         auto listType = std::static_pointer_cast<Types::ListType>(ident->returnType);

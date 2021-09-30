@@ -1,0 +1,4 @@
+type P { };
+type Q { };
+func f[T](t: T) -> null = null;
+f[type P](Q())
