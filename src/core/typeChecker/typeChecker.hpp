@@ -2,6 +2,7 @@
 
 #include "../builtin/builtinDefinitions.hpp"
 #include "../../defs/expressions.hpp"
+#include "../../utils/prettyprint.hpp"
 
 #include "parser.hpp"
 

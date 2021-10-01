@@ -10,6 +10,12 @@ TypeChecker::check() {
     auto temp = std::make_shared<Temp>(rootExpression->token, std::make_shared<Types::UnknownType>());
     eval(rootExpression, environment, temp->returnType);
     HEADER("Type checking/inference Done");
+
+    HEADER("Typed AST");
+    if (Logger::getInstance().getLevel() == DEBUG) {
+        PrettyPrint printer;
+        printer.print(rootExpression);
+    }
 }
 
 ExpPtr
