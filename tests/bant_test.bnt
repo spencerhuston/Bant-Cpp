@@ -1,0 +1,59 @@
+type Position {
+	x: int,
+	y: int
+};
+
+type Action {
+	move: (type Position) -> type Position
+};
+
+type Car {
+	p: type Position,
+	wheels: int
+};
+
+type Bike {
+	p: type Position,
+	wheels: int
+};
+
+type Semi {
+	p: type Position,
+	wheels: int
+};
+
+val CAR_NUM_WHEELS : int = 4;
+val BIKE_NUM_WHEELS : int = 2;
+val SEMI_NUM_WHEELS : int = 18;
+
+func move(x: int, y: int) -> (type Position) -> type Position = {
+	func movePosition(p: type Position) -> type Position = {
+		Position(p.x + x, p.y + y)
+	};
+	movePosition
+};
+
+func printPosition(p: type Position) -> null = {
+	printString("Position:");
+	printString(concat("\tx: ", intToString(p.x)));
+	printString(concat("\ty: ", intToString(p.y)))
+};
+
+func printVehicle[Vehicle](vehicle: Vehicle) -> null = {
+	printPosition(vehicle.p);
+	printString(concat("Wheels: ", intToString(vehicle.wheels)));
+	printString(" ")
+};
+
+val c : type Car = Car(Position(0, 0), CAR_NUM_WHEELS);
+val b : type Bike = Bike(Position(10, -5), BIKE_NUM_WHEELS);
+val s : type Semi = Semi(Position(100, 50), SEMI_NUM_WHEELS);
+
+printVehicle[type Car](c);
+printVehicle[type Bike](b);
+printVehicle[type Semi](s);
+
+val a : type Action = Action(move(3, -3));
+val c2 : type Car = Car(a.move(c.p), CAR_NUM_WHEELS);
+
+printVehicle[type Car](c2)

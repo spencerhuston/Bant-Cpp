@@ -1,8 +1,7 @@
 #include "prettyprint.hpp"
 
-PrettyPrint::PrettyPrint() {
-    colors = {
-        "\033[1;32m", // GREEN
+PrettyPrint::PrettyPrint() 
+: colors({"\033[1;32m", // GREEN
         "\033[1;34m", // BLUE
         "\033[1;33m", // YELLOW
         "\033[1;35m", // MAGENTA
@@ -16,8 +15,8 @@ PrettyPrint::PrettyPrint() {
         "\033[1;91m", // BRIGHT_RED
         "\033[1;96m", // BRIGHT_CYAN
         "\033[1;97m", // BRIGHT_WHITE
-    };
-}
+    })
+{ }
 
 void PrettyPrint::print(ExpPtr expression) {
     if (expression->expType == ExpressionTypes::PROG)
@@ -188,7 +187,10 @@ void PrettyPrint::printLet(ExpPtr expression) {
 void PrettyPrint::printReference(ExpPtr expression) {
     auto reference = std::static_pointer_cast<Reference>(expression);
 
-    printLine("REFERENCE: " + reference->ident + ((reference->fieldIdent != "") ? "." + reference->fieldIdent : ""));
+    printLine("REFERENCE");
+    spaceCount++;
+    printLine(reference->ident + ((reference->fieldIdent != "") ? "." + reference->fieldIdent : "") + " => " + reference->returnType->toString());
+    spaceCount--;
 }
 
 void PrettyPrint::printBranch(ExpPtr expression) {

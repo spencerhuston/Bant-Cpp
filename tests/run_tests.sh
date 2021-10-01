@@ -24,7 +24,7 @@ NUM_FAILURES=0
 
 function test {
 	sourcePath="$1/$2"
-	ret=$(echo -e "$($BANT_PATH $sourcePath)")
+	ret=$(echo -e "$($BANT_PATH -f $sourcePath)")
 	exp=$(echo -e "$3")
 	if [[ "$ret" == "$exp" ]] || [[ "$3" = "Error" && "${ret,,}" = *"${3,,}"* ]]; then
 		echo -e "${GREEN}\tPASSED${NONE}  $4"

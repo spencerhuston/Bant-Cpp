@@ -10,12 +10,18 @@
 
 #include "utils/logger.hpp"
 
-void runBant(const std::string & sourceStream) {
+void runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
     int phase = 0;
     try {
         HEADER("Building...");
 
-        auto lexer = Lexer(BuiltinDefinitions::builtinDefinitions + sourceStream);
+        std::string lexerStream{sourceStream};
+
+        if (runWithBuiltins) {
+            lexerStream = BuiltinDefinitions::builtinDefinitions + lexerStream;
+        }
+
+        auto lexer = Lexer(lexerStream);
         auto tokenStream = lexer.makeTokenStream();
 
         if (lexer.errorOccurred()) {
@@ -79,33 +85,51 @@ void runBant(const std::string & sourceStream) {
     }
 }
 
+char * getCmdOption(char ** begin, char ** end, const std::string & option) {
+    char ** itr = std::find(begin, end, option);
+    if (itr != end && ++itr != end) {
+        return *itr;
+    }
+    return 0;
+}
+
+bool cmdOptionExists(char ** begin, char ** end, const std::string & option) {
+    return std::find(begin, end, option) != end;
+}
+
 int main(int argc, char ** argv) {
     std::string sourceStream;
 
     Logger::getInstance();
 
+    bool runWithBuiltins = true;
+    std::string filePath;
     if (argc == 1) {
         ERROR("Error: Source file required");
         exit(1);
-    } else if (argc == 2) {
-        sourceStream = Lexer::readFile(std::string(argv[1]));
-    } else if (argc == 3) {
-        if (std::string(argv[1]) == "-d") {
-            Logger::getInstance().setLevel(DEBUG);
-            sourceStream = Lexer::readFile(std::string(argv[2]));
-        } else {
-            sourceStream = Lexer::readFile(std::string(argv[1]));
-            if (std::string(argv[1]) == "-d") {
-                Logger::getInstance().setLevel(DEBUG);
-            } else {
-                ERROR(std::string("Unknown argument: ") + std::string(argv[1]));
-                exit(1);
-            }
-        }
+    }
+    
+    if (cmdOptionExists(argv, argv + argc, "-d")) { // Debug
+        Logger::getInstance().setLevel(DEBUG);
+    }
+    
+    if (cmdOptionExists(argv, argv + argc, "-nb")) { // No Builtins
+        runWithBuiltins = false;
+    }
+    
+    if (cmdOptionExists(argv, argv + argc, "-f")) { // File Path
+        filePath = std::string(getCmdOption(argv, argv + argc, "-f"));
     }
 
-    if (sourceStream.empty())
+    if (filePath.empty()) {
+        ERROR("Error: Source file required");
         exit(2);
+    }
+
+    sourceStream = Lexer::readFile(filePath);
+
+    if (sourceStream.empty())
+        exit(3);
     
-    runBant(sourceStream);
+    runBant(sourceStream, runWithBuiltins);
 }
