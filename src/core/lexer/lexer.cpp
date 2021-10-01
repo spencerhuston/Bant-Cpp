@@ -182,7 +182,8 @@ Lexer::filterWhitespace(const char character) {
             return true;
         }
             break;
-        case '\"': {
+        case '\"': 
+        case '\'': {
             currentPosition.fileColumn += 1;
             currentPosition.currentLineText += character;
             currentTokenBlock += character;
@@ -195,6 +196,7 @@ Lexer::filterWhitespace(const char character) {
             inQuotes = true;
             return false;
         }
+            break;
         default: {
             if (isValidCharacter(character) || inQuotes) {
                 currentPosition.fileColumn += 1;
@@ -273,7 +275,7 @@ void
 Lexer::printError(const std::string & culprit) {
     error = true;
     std::stringstream errorStream;
-    errorStream << "Line: " << currentPosition.fileLine - BuiltinDefinitions::builtinNumber()
+    errorStream << "Line: " << currentPosition.fileLine
                 << ", Column: " << currentPosition.fileColumn - 1 << std::endl
                 << "Unexpected character: " << culprit << std::endl << std::endl
                 << currentPosition.currentLineText << std::endl
