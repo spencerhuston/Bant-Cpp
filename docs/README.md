@@ -1,7 +1,7 @@
 # Bant (WORK IN PROGRESS)
 
 ### Build: **REQUIRES C++17**
-Simply clone and run the ```./scripts/makeBant.sh``` script. Run a Bant program using ```[bant directory]/build/bant [source file].bnt```
+Simply clone and run the ```./scripts/makeBant.sh``` script. Run a Bant program using ```[bant directory]/build/bant -f [source file].bnt```. To see debug output use the ```-d``` flag
 
 # Crash Course
 _Bant_ is a strongly, statically typed, interpreted, pure functional programming language that supports the following features:
@@ -309,6 +309,7 @@ A function application to a polymorphic function must include the types to use f
 ```functionName[type1, ..., typeN](...)```
 
 Examples:
+TODO
 
 ---
 
@@ -392,12 +393,16 @@ Bant supports a wide array of builtin function types, from _List_ manipulation t
   ````sortHigh(l: List[int]) -> List[int]````
 - sortLH: Sort integer list in non-descending order (low to high)<br>
   ````sortLow(l: List[int]) -> List[int]````
+- generate: Create and integer list according to a function mapped over a range [lower bound, upper bound]<br>
+  ````generate(l: int, u: int, f: (int) -> int) -> List[int]```
 
 #### Functional
 - map: Return list where function _f_ is applied to each element of list _l_<br>
   ````map[T, U](l: List[T], f: (T) -> U) -> List[U]````
 - filter: Return list where each element satisfies a boolean function _f_<br>
   ````filter[T, U](l: List[T], element: T, f: U -> bool) -> List[T]````
+- foreach: Perform some non-returning operation on each element of a list<br>
+  ```foreach[T](l: List[T], f: (T) -> null) -> null```
 - foldL: Left-associative linear fold on list _l_, initial value _i_, and function _f_<br>
   ````foldl[T](l: List[T], i: T, f: (T, T) -> T) -> T````
 - foldR: Right-associative linear fold on list _l_, initial value _i_, and function _f_<br>
