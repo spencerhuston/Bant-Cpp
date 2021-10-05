@@ -49,6 +49,7 @@ class BuiltinImplementations {
         static Values::ValuePtr mapBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr filterBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr foreachBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
+        static Values::ValuePtr generateBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr fillBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr reverseBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);
         static Values::ValuePtr foldlBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment);

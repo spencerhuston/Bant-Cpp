@@ -59,8 +59,12 @@ void PrettyPrint::printProgram(ExpPtr expression) {
             printFunctionDefinition(function);
         spaceCount--;
     }
-
+    
+    printLine("program body:");
+    spaceCount++;
     print(program->body);
+    spaceCount--;
+
     spaceCount--;
 }
 
@@ -72,6 +76,7 @@ void PrettyPrint::printFunctionDefinition(ExpPtr expression) {
 
     printLine("name: " + function->name);
     printLine("return type: " + function->returnType->toString());
+    printLine(std::string("builtin: ") + (std::static_pointer_cast<Types::FuncType>(function->returnType)->isBuiltin ? "TRUE" : "FALSE"));
 
     print("generic parameters: ");
     if (function->genericParameters.empty())

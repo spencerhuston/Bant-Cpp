@@ -12,7 +12,7 @@ const std::vector<std::string> BuiltinDefinitions::builtinNames{
     "sum", "product", "max", "min", "sortlh", "sorthl",
     "contains", "find",
     "map", "filter", "foreach",
-    "fill", "reverse",
+    "generate", "fill", "reverse",
     "foldl", "foldr",
     "zip", "union", "intersect", "equals",
     "intToString", "stringToInt", "stringToCharList", "charListToString",
@@ -60,6 +60,7 @@ func find[T](l: List[T], e: T) -> int = { 0 };
 func map[T, U](l: List[T], f: (T) -> U) -> List[U] = { 0 };
 func filter[T](l: List[T], f: (T) -> bool) -> List[T] = { 0 };
 func foreach[T](l: List[T], f: (T) -> null) -> null = { 0 };
+func generate(l: int, u: int, f: (int) -> int) -> List[int] = { 0 };
 func fill[T](e: T, s: int) -> List[T] = { 0 };
 func reverse[T](l: List[T]) -> List[T] = { 0 };
 func foldl[T](l: List[T], i: T, f: (T, T) -> T) -> T = { 0 };

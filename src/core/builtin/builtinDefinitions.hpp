@@ -21,7 +21,7 @@ class BuiltinDefinitions {
             SUM, PRODUCT, MAX, MIN, SORTLH, SORTHL,
             CONTAINS, FIND,
             MAP, FILTER, FOREACH,
-            FILL, REVERSE,
+            GENERATE, FILL, REVERSE,
             FOLDL, FOLDR,
             ZIP, UNION, INTERSECT, EQUALS,
             INTTOSTRING, STRINGTOINT, STRINGTOCHARLIST, CHARLISTTOSTRING,

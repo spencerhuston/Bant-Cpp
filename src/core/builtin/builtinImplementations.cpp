@@ -64,6 +64,8 @@ BuiltinImplementations::runBuiltin(const Token & token, Values::FunctionValuePtr
        return filterBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FOREACH) {
        return foreachBuiltin(functionValue, environment);
+    } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::GENERATE) {
+        return generateBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::FILL) {
         return fillBuiltin(functionValue, environment);
     } else if (functionValue->builtinEnum == BuiltinDefinitions::BuiltinEnums::REVERSE) {
@@ -589,6 +591,23 @@ BuiltinImplementations::foreachBuiltin(Values::FunctionValuePtr functionValue, V
     }
 
     return nullValue;
+}
+
+Values::ValuePtr
+BuiltinImplementations::generateBuiltin(Values::FunctionValuePtr functionValue, Values::Environment & environment) {
+    auto lowerBoundValue = getArgumentValue<Values::IntValue>(0, functionValue, environment)->data;
+    auto upperBoundValue = getArgumentValue<Values::IntValue>(1, functionValue, environment)->data;
+    auto funcValue = getArgumentValue<Values::FunctionValue>(2, functionValue, environment);
+
+    std::vector<Values::ValuePtr> listData;
+    for (int i = lowerBoundValue; i <= upperBoundValue; ++i) {
+        auto funcEnvironment = funcValue->functionBodyEnvironment;
+        auto intValue = std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(), i);
+        interpreter.addName(funcEnvironment, funcValue->parameterNames.at(0), intValue);
+        listData.push_back(interpreter.interpret(funcValue->functionBody, funcEnvironment));
+    }
+
+    return std::make_shared<Values::ListValue>(std::make_shared<Types::ListType>(std::make_shared<Types::IntType>()), listData);
 }
 
 Values::ValuePtr
