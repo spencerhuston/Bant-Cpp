@@ -19,3 +19,6 @@ Supported escape characters are:
 
 #### string
 Denoted with double quotes and, like _char_ types, supports ASCII characters and the previously listed escape characters
+
+#### null
+The unit type, has no value other than to indicate that no value exists
