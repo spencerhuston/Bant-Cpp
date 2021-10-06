@@ -22,3 +22,5 @@ Denoted with double quotes and, like _char_ types, supports ASCII characters and
 
 #### null
 The unit type, has no value other than to indicate that no value exists
+
+### How to use Bant variables: [Variable Declaration](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/VariableDeclaration.md)
