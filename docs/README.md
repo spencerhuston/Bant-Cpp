@@ -5,19 +5,19 @@ Simply clone and run the ```./scripts/makeBant.sh``` script. Run a Bant program 
 
 # Features
 _Bant_ is a strongly, statically typed, interpreted, pure functional programming language that supports the following features:
-- Types:
+- [Types](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/BantPrimitives.md):
   * _int_
   * _char_
   * _string_
   * _bool_
   * _null_
-  * _List_
-  * _Tuple_
-- first-class, polymorphic functions
+  * [_List_](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/ListType.md)
+  * [_Tuple_](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/TupleType.md)
+- [first-class, polymorphic functions](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/Functions.md)
 - "product types" (non-recursive)
-- standard arithmetic and boolean operations
-- built-in functions for: _List_ and _Tuple_ manipulation, basic I/O, conversions, etc.
-- control-flow statements
+- standard [arithmetic](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/Arithmetic.md) and [boolean](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/Boolean.md) operations
+- [built-in functions](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/BantBuiltins.md) for: _List_ and _Tuple_ manipulation, basic I/O, conversions, etc.
+- [control-flow statements](https://github.com/spencerhuston/Bant/blob/main/docs/BantFeatures/ControlFlow.md)
 - value case-switching
 - comments
 - external file importing
