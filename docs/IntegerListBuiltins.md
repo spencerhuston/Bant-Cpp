@@ -12,4 +12,4 @@
 - sortLH: Sort integer list in non-descending order (low to high)<br>
   ````sortLow(l: List[int]) -> List[int]````
 - generate: Create and integer list according to a function mapped over a range [lower bound, upper bound]<br>
-  ````generate(l: int, u: int, f: (int) -> int) -> List[int]```
+  ```generate(l: int, u: int, f: (int) -> int) -> List[int]```
