@@ -1005,7 +1005,7 @@ BuiltinImplementations::printTypeBuiltin(Values::FunctionValuePtr functionValue,
 
 Values::ValuePtr
 BuiltinImplementations::haltBuiltin(Values::FunctionValuePtr functionValue) {
-    exit(0);
+    throw HaltException();
     return nullValue;
 }
 

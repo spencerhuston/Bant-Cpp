@@ -393,5 +393,5 @@ Interpreter::printError(const Token & token, const std::string & errorMessage) {
     ERROR(errorStream.str());
     ERROR(getStackTraceString());
 
-    throw new RuntimeException;
+    throw RuntimeException();
 }

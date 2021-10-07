@@ -21,6 +21,13 @@ class RuntimeException : public std::exception {
         }
 };
 
+class HaltException : public std::exception {
+    public:
+        const char * what() const noexcept override {
+            return "HaltException";
+        }
+};
+
 class Interpreter {
     private:
         ExpPtr rootExpression;

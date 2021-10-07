@@ -289,7 +289,7 @@ namespace Expressions {
         public:
 
             Temp(const Token & token,
-                const Types::TypePtr & type)
+                 const Types::TypePtr & type)
             : Expression(token, ExpressionTypes::TEMP, type) { }
     };
 }

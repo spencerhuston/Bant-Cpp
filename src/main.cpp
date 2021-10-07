@@ -5,12 +5,38 @@
 #include "core/lexer/lexer.hpp"
 #include "core/parser/parser.hpp"
 #include "core/typeChecker/typeChecker.hpp"
+#include "core/cpsConverter/cpsConverter.hpp"
 #include "core/interpreter/interpreter.hpp"
 #include "core/builtin/builtinImplementations.hpp"
 
 #include "utils/logger.hpp"
 
-void runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
+void
+displayExceptionError(const int & phase) {
+    std::string errorExitMessage = "Unexpected error occurred";
+    switch (phase) {
+        case 0:
+            errorExitMessage += std::string(" during lexing");
+            break;
+        case 1:
+            errorExitMessage += std::string(" during parsing");
+            break;
+        case 2:
+            errorExitMessage += std::string(" during type checking");
+            break;
+        case 3:
+            errorExitMessage += std::string(" during interpretation");
+            break;
+        default:
+            break;
+    }
+    errorExitMessage += std::string(", exiting");
+
+    ERROR(errorExitMessage);
+}
+
+void
+runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
     int phase = 0;
     try {
         HEADER("Building...");
@@ -49,6 +75,9 @@ void runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
             return;
         }
 
+        auto cpsConverter = CPSConverter(tree);
+        cpsConverter.convert();
+
         HEADER("Successful Build, Running...");
 
         phase++;
@@ -61,33 +90,20 @@ void runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
             ERROR("One or more errors occurred at runtime, exiting");
             return;
         }
+    } catch (HaltException & haltException) {
+        return;
     } catch (RuntimeException & runtimeException) {
         ERROR("Exiting.");
-    } catch (...) {
-        std::string errorExitMessage = "Unexpected error occurred";
-        switch (phase) {
-            case 0:
-                errorExitMessage += std::string(" during lexing");
-                break;
-            case 1:
-                errorExitMessage += std::string(" during parsing");
-                break;
-            case 2:
-                errorExitMessage += std::string(" during type checking");
-                break;
-            case 3:
-                errorExitMessage += std::string(" during interpretation");
-                break;
-            default:
-                break;
-        }
-        errorExitMessage += std::string(", exiting");
-
-        ERROR(errorExitMessage);
+        return;
+    } catch (std::runtime_error & runtimeError) {
+        displayExceptionError(phase);
+    } catch (std::logic_error & logicError) {
+        displayExceptionError(phase);
     }
 }
 
-char * getCmdOption(char ** begin, char ** end, const std::string & option) {
+char *
+getCmdOption(char ** begin, char ** end, const std::string & option) {
     char ** itr = std::find(begin, end, option);
     if (itr != end && ++itr != end) {
         return *itr;
@@ -95,11 +111,13 @@ char * getCmdOption(char ** begin, char ** end, const std::string & option) {
     return 0;
 }
 
-bool cmdOptionExists(char ** begin, char ** end, const std::string & option) {
+bool
+cmdOptionExists(char ** begin, char ** end, const std::string & option) {
     return std::find(begin, end, option) != end;
 }
 
-int main(int argc, char ** argv) {
+int
+main(int argc, char ** argv) {
     std::string sourceStream;
 
     Logger::getInstance();

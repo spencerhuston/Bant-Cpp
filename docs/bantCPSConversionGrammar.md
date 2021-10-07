@@ -82,14 +82,14 @@ func c$1() -> null = { case1 body; c(val) };
 func c$2() -> null = { case2 body; c(val) };
 ...
 func c$N() -> null = { caseN body; c(val) };
-func c$Any() -> null = { case any body; c(val) };
+func c$Any$0() -> null = { case any body; c(val) };
 func c$(val: t) -> null = { val }
 match (ref) {
-	case exp = { c1() };
-	case exp2 = { c2() };
+	case exp = { c1$() };
+	case exp2 = { c2$() };
 	...
 	case expN = { cN() };
-	case any = { anyC() };
+	case any = { c$Any$0() };
 }
 
 Unchanged:
