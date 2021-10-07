@@ -61,6 +61,8 @@ void runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
             ERROR("One or more errors occurred at runtime, exiting");
             return;
         }
+    } catch (RuntimeException & runtimeException) {
+        ERROR("Exiting.");
     } catch (...) {
         std::string errorExitMessage = "Unexpected error occurred";
         switch (phase) {

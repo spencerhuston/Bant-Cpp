@@ -10,7 +10,16 @@
 #include "../typeChecker/typeChecker.hpp"
 
 #include <iostream>
+#include <vector>
 #include <memory>
+#include <exception>
+
+class RuntimeException : public std::exception {
+    public:
+        const char * what() const noexcept override {
+            return "RuntimeException";
+        }
+};
 
 class Interpreter {
     private:
@@ -18,6 +27,8 @@ class Interpreter {
         bool error = false;
 
         std::shared_ptr<Values::NullValue> errorNullValue;
+
+        std::vector<std::pair<std::string, Token>> callStack;
 
         Values::ValuePtr interpretProgram(const ExpPtr & expression, const Values::Environment & environment);
         Values::ValuePtr interpretLiteral(const ExpPtr & expression, const Values::Environment & environment);
@@ -32,10 +43,11 @@ class Interpreter {
         Values::ValuePtr interpretMatch(const ExpPtr & expression, Values::Environment & environment);
 
         template<typename PrimitiveType>
-        Values::ValuePtr doOperation(Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide);
+        Values::ValuePtr doOperation(Token token, Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide);
 
         Values::ValuePtr getName(const Token & token, Values::Environment & environment, std::string name);
 
+        const std::string getStackTraceString();
         void printError(const Token & token, const std::string & errorMessage);
 
     public:

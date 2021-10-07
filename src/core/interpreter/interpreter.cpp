@@ -102,13 +102,13 @@ Interpreter::interpretPrimitive(const ExpPtr & expression, Values::Environment &
     auto rightValue = interpret(primitive->rightSide, environment);
 
     if (leftValue->type->dataType == Types::DataTypes::INT) {
-        return doOperation<Values::IntValue>(primitive->op, leftValue, rightValue);
+        return doOperation<Values::IntValue>(primitive->token, primitive->op, leftValue, rightValue);
     } else if (leftValue->type->dataType == Types::DataTypes::CHAR) {
-        return doOperation<Values::CharValue>(primitive->op, leftValue, rightValue);
+        return doOperation<Values::CharValue>(primitive->token, primitive->op, leftValue, rightValue);
     } else if (leftValue->type->dataType == Types::DataTypes::STRING) {
-        return doOperation<Values::StringValue>(primitive->op, leftValue, rightValue);
+        return doOperation<Values::StringValue>(primitive->token, primitive->op, leftValue, rightValue);
     } else if (leftValue->type->dataType == Types::DataTypes::BOOL) {
-        return doOperation<Values::BoolValue>(primitive->op, leftValue, rightValue);
+        return doOperation<Values::BoolValue>(primitive->token, primitive->op, leftValue, rightValue);
     }
 
     printError(primitive->token, std::string("Error: Binary operator requires primitive types: ")  + 
@@ -203,6 +203,11 @@ Interpreter::interpretApplication(const ExpPtr & expression, Values::Environment
     
     // else has to be a function type
 
+    if (application->ident->expType == ExpressionTypes::REF) {
+        auto funcIdent = std::static_pointer_cast<Reference>(application->ident);
+        callStack.push_back(std::make_pair(funcIdent->ident, funcIdent->token));
+    }
+
     auto functionValue = std::static_pointer_cast<Values::FunctionValue>(ident);
     Values::Environment functionEnvironment = std::make_shared<std::map<std::string, Values::ValuePtr>>(*environment);
     for (unsigned int argumentIndex = 0; argumentIndex < application->arguments.size(); ++argumentIndex) {
@@ -259,13 +264,13 @@ Interpreter::interpretMatch(const ExpPtr & expression, Values::Environment & env
         
         Values::ValuePtr resultValue;
         if (matchValue->type->dataType == Types::DataTypes::INT) {
-            resultValue = doOperation<Values::IntValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+            resultValue = doOperation<Values::IntValue>(match->token, Operator::OperatorTypes::EQ, matchValue, caseValue);
         } else if (matchValue->type->dataType == Types::DataTypes::CHAR) {
-            resultValue = doOperation<Values::CharValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+            resultValue = doOperation<Values::CharValue>(match->token, Operator::OperatorTypes::EQ, matchValue, caseValue);
         } else if (matchValue->type->dataType == Types::DataTypes::STRING) {
-            resultValue = doOperation<Values::StringValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+            resultValue = doOperation<Values::StringValue>(match->token, Operator::OperatorTypes::EQ, matchValue, caseValue);
         } else if (matchValue->type->dataType == Types::DataTypes::BOOL) {
-            resultValue = doOperation<Values::BoolValue>(Operator::OperatorTypes::EQ, matchValue, caseValue);
+            resultValue = doOperation<Values::BoolValue>(match->token, Operator::OperatorTypes::EQ, matchValue, caseValue);
         }
 
         if (std::static_pointer_cast<Values::BoolValue>(resultValue)->data) {
@@ -297,7 +302,7 @@ Interpreter::getName(const Token & token, Values::Environment & environment, std
 
 template<typename PrimitiveType>
 Values::ValuePtr
-Interpreter::doOperation(Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide) {
+Interpreter::doOperation(Token token, Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide) {
     if (op == Operator::OperatorTypes::PLUS) {
         return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
                                                   std::static_pointer_cast<Values::IntValue>(leftSide)->data +
@@ -314,9 +319,7 @@ Interpreter::doOperation(Operator::OperatorTypes op, const Values::ValuePtr & le
         if (std::static_pointer_cast<Values::IntValue>(rightSide)->data == 0) {
             error = true;
 
-            std::stringstream errorStream;
-            errorStream << "Error: Division by zero!" << std::endl;
-            ERROR(errorStream.str());
+            printError(token, "Error: Division by zero!");
             return errorNullValue;
         } else {
             return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
@@ -368,6 +371,16 @@ Interpreter::doOperation(Operator::OperatorTypes op, const Values::ValuePtr & le
     return errorNullValue;
 }
 
+const std::string
+Interpreter::getStackTraceString() {
+    std::stringstream stackStream;
+    stackStream << "Fatal error occurred:\n";
+    for (auto rIterator = callStack.rbegin(); rIterator != callStack.rend(); ++rIterator) {
+        stackStream << "\tat \'" << rIterator->first << "\' (Line: " << rIterator->second.position.fileLine << ")\n";
+    }
+    return stackStream.str();
+}
+
 void
 Interpreter::printError(const Token & token, const std::string & errorMessage) {
     error = true;
@@ -378,4 +391,7 @@ Interpreter::printError(const Token & token, const std::string & errorMessage) {
                 << errorMessage << std::endl 
                 << token.position.currentLineText << std::endl;
     ERROR(errorStream.str());
+    ERROR(getStackTraceString());
+
+    throw new RuntimeException;
 }
