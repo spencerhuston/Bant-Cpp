@@ -36,7 +36,7 @@ displayExceptionError(const int & phase) {
 }
 
 void
-runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
+runBant(const std::string & sourceStream, const bool & runWithBuiltins, const bool & runWithCPSPhase) {
     int phase = 0;
     try {
         HEADER("Building...");
@@ -75,8 +75,10 @@ runBant(const std::string & sourceStream, const bool & runWithBuiltins) {
             return;
         }
 
-        auto cpsConverter = CPSConverter(tree);
-        cpsConverter.convert();
+        if (runWithCPSPhase) {
+            auto cpsConverter = CPSConverter(tree);
+            cpsConverter.convert();
+        }
 
         HEADER("Successful Build, Running...");
 
@@ -122,7 +124,7 @@ main(int argc, char ** argv) {
 
     Logger::getInstance();
 
-    bool runWithBuiltins = true;
+    bool runWithBuiltins = true, runWithCPSPhase = false;
     std::string filePath;
     if (argc == 1) {
         ERROR("Error: Source file required");
@@ -135,6 +137,10 @@ main(int argc, char ** argv) {
     
     if (cmdOptionExists(argv, argv + argc, "-nb")) { // No Builtins
         runWithBuiltins = false;
+    }
+
+    if (cmdOptionExists(argv, argv + argc, "-c")) { // Use CPS Phase
+        runWithCPSPhase = true;
     }
     
     if (cmdOptionExists(argv, argv + argc, "-f")) { // File Path
@@ -151,5 +157,5 @@ main(int argc, char ** argv) {
     if (sourceStream.empty())
         exit(3);
     
-    runBant(sourceStream, runWithBuiltins);
+    runBant(sourceStream, runWithBuiltins, runWithCPSPhase);
 }
