@@ -16,8 +16,15 @@ class CPSConverter {
 
         ExpPtr convertProgram(ExpPtr expression);
         ExpPtr convertLiteral(ExpPtr expression);
+        ExpPtr convertPrimitive(ExpPtr expression);
+        ExpPtr convertLet(ExpPtr expression);
+        ExpPtr convertListDefinition(ExpPtr expression);
+        ExpPtr convertTupleDefinition(ExpPtr expression);
 
         std::shared_ptr<Let> makeNewLet(Types::TypePtr valueType, ExpPtr value);
+        std::shared_ptr<Reference> makeReference(ExpPtr value);
+        std::shared_ptr<Let> getNestedLet(std::shared_ptr<Let> let);
+
         std::string newLetIdent();
 
     public:

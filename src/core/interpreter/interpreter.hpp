@@ -50,7 +50,7 @@ class Interpreter {
         Values::ValuePtr interpretMatch(const ExpPtr & expression, Values::Environment & environment);
 
         template<typename PrimitiveType>
-        Values::ValuePtr doOperation(Token token, Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide);
+        Values::ValuePtr doOperation(const Token & token, Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide);
 
         Values::ValuePtr getName(const Token & token, Values::Environment & environment, std::string name);
 

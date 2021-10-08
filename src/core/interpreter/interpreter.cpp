@@ -302,7 +302,7 @@ Interpreter::getName(const Token & token, Values::Environment & environment, std
 
 template<typename PrimitiveType>
 Values::ValuePtr
-Interpreter::doOperation(Token token, Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide) {
+Interpreter::doOperation(const Token & token, Operator::OperatorTypes op, const Values::ValuePtr & leftSide, const Values::ValuePtr & rightSide) {
     if (op == Operator::OperatorTypes::PLUS) {
         return std::make_shared<Values::IntValue>(std::make_shared<Types::IntType>(),
                                                   std::static_pointer_cast<Values::IntValue>(leftSide)->data +

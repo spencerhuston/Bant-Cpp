@@ -3,8 +3,10 @@ Literal:
 l
 =>
 val l$x : t = l;
+l$x
 
 Primitive:
+==========
 x prim y
 =>
 val l$x : t = x;
