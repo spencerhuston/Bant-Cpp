@@ -1,4 +1,4 @@
-# Bant (WORK IN PROGRESS)
+# Bant
 
 ### Build: **REQUIRES C++17**
 Simply clone and run the ```./scripts/makeBant.sh``` script. Run a Bant program using ```[bant directory]/build/bant -f [source file].bnt```. To see debug output use the ```-d``` flag
